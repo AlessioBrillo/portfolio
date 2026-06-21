@@ -1,0 +1,20 @@
+/**
+ * Non-color design tokens (spacing rhythm, motion, shape).
+ * Color and typographic family tokens live in the Tailwind @theme block
+ * in index.css so they are available as utility classes.
+ */
+:root {
+  /* Generous vertical breathing room per band (the "luxury" of the ascent). */
+  --space-section: clamp(6rem, 4rem + 6vw, 10rem);
+
+  /* Motion */
+  --duration-fast: 150ms;
+  --duration-normal: 300ms;
+  --duration-slow: 600ms;
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+
+  /* Shape */
+  --radius-soft: 8px;
+  --radius-card: 12px;
+  --hairline: 1px;
+}

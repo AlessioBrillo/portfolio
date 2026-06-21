@@ -1,0 +1,34 @@
+# --- Node ---
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# --- Build ---
+dist/
+build/
+*.tsbuildinfo
+
+# --- Environment ---
+.env
+.env.local
+.env.*.local
+
+# --- IDE ---
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# --- OS ---
+.DS_Store
+Thumbs.db
+
+# --- Testing ---
+coverage/
+
+# --- Design papers (source of truth lives outside the repo, never publish) ---
+*.paper.md
+portfolio-design-plan.md

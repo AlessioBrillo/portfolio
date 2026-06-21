@@ -1,0 +1,56 @@
+@import 'tailwindcss';
+@import './styles/tokens.css';
+@import './styles/typography.css';
+
+/**
+ * Design tokens exposed to Tailwind utilities.
+ * Palette: "Terra -> Cielo -> Notte". Orange is the single accent; olive is
+ * used sparingly for the nature/outdoor band.
+ */
+@theme {
+  --color-orange: #e9622e;
+  --color-paper: #f4efe6;
+  --color-night: #14161d;
+  --color-olive: #5e6b4f;
+  --color-ink: #2a2722;
+  --color-cream: #fbf8f2;
+  --color-muted-light: #8a8377;
+  --color-muted-dark: #7b8190;
+
+  --font-display: 'Fraunces', ui-serif, Georgia, 'Times New Roman', serif;
+  --font-sans: 'Geist Sans', ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --font-mono: 'Geist Mono', ui-monospace, 'JetBrains Mono', 'SFMono-Regular', monospace;
+}
+
+@layer base {
+  :root {
+    color-scheme: light;
+  }
+
+  body {
+    margin: 0;
+    background-color: var(--color-paper);
+    color: var(--color-ink);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  /* Visible keyboard focus — the orange ring is the one functional accent. */
+  :focus-visible {
+    outline: 2px solid var(--color-orange);
+    outline-offset: 2px;
+  }
+
+  /* Honour the user's motion preference (see ADR-0009). */
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+}

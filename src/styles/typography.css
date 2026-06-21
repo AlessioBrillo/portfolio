@@ -1,0 +1,37 @@
+/**
+ * Typography: self-hosted variable fonts + the fluid type scale.
+ *
+ * Font binaries are NOT committed yet. Drop the .woff2 files into
+ * src/assets/fonts/ (see assets/fonts/README.md) and uncomment the
+ * @font-face declarations below. Until then the site falls back to the
+ * system stacks defined in the @theme block.
+ */
+
+/*
+@font-face {
+  font-family: 'Fraunces';
+  src: url('../assets/fonts/Fraunces.woff2') format('woff2');
+  font-weight: 100 900;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Geist Sans';
+  src: url('../assets/fonts/Geist.woff2') format('woff2');
+  font-weight: 100 900;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Geist Mono';
+  src: url('../assets/fonts/GeistMono.woff2') format('woff2');
+  font-weight: 100 900;
+  font-display: swap;
+}
+*/
+
+:root {
+  --text-hero: clamp(3rem, 1rem + 7vw, 6rem);
+  --text-h2: clamp(2.25rem, 1.5rem + 2.5vw, 3.5rem);
+  --text-h3: clamp(1.375rem, 1.2rem + 0.6vw, 1.625rem);
+  --text-body: clamp(1.0625rem, 1rem + 0.25vw, 1.1875rem);
+  --text-eyebrow: 0.8125rem;
+}
