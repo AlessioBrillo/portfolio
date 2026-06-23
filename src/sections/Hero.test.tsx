@@ -12,4 +12,9 @@ describe('Hero', () => {
     render(<Hero />);
     expect(screen.getByText(/student of ai and physics/i)).toBeInTheDocument();
   });
+
+  it('renders the mono eyebrow with real VDS coordinates', () => {
+    render(<Hero />);
+    expect(screen.getByText(/45\.6306.*8\.7281.*VDS/i)).toBeInTheDocument();
+  });
 });

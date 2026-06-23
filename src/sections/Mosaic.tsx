@@ -1,8 +1,12 @@
 import type { ReactElement } from 'react';
-import { Band } from '@/components/ui/Band';
+import { Band, type Surface } from '@/components/ui/Band';
 import { SectionHeader } from '@/components/ui/SectionHeader';
 import { MosaicTile } from '@/components/ui/MosaicTile';
 import type { MosaicEntry } from '@/types/domain';
+
+interface MosaicProps {
+  surface?: Surface;
+}
 
 const ENTRIES: readonly MosaicEntry[] = [
   {
@@ -18,9 +22,9 @@ const ENTRIES: readonly MosaicEntry[] = [
 ];
 
 /** 02 — The mosaic: the visual index of the puzzle. Each tile opens a case study. */
-export function Mosaic(): ReactElement {
+export function Mosaic({ surface = 'solid' }: MosaicProps): ReactElement {
   return (
-    <Band id="mosaic" ariaLabel="The mosaic" tone="paper">
+    <Band id="mosaic" ariaLabel="The mosaic" tone="paper" surface={surface}>
       <SectionHeader eyebrow="02 — The Mosaic" title="Pieces under one roof" />
       <ul className="mt-12 grid list-none grid-cols-1 gap-6 p-0 sm:grid-cols-2 lg:grid-cols-3">
         {ENTRIES.map((entry) => (
