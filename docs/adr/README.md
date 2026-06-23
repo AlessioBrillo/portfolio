@@ -16,6 +16,7 @@ trade-offs without re-running the original arguments.
 | [0007](0007-self-hosted-variable-fonts.md)      | Self-hosted variable fonts (Fraunces / Geist / Geist Mono)     | 2026-06-21 | Accepted |
 | [0008](0008-visual-identity-palette.md)         | Visual identity & palette — "Terra -> Cielo -> Notte"          | 2026-06-21 | Accepted |
 | [0009](0009-accessibility-performance-floor.md) | Accessibility & performance quality floor                      | 2026-06-21 | Accepted |
+| [0010](0010-flight-profile-tonal-bands.md)      | Flight-profile tonal bands (reframing the ascent)              | 2026-06-22 | Accepted |
 
 ## Conventions
 
@@ -36,3 +37,7 @@ content of that paper — the design system, page architecture, content directio
 and roadmap — lives under `docs/design-system/`, `docs/architecture/`,
 `docs/content/`, and `docs/roadmap.md`. The source paper itself is intentionally
 kept out of the repository.
+
+ADR-0010 is the first post-paper decision: it reconciles a contradiction the paper
+carried (a monotonic "climb" framing over an intentionally oscillating light/dark
+sequence) by reframing the journey as a flight profile.

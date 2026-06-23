@@ -1,20 +1,22 @@
-# Page Architecture — the Puzzle, Top-Down = Ground to Night
+# Page Architecture — the Puzzle, Top-Down = the Flight Profile
 
-> Decision record: [ADR-0001](../adr/0001-single-page-ascent-architecture.md).
+> Decision records: [ADR-0001](../adr/0001-single-page-ascent-architecture.md),
+> reframed by [ADR-0010](../adr/0010-flight-profile-tonal-bands.md).
 
-The vertical order of the page _is_ the ascent. Top is the human ground; the
-professional altitude sits high and deep (reached immediately by a recruiter);
-light returns for sport and experiences further down.
+The vertical order of the page _is_ the flight. Top is the human ground; the
+professional core sits at cruise — above the cloud deck, where the sky is dark
+even by day — reached immediately by a recruiter; the descent breaks back into
+daylight for sport and experiences before the night landing.
 
 ```
-00 · HERO         — the thesis: name + one-line manifesto        [PAPER  · ground/day]
-01 · WHO          — character: enterprising, adventurous, curious [PAPER]
-02 · THE MOSAIC   — the puzzle index; tiles open into case studies[PAPER -> HAZE]
-03 · AI & PHYSICS — the serious core for a recruiter              [NIGHT  · altitude]
-04 · WORK & SCHOOL— projects, each enlarges                       [NIGHT]
-05 · SKY & SPORT  — aviation/VDS, tennis, MTB; very visual        [PAPER  · light returns]
-06 · EXPERIENCES  — curated storytelling -> archive on "dig deeper"[PAPER]
-07 · CONTACT      — one clear invitation                          [NIGHT  · starlit]
+00 · HERO         — the thesis: name + one-line manifesto        [PAPER  · ground]
+01 · WHO          — character: enterprising, adventurous, curious [PAPER  · ground]
+02 · THE MOSAIC   — the puzzle index; tiles open into case studies[PAPER -> NIGHT · climb]
+03 · AI & PHYSICS — the serious core for a recruiter              [NIGHT  · cruise]
+04 · WORK & SCHOOL— projects, each enlarges                       [NIGHT  · cruise]
+05 · SKY & SPORT  — aviation/VDS, tennis, MTB; very visual        [NIGHT -> PAPER · descent]
+06 · EXPERIENCES  — curated storytelling -> archive on "dig deeper"[PAPER  · descent]
+07 · CONTACT      — one clear invitation                          [NIGHT  · night landing]
 ```
 
 ## How the puzzle works
@@ -25,9 +27,9 @@ light returns for sport and experiences further down.
 - Each tile is a curated teaser on the surface; clicking enlarges it into a long,
   detailed case study (a dedicated route — see
   [ADR-0005](../adr/0005-case-studies-as-mdx-routes.md)).
-- Top-down order coincides with the ascent: human ground first, then the
-  professional altitude (the serious part a recruiter sees), then light again for
-  sport and experiences.
+- Top-down order coincides with the flight: human ground first, then the
+  professional cruise (the serious part a recruiter sees, above the clouds), then
+  daylight again on the descent for sport and experiences, then the night landing.
 
 ## Implementation map
 

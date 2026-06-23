@@ -1,13 +1,13 @@
 /**
  * Domain model for the portfolio.
  *
- * The site is a single tonal ascent: scrolling gains altitude, and each band
- * (ground -> haze -> clear -> altitude -> night) maps to a life domain. These
- * types describe that journey and the case studies it links to.
+ * The site is a single tonal flight: scrolling flies a profile, and each band
+ * (ground -> climb -> cruise -> descent -> night) maps to a life domain. These
+ * types describe that journey and the case studies it links to. See ADR-0010.
  */
 
-/** The five tonal bands of the ascent, low to high. */
-export type AltitudeBand = 'ground' | 'haze' | 'clear' | 'altitude' | 'night';
+/** The five bands of the flight profile, in scroll order. */
+export type AltitudeBand = 'ground' | 'climb' | 'cruise' | 'descent' | 'night';
 
 /** Stable anchor ids for the page sections, top to bottom. */
 export type SectionId =

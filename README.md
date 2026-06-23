@@ -3,10 +3,13 @@
 > Student of AI and physics. I build things, fly small aircraft, and chase the
 > next hard problem.
 
-A single-page, scroll-driven portfolio built on one idea: **scrolling is gaining
-altitude.** The page opens at ground level in full daylight and climbs through
-tonal bands — haze, clear, altitude, night — each a domain of the author's life.
-Light and dark are not a toggle; they are the journey.
+A single-page, scroll-driven portfolio built on one idea: **scrolling flies a
+flight profile.** The page opens at ground level in full daylight and moves
+through bands — ground, climb, cruise, descent, night — each a domain of the
+author's life. Cruise sits above the cloud deck, where the sky is dark even by
+day; the descent breaks back into daylight before the night landing. Light and
+dark are not a toggle; they are the journey. (See
+[ADR-0010](docs/adr/0010-flight-profile-tonal-bands.md).)
 
 This repository is also part of the portfolio: it is meant to read as carefully as
 the site itself.

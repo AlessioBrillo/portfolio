@@ -11,9 +11,14 @@ flourish per area**, never accumulate.
   `index.html`.)
 - **Metadata that tells the truth** — dates, VDS coordinates, altitude, stack: no
   decorative labels.
-- **One easter egg**, consistent with the curious character — in the Night band,
-  pressing `Up` lifts the "altitude" and a faint constellation surfaces. Just one.
-  Rewards explorers, disturbs no one.
+- **One easter egg**, consistent with the curious character — in the Night band, a
+  faint constellation surfaces on a deliberate gesture. Just one. Rewards explorers,
+  disturbs no one.
+  > **Design note (2026-06-22, deferred to its build phase):** the original idea
+  > triggered this on the `Up` arrow key, which hijacks native keyboard scrolling
+  > and is an accessibility regression. Use a non-scroll trigger instead (e.g. a
+  > key sequence, a long-press, or a hidden hotspot) so keyboard scrolling keeps
+  > working.
 - **404 in voice** — _"Lost altitude. Let's get you back to ground."_ -> home.
   (Implemented in `src/pages/NotFoundPage.tsx`.)
 - **No dark/light toggle** — a choice, not a gap (see

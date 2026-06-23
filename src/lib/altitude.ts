@@ -1,14 +1,16 @@
 import type { AltitudeStop, SectionId } from '@/types/domain';
 
 /**
- * The ascent, top (ground) to summit (night). Order matches the on-page
- * section order so the altitude gauge and scroll position stay aligned.
+ * The flight profile, top (ground) to landing (night). Order matches the on-page
+ * section order so the altitude gauge and scroll position stay aligned. The
+ * profile rises and falls — cruise sits above the cloud deck (dark sky), descent
+ * breaks back into daylight before the night landing. See ADR-0010.
  */
 export const ALTITUDE_STOPS: readonly AltitudeStop[] = [
   { band: 'ground', label: 'GROUND', target: 'hero' },
-  { band: 'haze', label: 'HAZE', target: 'mosaic' },
-  { band: 'altitude', label: 'ALTITUDE', target: 'ai-physics' },
-  { band: 'clear', label: 'CLEAR', target: 'sky-sport' },
+  { band: 'climb', label: 'CLIMB', target: 'mosaic' },
+  { band: 'cruise', label: 'CRUISE', target: 'ai-physics' },
+  { band: 'descent', label: 'DESCENT', target: 'sky-sport' },
   { band: 'night', label: 'NIGHT', target: 'contact' },
 ];
 
