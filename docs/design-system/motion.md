@@ -5,9 +5,11 @@
 
 Discreet motion, never "AI-generated".
 
-- **Quota transitions:** the background tone changes continuously on scroll
+- **Tonal transitions:** the background tone changes continuously on scroll
   between bands. This is the heart of the light/dark effect and the _only_
-  scenographic moment. Driven by GSAP ScrollTrigger.
+  scenographic moment. The full multi-band engine is driven by GSAP ScrollTrigger
+  (roadmap Phase 3); Phase 2 validates the _first_ transition with Framer Motion
+  `useScroll`/`useTransform` to keep the JS budget low (see ADR-0003).
 - **Reveals:** text and tiles rise 12-16px with a fade on scroll. Subtle. Driven
   by Framer Motion.
 - **Hover:** mosaic tiles get a micro-lift and an orange edge.
