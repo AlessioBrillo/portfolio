@@ -1,32 +1,39 @@
 /**
  * Typography: self-hosted variable fonts + the fluid type scale.
  *
- * Font binaries are NOT committed yet. Drop the .woff2 files into
- * src/assets/fonts/ (see assets/fonts/README.md) and uncomment the
- * @font-face declarations below. Until then the site falls back to the
- * system stacks defined in the @theme block.
+ * The Latin-subset variable .woff2 binaries are committed under
+ * src/assets/fonts/ (provenance + OFL licenses alongside them). Fraunces ships
+ * the full axis set (opsz/soft/wonk/wght); font-optical-sizing: auto (the
+ * browser default) drives its optical axis from font-size automatically.
+ * See ADR-0007.
  */
 
 /*
+ * Paths use the `@` alias (src/) rather than a relative `../assets/...` because
+ * Tailwind inlines this file into src/index.css via @import, which would break
+ * a relative url(); the alias resolves regardless of where it is inlined.
+ */
 @font-face {
   font-family: 'Fraunces';
-  src: url('../assets/fonts/Fraunces.woff2') format('woff2');
+  src: url('@/assets/fonts/Fraunces.woff2') format('woff2');
   font-weight: 100 900;
+  font-style: normal;
   font-display: swap;
 }
 @font-face {
   font-family: 'Geist Sans';
-  src: url('../assets/fonts/Geist.woff2') format('woff2');
+  src: url('@/assets/fonts/Geist.woff2') format('woff2');
   font-weight: 100 900;
+  font-style: normal;
   font-display: swap;
 }
 @font-face {
   font-family: 'Geist Mono';
-  src: url('../assets/fonts/GeistMono.woff2') format('woff2');
+  src: url('@/assets/fonts/GeistMono.woff2') format('woff2');
   font-weight: 100 900;
+  font-style: normal;
   font-display: swap;
 }
-*/
 
 :root {
   --text-hero: clamp(3rem, 1rem + 7vw, 6rem);
