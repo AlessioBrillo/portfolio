@@ -1,0 +1,242 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-06-22T00:00:00.000Z",
+  "title": "Design System: The Ascent",
+  "extensions": {
+    "colorMeta": {
+      "orange": {
+        "role": "primary",
+        "displayName": "Signal Orange",
+        "canonical": "#E9622E",
+        "tonalRamp": [
+          "#451907",
+          "#7a2b0d",
+          "#af3e12",
+          "#e35118",
+          "#ec774a",
+          "#f19e7e",
+          "#f7c6b3",
+          "#fdeee8"
+        ]
+      },
+      "olive": {
+        "role": "secondary",
+        "displayName": "Field Olive",
+        "canonical": "#5E6B4F",
+        "tonalRamp": [
+          "#272c20",
+          "#444e39",
+          "#626f52",
+          "#7f916b",
+          "#9caa8c",
+          "#b9c3ad",
+          "#d6dbcf",
+          "#f2f4f0"
+        ]
+      },
+      "paper": {
+        "role": "neutral",
+        "displayName": "Tailored Paper",
+        "canonical": "#F4EFE6",
+        "tonalRamp": [
+          "#352a17",
+          "#5e4b29",
+          "#866b3b",
+          "#af8c4d",
+          "#c2a674",
+          "#d4c09c",
+          "#e5dac5",
+          "#f7f4ed"
+        ]
+      },
+      "night": {
+        "role": "neutral",
+        "displayName": "Cruise Night",
+        "canonical": "#14161D",
+        "tonalRamp": [
+          "#1f222d",
+          "#373d50",
+          "#4f5772",
+          "#677195",
+          "#8891ad",
+          "#abb1c5",
+          "#cdd1dd",
+          "#f0f1f5"
+        ]
+      },
+      "ink": {
+        "role": "neutral",
+        "displayName": "Cartographer's Ink",
+        "canonical": "#2A2722",
+        "tonalRamp": [
+          "#2a2722",
+          "#4a453c",
+          "#6b6356",
+          "#8b8170",
+          "#a59d90",
+          "#bfbab0",
+          "#dad6d1",
+          "#f4f3f1"
+        ]
+      },
+      "cream": {
+        "role": "neutral",
+        "displayName": "Instrument Cream",
+        "canonical": "#FBF8F2",
+        "tonalRamp": [
+          "#3a2d12",
+          "#674f20",
+          "#94722d",
+          "#c0943b",
+          "#d0ad66",
+          "#dec592",
+          "#ebddbf",
+          "#f9f5eb"
+        ]
+      },
+      "muted-light": {
+        "role": "neutral",
+        "displayName": "Day Muted",
+        "canonical": "#8A8377",
+        "tonalRamp": [
+          "#292723",
+          "#48453e",
+          "#686259",
+          "#878074",
+          "#a29d93",
+          "#bdb9b3",
+          "#d8d6d2",
+          "#f3f3f1"
+        ]
+      },
+      "muted-dark": {
+        "role": "neutral",
+        "displayName": "Night Muted",
+        "canonical": "#7B8190",
+        "tonalRamp": [
+          "#23252a",
+          "#3e4149",
+          "#585d69",
+          "#737989",
+          "#9297a3",
+          "#b2b5be",
+          "#d1d4d9",
+          "#f1f2f3"
+        ]
+      }
+    },
+    "typographyMeta": {
+      "display": {
+        "displayName": "Display",
+        "purpose": "The hero name only. Fraunces with optical sizing live."
+      },
+      "headline": { "displayName": "Headline", "purpose": "Section titles (H2). One per band." },
+      "title": { "displayName": "Title", "purpose": "Sub-heads and mosaic tile titles." },
+      "body": { "displayName": "Body", "purpose": "Prose, capped at 65-75ch." },
+      "label": { "displayName": "Label", "purpose": "Mono eyebrow carrying real data." }
+    },
+    "shadows": [],
+    "motion": [
+      { "name": "duration-fast", "value": "150ms", "purpose": "Hover and small state changes." },
+      { "name": "duration-normal", "value": "300ms", "purpose": "Default transitions." },
+      { "name": "duration-slow", "value": "600ms", "purpose": "Tonal band crossfade." },
+      {
+        "name": "ease-out-expo",
+        "value": "cubic-bezier(0.16, 1, 0.3, 1)",
+        "purpose": "Signature reveal and tonal easing."
+      }
+    ],
+    "breakpoints": [
+      { "name": "xs", "value": "320px" },
+      { "name": "sm", "value": "375px" },
+      { "name": "md", "value": "768px" },
+      { "name": "lg", "value": "1024px" },
+      { "name": "xl", "value": "1440px" },
+      { "name": "2xl", "value": "1920px" }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "The final CTA only. Solid orange with an ink mono label (AA-safe at 4.42:1).",
+      "html": "<button class=\"ds-btn-primary\">LET'S TALK</button>",
+      "css": ".ds-btn-primary { background: var(--color-orange, #E9622E); color: var(--color-ink, #2A2722); font-family: 'Geist Mono', ui-monospace, monospace; font-size: 0.8125rem; font-weight: 500; letter-spacing: 0.18em; text-transform: uppercase; padding: 14px 28px; border: none; border-radius: 8px; cursor: pointer; transition: transform 150ms cubic-bezier(0.16,1,0.3,1), filter 150ms ease; } .ds-btn-primary:hover { transform: translateY(-2px); filter: brightness(0.96); } .ds-btn-primary:focus-visible { outline: 2px solid var(--color-orange, #E9622E); outline-offset: 2px; }"
+    },
+    {
+      "name": "Mosaic Tile",
+      "kind": "card",
+      "refersTo": "mosaic-tile",
+      "description": "A composed puzzle piece. Hairline at rest; orange edge on hover when it links to a case study. No shadow.",
+      "html": "<article class=\"ds-tile\"><h3 class=\"ds-tile-title\">AI &amp; Physics</h3><p class=\"ds-tile-line\">How I think, in problems and proofs.</p></article>",
+      "css": ".ds-tile { background: var(--color-paper, #F4EFE6); color: var(--color-ink, #2A2722); border: 1px solid color-mix(in srgb, var(--color-muted-light, #8A8377) 40%, transparent); border-radius: 12px; padding: 28px; transition: transform 300ms cubic-bezier(0.16,1,0.3,1), border-color 300ms ease; } .ds-tile:hover { transform: translateY(-4px); border-color: var(--color-orange, #E9622E); } .ds-tile-title { font-family: 'Fraunces', ui-serif, Georgia, serif; font-weight: 500; font-size: 1.5rem; margin: 0 0 8px; } .ds-tile-line { font-family: 'Geist Sans', ui-sans-serif, system-ui, sans-serif; color: var(--color-muted-light, #8A8377); margin: 0; }"
+    },
+    {
+      "name": "Ghost Link",
+      "kind": "nav",
+      "refersTo": "ghost-link",
+      "description": "The standard link. An orange underline draws in from the left on hover.",
+      "html": "<a class=\"ds-ghost\" href=\"#\">Read the case study</a>",
+      "css": ".ds-ghost { position: relative; color: inherit; text-decoration: none; font-family: 'Geist Sans', ui-sans-serif, system-ui, sans-serif; } .ds-ghost::after { content: ''; position: absolute; left: 0; bottom: -2px; height: 1px; width: 100%; background: var(--color-orange, #E9622E); transform: scaleX(0); transform-origin: left; transition: transform 300ms cubic-bezier(0.16,1,0.3,1); } .ds-ghost:hover::after { transform: scaleX(1); } .ds-ghost:focus-visible { outline: 2px solid var(--color-orange, #E9622E); outline-offset: 2px; }"
+    },
+    {
+      "name": "Eyebrow",
+      "kind": "custom",
+      "refersTo": "eyebrow",
+      "description": "Mono, uppercase, tracked. Carries real data (coordinates, dates, altitude), never a decorative kicker.",
+      "html": "<span class=\"ds-eyebrow\">45.6306&deg; N &middot; 8.7281&deg; E &mdash; VDS</span>",
+      "css": ".ds-eyebrow { font-family: 'Geist Mono', ui-monospace, monospace; font-size: 0.8125rem; font-weight: 500; letter-spacing: 0.18em; text-transform: uppercase; color: var(--color-muted-light, #8A8377); }"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Quiet Cockpit",
+    "overview": "A cockpit at altitude is the whole system in one image: matte, disciplined surfaces; precise mono-spaced instruments reading real data; one warm signal light; and, beyond the glass, a sky that changes from day to night as you climb. The interface is calm and exact almost everywhere, so the one scenographic thing -- the tonal flight the background performs as you scroll -- lands like a view, not a gimmick. Depth comes from tone and atmosphere, not from drop shadows and glass.",
+    "keyCharacteristics": [
+      "One accent (orange), one scenographic effect (the tonal flight), everything else quiet.",
+      "Mono type carries real data -- coordinates, dates, altitude, stack -- never decoration.",
+      "Editorial scale contrast: a large humanist serif against a precise grotesque body.",
+      "Atmosphere over elevation: depth from tonal layering and space, not shadows.",
+      "AA-or-better contrast is a hard floor; reduced motion is a first-class path."
+    ],
+    "rules": [
+      {
+        "name": "The Single Voice Rule",
+        "body": "Orange appears on a small fraction of any screen and is never diluted. Its rarity is the signal. If orange is doing decoration, remove it.",
+        "section": "colors"
+      },
+      {
+        "name": "The Blue-Black Rule",
+        "body": "The dark surface is #14161D (a cool blue-black sky), never a warm brown-black. The warm-brown night is the AI-generator tell this system exists to avoid.",
+        "section": "colors"
+      },
+      {
+        "name": "The Real-Data Rule",
+        "body": "The mono label carries true information -- coordinates, a date, an altitude, a stack -- never a decorative kicker. If the eyebrow doesn't say something true, it doesn't ship.",
+        "section": "typography"
+      },
+      {
+        "name": "The No-Shadow Rule",
+        "body": "Surfaces are flat at rest. Tiles lift on hover with a small translateY and an orange hairline edge -- a response to state, not a resting elevation.",
+        "section": "elevation"
+      }
+    ],
+    "dos": [
+      "Do keep orange to a small fraction of any view; let its rarity be the signal.",
+      "Do make every mono eyebrow carry true data (coordinates, dates, altitude, stack).",
+      "Do build depth from tone, space, and 1px hairlines -- atmosphere over elevation.",
+      "Do pair on the contrast axis: Fraunces serif against Geist grotesque.",
+      "Do give prefers-reduced-motion a real path: tonal shifts become instant, reveals off.",
+      "Do verify every text/background pair against AA; bump toward ink if it's even close."
+    ],
+    "donts": [
+      "Don't ship the generic AI-generator look -- cream paper + humanist serif + terracotta accent.",
+      "Don't ship a stock portfolio template -- uniform identical-tile card grids with no hierarchy.",
+      "Don't build the template SaaS hero (big-number metric + gradient blob + generic CTA).",
+      "Don't add a dark/light toggle. Tone follows altitude; the journey is the theme.",
+      "Don't dilute orange into decorative fills, or use it as small body text.",
+      "Don't use box-shadow or glassmorphism to fake depth. Use tone and space.",
+      "Don't use cream text on the orange button (3.14:1, fails AA). Use ink."
+    ]
+  }
+}
