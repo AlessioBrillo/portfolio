@@ -1,18 +1,3 @@
-/**
- * Typography: self-hosted variable fonts + the fluid type scale.
- *
- * The Latin-subset variable .woff2 binaries are committed under
- * src/assets/fonts/ (provenance + OFL licenses alongside them). Fraunces ships
- * the full axis set (opsz/soft/wonk/wght); font-optical-sizing: auto (the
- * browser default) drives its optical axis from font-size automatically.
- * See ADR-0007.
- */
-
-/*
- * Paths use the `@` alias (src/) rather than a relative `../assets/...` because
- * Tailwind inlines this file into src/index.css via @import, which would break
- * a relative url(); the alias resolves regardless of where it is inlined.
- */
 @font-face {
   font-family: 'Fraunces';
   src: url('@/assets/fonts/Fraunces.woff2') format('woff2');
@@ -33,12 +18,4 @@
   font-weight: 100 900;
   font-style: normal;
   font-display: swap;
-}
-
-:root {
-  --text-hero: clamp(3rem, 1rem + 7vw, 6rem);
-  --text-h2: clamp(2.25rem, 1.5rem + 2.5vw, 3.5rem);
-  --text-h3: clamp(1.375rem, 1.2rem + 0.6vw, 1.625rem);
-  --text-body: clamp(1.0625rem, 1rem + 0.25vw, 1.1875rem);
-  --text-eyebrow: 0.8125rem;
 }
