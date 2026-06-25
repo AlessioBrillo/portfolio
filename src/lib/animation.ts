@@ -1,7 +1,7 @@
 /**
- * Motion design tokens, mirrored from the CSS custom properties in
- * styles/tokens.css. Keep the two in sync: CSS drives declarative transitions,
- * these constants drive JS-orchestrated motion (Framer Motion / GSAP).
+ * Motion design tokens, mirrored from the CSS custom properties in the
+ * `@theme` block of src/index.css. Keep the two in sync: CSS drives declarative
+ * transitions, these constants drive JS-orchestrated motion (Framer Motion / GSAP).
  */
 
 /** Transition durations in milliseconds. */
