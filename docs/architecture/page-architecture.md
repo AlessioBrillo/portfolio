@@ -33,16 +33,20 @@ daylight for sport and experiences before the night landing.
 
 ## Implementation map
 
-| Section          | Component                      | Band tone |
-| ---------------- | ------------------------------ | --------- |
-| 00 Hero          | `src/sections/Hero.tsx`        | paper     |
-| 01 Who           | `src/sections/Who.tsx`         | paper     |
-| 02 Mosaic        | `src/sections/Mosaic.tsx`      | paper     |
-| 03 AI & Physics  | `src/sections/AiPhysics.tsx`   | night     |
-| 04 Work & School | `src/sections/WorkSchool.tsx`  | night     |
-| 05 Sky & Sport   | `src/sections/SkySport.tsx`    | paper     |
-| 06 Experiences   | `src/sections/Experiences.tsx` | paper     |
-| 07 Contact       | `src/sections/Contact.tsx`     | night     |
+| Section          | Component                      | Flight band | Tone          | Transitions via           |
+| ---------------- | ------------------------------ | ----------- | ------------- | ------------------------- |
+| 00 Hero          | `src/sections/Hero.tsx`        | ground      | paper         | —                         |
+| 01 Who           | `src/sections/Who.tsx`         | ground      | paper         | —                         |
+| 02 Mosaic        | `src/sections/Mosaic.tsx`      | climb       | paper → night | `TonalScene` (Phase 2)    |
+| 03 AI & Physics  | `src/sections/AiPhysics.tsx`   | cruise      | night         | `TonalScene` (Phase 2)    |
+| 04 Work & School | `src/sections/WorkSchool.tsx`  | cruise      | night         | — (solid)                 |
+| 05 Sky & Sport   | `src/sections/SkySport.tsx`    | descent     | night → paper | GSAP engine (**Phase 3**) |
+| 06 Experiences   | `src/sections/Experiences.tsx` | descent     | paper         | — (solid)                 |
+| 07 Contact       | `src/sections/Contact.tsx`     | night       | night         | — (solid)                 |
 
-Section order and tones are also encoded in `src/lib/altitude.ts`
-(`SECTION_ORDER`, `ALTITUDE_STOPS`).
+> **Status:** The climb crossfade (paper → night) is live via `TonalScene` wrapping
+> sections 00–03. The descent crossfade (night → paper) and the full multi-band GSAP
+> engine are roadmap Phase 3 (see ADR-0003, ADR-0010).
+
+Section order and bands are encoded in `src/lib/altitude.ts`
+(`SECTION_ORDER`, `ALTITUDE_STOPS`). Flight-profile vocabulary per ADR-0010.
