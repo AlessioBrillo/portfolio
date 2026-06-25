@@ -15,10 +15,10 @@ import { Contact } from '@/sections/Contact';
 /**
  * The single page: one continuous flight from ground to night (ADR-0010).
  *
- * Phase 2 ships the *first* tonal transition: the ground -> cruise group is
- * wrapped in a `TonalScene` whose backdrop crossfades paper -> night on scroll.
- * Those four sections render `surface="scene"` so the backdrop shows through.
- * The remaining bands stay solid until the full flight engine lands in Phase 3.
+ * A single `TonalScene` backdrop spans the whole flight — it climbs
+ * paper -> night into cruise and descends night -> paper through Sky & Sport.
+ * Every section over it renders `surface="scene"` so the backdrop shows
+ * through; Contact lands on its own solid night outside the scene.
  */
 export function HomePage(): ReactElement {
   return (
@@ -31,10 +31,10 @@ export function HomePage(): ReactElement {
           <Who surface="scene" />
           <Mosaic surface="scene" />
           <AiPhysics surface="scene" />
+          <WorkSchool surface="scene" />
+          <SkySport surface="scene" />
+          <Experiences surface="scene" />
         </TonalScene>
-        <WorkSchool />
-        <SkySport />
-        <Experiences />
         <Contact />
       </main>
       <Footer />
