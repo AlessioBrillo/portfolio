@@ -13,7 +13,11 @@ export function Contact(): ReactElement {
         <a href="mailto:alessio@ilcassero.it">
           <Button>Email me</Button>
         </a>
-        <GhostLink href="https://www.linkedin.com/" target="_blank" rel="noreferrer">
+        <GhostLink
+          href="https://www.linkedin.com/in/alessio-brillo"
+          target="_blank"
+          rel="noreferrer"
+        >
           LinkedIn
         </GhostLink>
       </div>

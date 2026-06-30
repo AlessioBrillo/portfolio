@@ -1,20 +1,36 @@
 import type { ReactElement } from 'react';
-import { ALTITUDE_STOPS } from '@/lib/altitude';
-import { useScrollProgress } from '@/hooks/useScrollProgress';
+import { ALTITUDE_STOPS, SECTION_ORDER } from '@/lib/altitude';
+import { useCurrentSection } from '@/hooks/useCurrentSection';
 import { cn } from '@/lib/utils';
+import type { SectionId } from '@/types/domain';
 
 /**
- * The navigation IS the metaphor (ADR-0006): a vertical altitude gauge that
- * fills as you climb. No hamburger, no classic menu. On mobile this is meant to
- * collapse into a thin top progress bar (roadmap Phase 3) — here it is a
- * desktop-only scaffold that already reflects real scroll progress.
+ * The navigation IS the metaphor (ADR-0006): a vertical altitude gauge driven
+ * by IntersectionObserver per `useCurrentSection`. Each altitude stop targets a
+ * section element; the gauge lights the matching stop orange when that section
+ * occupies the most viewport real estate. Sections without a dedicated stop
+ * map to the nearest previous stop.
+ *
+ * On mobile this collapses into a thin top progress bar (roadmap Phase 3).
  */
+const TARGETS = ALTITUDE_STOPS.map((s) => s.target);
+
+function activeGaugeIndex(currentSection: SectionId | null): number {
+  if (!currentSection) return 0;
+  const direct = TARGETS.indexOf(currentSection);
+  if (direct !== -1) return direct;
+  const idx = SECTION_ORDER.indexOf(currentSection);
+  if (idx <= 0) return 0;
+  for (let i = idx; i >= 0; i--) {
+    const t = TARGETS.indexOf(SECTION_ORDER[i]!);
+    if (t !== -1) return t;
+  }
+  return 0;
+}
+
 export function AltitudeGauge(): ReactElement {
-  const progress = useScrollProgress();
-  const activeIndex = Math.min(
-    ALTITUDE_STOPS.length - 1,
-    Math.floor(progress * ALTITUDE_STOPS.length),
-  );
+  const currentSection = useCurrentSection();
+  const activeIndex = activeGaugeIndex(currentSection);
 
   const goTo = (sectionId: string): void => {
     document.getElementById(sectionId)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -30,7 +46,7 @@ export function AltitudeGauge(): ReactElement {
           key={stop.band}
           type="button"
           onClick={() => goTo(stop.target)}
-          aria-current={index === activeIndex ? 'true' : undefined}
+          aria-current={index === activeIndex ? 'step' : undefined}
           className={cn(
             'font-mono text-[0.6875rem] uppercase tracking-[0.18em] transition-colors',
             index === activeIndex ? 'text-orange' : 'text-muted-light hover:text-ink',
