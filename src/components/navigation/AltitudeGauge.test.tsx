@@ -17,10 +17,10 @@ describe('AltitudeGauge', () => {
     expect(screen.getByRole('navigation', { name: /altitude/i })).toBeInTheDocument();
   });
 
-  it('marks the first stop as current when progress is 0', () => {
+  it('marks the first stop as current when no section is observed', () => {
     render(<AltitudeGauge />);
     const buttons = screen.getAllByRole('button');
-    expect(buttons[0]).toHaveAttribute('aria-current', 'true');
+    expect(buttons[0]).toHaveAttribute('aria-current', 'step');
   });
 
   it('renders buttons with smooth-scroll targets', () => {
