@@ -11,39 +11,53 @@ on:
     paths-ignore:
       - 'docs/**'
       - '*.md'
+  workflow_dispatch:
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
-  build:
+  ci:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 8
 
     steps:
       - uses: actions/checkout@v4
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
+      - name: Cache npm
+        uses: actions/cache@v4
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-npm-${{ hashFiles('package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-npm-
+
+      - uses: actions/setup-node@v4
         with:
           node-version: lts/*
           cache: npm
 
       - name: Install dependencies
-        run: npm ci
+        run: npm ci --prefer-offline
 
-      - name: Type check
-        run: npm run typecheck
-
-      - name: Lint
-        run: npm run lint
-
-      - name: Format check
-        run: npm run format:check
+      - name: Static analysis
+        run: |
+          npm run typecheck & pid1=$!
+          npm run lint & pid2=$!
+          npm run format:check & pid3=$!
+          status=0
+          wait $pid1 || status=$?
+          wait $pid2 || status=$?
+          wait $pid3 || status=$?
+          exit $status
 
       - name: Test
         run: npm test
 
       - name: Build
         run: npm run build
+
+      - name: Coverage
+        if: github.ref == 'refs/heads/main'
+        run: npm run test:coverage
