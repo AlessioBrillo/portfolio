@@ -1,0 +1,23 @@
+test:
+  - src/**/*.test.{ts,tsx}
+  - vitest.config.ts
+  - src/test-setup.ts
+
+docs:
+  - docs/**/*
+  - '*.md'
+
+dependencies:
+  - package.json
+  - package-lock.json
+  - .github/dependabot.yml
+
+ci:
+  - .github/**/*
+
+styles:
+  - src/**/*.css
+
+types:
+  - src/types/**/*
+  - tsconfig.json

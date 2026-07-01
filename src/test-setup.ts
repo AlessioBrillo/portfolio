@@ -30,6 +30,9 @@ if (!window.IntersectionObserver) {
   window.IntersectionObserver = MockIntersectionObserver as unknown as typeof IntersectionObserver;
 }
 
+// jsdom does not implement window.scrollTo; CaseStudyPage calls it on mount.
+window.scrollTo = vi.fn();
+
 afterEach(() => {
   cleanup();
 });

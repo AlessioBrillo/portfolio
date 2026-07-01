@@ -12,6 +12,7 @@
 - [ ] `npm run lint` passes
 - [ ] `npm run format:check` passes
 - [ ] `npm test` passes
+- [ ] `npm run test:coverage` has not regressed
 - [ ] `npm run build` succeeds
 - [ ] Motion respects `prefers-reduced-motion`
 - [ ] Text contrast meets AA; orange used as accent only
