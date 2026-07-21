@@ -25,6 +25,7 @@ export function TonalScene({ children }: TonalSceneProps): ReactElement {
       <div
         ref={backdropRef}
         aria-hidden
+        data-testid="tonal-backdrop"
         className="pointer-events-none fixed inset-0 z-0"
         style={{ backgroundColor: TONE.paper }}
       />
