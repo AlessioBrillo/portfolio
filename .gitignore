@@ -28,6 +28,10 @@ Thumbs.db
 
 # --- Testing ---
 coverage/
+test-results/
+playwright-report/
+blob-report/
+playwright/.cache/
 
 # --- Design papers (source of truth lives outside the repo, never publish) ---
 *.paper.md
