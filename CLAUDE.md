@@ -46,8 +46,17 @@ npm run typecheck && npm run lint && npm run format:check && npm test && npm run
 Husky runs typecheck + lint-staged on commit; commitlint enforces Conventional
 Commits.
 
+`npm run e2e` runs the Playwright signature harness (`playwright.config.ts`,
+`e2e/`) — the only thing that actually renders the tonal crossfade in a browser.
+Not part of the commit-time gate; run it after touching `TonalScene`,
+`useTonalEngine`, `src/lib/tone.ts`, or any section's tone/surface props.
+
 ## Current state
 
-End of Phase 1 (scaffold). Sections/components/navigation are typed, compile-clean
-stubs. The GSAP tonal engine and real content are later roadmap phases — do not
-assume they exist yet.
+End of Phase 2 (the signature). The GSAP tonal engine (`useTonalEngine` +
+`TonalScene`) is implemented, unit-tested, and validated end-to-end by the
+Playwright harness — both crossfades (climb paper→night, descent night→paper)
+render and hold under `prefers-reduced-motion`. Sections/components/navigation
+are otherwise still typed, compile-clean stubs; real content and the full
+multi-band altitude gauge (Phase 3+) are later roadmap phases — do not assume
+they exist yet.
