@@ -127,4 +127,44 @@ describe('useTonalEngine', () => {
     await Promise.resolve();
     expect(mocks.registerPlugin).not.toHaveBeenCalled();
   });
+
+  it('re-measures switch points lazily so later layout shifts are respected', async () => {
+    renderEngine();
+    await waitFor(() => expect(mocks.create).toHaveBeenCalledTimes(TONAL_TRANSITIONS.length));
+
+    const config = mocks.create.mock.calls[0]?.[0] as { start: () => number };
+    expect(config.start).toBeTypeOf('function');
+
+    const trigger = document.getElementById('ai-physics');
+    expect(trigger).not.toBeNull();
+    if (!trigger) return;
+
+    vi.spyOn(trigger, 'getBoundingClientRect').mockReturnValue({
+      top: 100,
+      height: 40,
+      bottom: 140,
+      left: 0,
+      right: 0,
+      x: 0,
+      y: 100,
+      width: 0,
+      toJSON: () => ({}),
+    });
+
+    const before = config.start();
+    vi.spyOn(trigger, 'getBoundingClientRect').mockReturnValue({
+      top: 800,
+      height: 40,
+      bottom: 840,
+      left: 0,
+      right: 0,
+      x: 0,
+      y: 800,
+      width: 0,
+      toJSON: () => ({}),
+    });
+    const after = config.start();
+
+    expect(after).not.toBe(before);
+  });
 });

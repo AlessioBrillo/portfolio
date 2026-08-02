@@ -34,16 +34,25 @@ function headingCenterY(sectionId: string): number | null {
  * incoming, so switching the backdrop there -- rather than at the incoming
  * heading's own centre -- keeps whichever heading is actually being read on
  * the matching tone.
+ *
+ * Measurements are deliberately taken inside the returned getter, not at
+ * setup: ScrollTrigger re-resolves `start` on every refresh, so layout
+ * shifts after mount (images, fonts) stay reflected instead of freezing
+ * the switch points at first-render geometry.
  */
 function discreteSwitchScrollY(triggerSectionId: string): (() => number) | null {
-  const incomingY = headingCenterY(triggerSectionId);
-  if (incomingY === null) return null;
+  if (headingCenterY(triggerSectionId) === null) return null;
 
   const index = SECTION_ORDER.indexOf(triggerSectionId as (typeof SECTION_ORDER)[number]);
   const previousId = index > 0 ? SECTION_ORDER[index - 1] : undefined;
-  const outgoingY = previousId ? headingCenterY(previousId) : null;
-  const midpointY = outgoingY !== null ? (incomingY + outgoingY) / 2 : incomingY;
-  return () => midpointY - window.innerHeight / 2;
+
+  return () => {
+    const incomingY = headingCenterY(triggerSectionId);
+    const outgoingY = previousId ? headingCenterY(previousId) : null;
+    if (incomingY === null) return window.scrollY;
+    const midpointY = outgoingY !== null ? (incomingY + outgoingY) / 2 : incomingY;
+    return midpointY - window.innerHeight / 2;
+  };
 }
 
 export function useTonalEngine(backdropRef: RefObject<HTMLDivElement | null>): void {
