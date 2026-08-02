@@ -1,11 +1,16 @@
-import { render, screen } from '@testing-library/react';
+import { fireEvent, render, screen } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 import { AltitudeGauge } from '@/components/navigation/AltitudeGauge';
 
 const mockUseCurrentSection = vi.fn();
+const mockUseReducedMotion = vi.fn();
 
 vi.mock('@/hooks/useCurrentSection', () => ({
   useCurrentSection: (...args: unknown[]) => mockUseCurrentSection(...args),
+}));
+
+vi.mock('@/hooks/useReducedMotion', () => ({
+  useReducedMotion: (...args: unknown[]) => mockUseReducedMotion(...args),
 }));
 
 describe('AltitudeGauge', () => {
@@ -93,5 +98,29 @@ describe('AltitudeGauge', () => {
     render(<AltitudeGauge />);
     const buttons = screen.getAllByRole('button');
     expect(buttons[3]).toHaveAttribute('aria-current', 'step');
+  });
+
+  it('scrolls smoothly to a stop by default', () => {
+    mockUseCurrentSection.mockReturnValue(null);
+    mockUseReducedMotion.mockReturnValue(false);
+    const scrollIntoView = vi.fn();
+    const section = { scrollIntoView } as unknown as HTMLElement;
+    const spy = vi.spyOn(document, 'getElementById').mockReturnValue(section);
+    render(<AltitudeGauge />);
+    fireEvent.click(screen.getByRole('button', { name: 'CRUISE' }));
+    expect(scrollIntoView).toHaveBeenCalledWith({ behavior: 'smooth', block: 'start' });
+    spy.mockRestore();
+  });
+
+  it('scrolls with native behaviour under reduced motion', () => {
+    mockUseCurrentSection.mockReturnValue(null);
+    mockUseReducedMotion.mockReturnValue(true);
+    const scrollIntoView = vi.fn();
+    const section = { scrollIntoView } as unknown as HTMLElement;
+    const spy = vi.spyOn(document, 'getElementById').mockReturnValue(section);
+    render(<AltitudeGauge />);
+    fireEvent.click(screen.getByRole('button', { name: 'NIGHT' }));
+    expect(scrollIntoView).toHaveBeenCalledWith({ behavior: 'auto', block: 'start' });
+    spy.mockRestore();
   });
 });

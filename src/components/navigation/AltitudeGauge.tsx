@@ -1,6 +1,7 @@
 import type { ReactElement } from 'react';
 import { ALTITUDE_STOPS, SECTION_ORDER } from '@/lib/altitude';
 import { useCurrentSection } from '@/hooks/useCurrentSection';
+import { useReducedMotion } from '@/hooks/useReducedMotion';
 import { cn } from '@/lib/utils';
 import type { SectionId } from '@/types/domain';
 
@@ -30,10 +31,16 @@ function activeGaugeIndex(currentSection: SectionId | null): number {
 
 export function AltitudeGauge(): ReactElement {
   const currentSection = useCurrentSection();
+  const prefersReducedMotion = useReducedMotion();
   const activeIndex = activeGaugeIndex(currentSection);
 
   const goTo = (sectionId: string): void => {
-    document.getElementById(sectionId)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    // CSS `scroll-behavior: auto` overrides only declarative scrolling, not
+    // programmatic smooth scrolling — honour the preference explicitly (ADR-0009).
+    document.getElementById(sectionId)?.scrollIntoView({
+      behavior: prefersReducedMotion ? 'auto' : 'smooth',
+      block: 'start',
+    });
   };
 
   return (
