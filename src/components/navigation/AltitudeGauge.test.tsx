@@ -1,9 +1,11 @@
 import { fireEvent, render, screen } from '@testing-library/react';
-import { describe, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { AltitudeGauge } from '@/components/navigation/AltitudeGauge';
 
 const mockUseCurrentSection = vi.fn();
 const mockUseReducedMotion = vi.fn();
+const mockUseAltitudeProfile = vi.fn();
+const mockUseScrollProgress = vi.fn();
 
 vi.mock('@/hooks/useCurrentSection', () => ({
   useCurrentSection: (...args: unknown[]) => mockUseCurrentSection(...args),
@@ -13,7 +15,20 @@ vi.mock('@/hooks/useReducedMotion', () => ({
   useReducedMotion: (...args: unknown[]) => mockUseReducedMotion(...args),
 }));
 
+vi.mock('@/hooks/useAltitudeProfile', () => ({
+  useAltitudeProfile: () => mockUseAltitudeProfile(),
+}));
+
+vi.mock('@/hooks/useScrollProgress', () => ({
+  useScrollProgress: () => mockUseScrollProgress(),
+}));
+
 describe('AltitudeGauge', () => {
+  beforeEach(() => {
+    mockUseAltitudeProfile.mockReturnValue(0);
+    mockUseScrollProgress.mockReturnValue(0);
+  });
+
   it('renders all altitude stops', () => {
     mockUseCurrentSection.mockReturnValue(null);
     render(<AltitudeGauge />);
@@ -122,5 +137,19 @@ describe('AltitudeGauge', () => {
     fireEvent.click(screen.getByRole('button', { name: 'NIGHT' }));
     expect(scrollIntoView).toHaveBeenCalledWith({ behavior: 'auto', block: 'start' });
     spy.mockRestore();
+  });
+
+  it('fills the altitude track to the current flight position', () => {
+    mockUseCurrentSection.mockReturnValue(null);
+    mockUseAltitudeProfile.mockReturnValue(0.6);
+    render(<AltitudeGauge />);
+    expect(screen.getByTestId('gauge-altitude-fill')).toHaveStyle({ height: '60%' });
+  });
+
+  it('renders the mobile journey progress bar', () => {
+    mockUseCurrentSection.mockReturnValue(null);
+    mockUseScrollProgress.mockReturnValue(0.25);
+    render(<AltitudeGauge />);
+    expect(screen.getByTestId('gauge-progress-fill')).toHaveStyle({ width: '25%' });
   });
 });
