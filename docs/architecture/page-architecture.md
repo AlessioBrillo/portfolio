@@ -53,9 +53,11 @@ daylight for sport and experiences before the night landing.
 > narrated band and the trigger); for climb they don't (Mosaic narrates the band,
 > AI & Physics mechanically drives it, since the fade plays out as AI & Physics
 > scrolls up to centre — i.e. while leaving Mosaic behind). Same crossfade, two
-> vocabularies (narrative anchor vs. mechanical trigger) — not a contradiction. The
-> full multi-band altitude gauge (rise-and-fall fill), scroll-up top bar, and mobile
-> gauge collapse remain roadmap Phase 3 (see ADR-0003, ADR-0010).
+> vocabularies (narrative anchor vs. mechanical trigger) — not a contradiction.
+> The full multi-band altitude gauge (rise-and-fall fill) and scroll-up top bar
+> are live (Phase 3): see `docs/architecture/navigation-altitude-gauge.md` and
+> the `useAltitudeProfile` hook. The mobile gauge collapse renders as a thin top
+> journey-progress bar.
 
 Section order and bands are encoded in `src/lib/altitude.ts`
 (`SECTION_ORDER`, `ALTITUDE_STOPS`). Flight-profile vocabulary per ADR-0010.
