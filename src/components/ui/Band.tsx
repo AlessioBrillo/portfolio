@@ -22,8 +22,7 @@ interface BandProps {
 /**
  * One tonal band of the ascent. A `solid` band paints its own background; a
  * `scene` band defers its background to a `TonalScene` so the tone can crossfade
- * on scroll (the first such transition lands in Phase 2; the full multi-band
- * GSAP engine is Phase 3, per ADR-0003 and ADR-0010).
+ * on scroll (ADR-0003, ADR-0010).
  */
 export function Band({
   id,

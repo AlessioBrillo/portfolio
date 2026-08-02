@@ -8,7 +8,7 @@ currently at the end of Phase 2 (the signature).**
 | 0     | **Content & assets.** Selected photos, 2-3 written case studies, headline, domain. _(The site is only as strong as its content.)_ | Pending (needs inputs)        |
 | 1     | **Foundations.** Vite + Tailwind, color/typography tokens, self-hosted fonts, scale and grid.                                     | **Scaffolded**                |
 | 2     | **The signature.** Hero + first working quota transition. _Validate "the Ascent" before going further._                           | **Validated**                 |
-| 3     | **The full ascent.** All tonal bands + altitude gauge + scroll engine (GSAP).                                                     | Pending                       |
+| 3     | **The full ascent.** All tonal bands + altitude gauge + scroll engine (GSAP).                                                     | **Validated**                 |
 | 4     | **Mosaic + one real case study** (MDX route end-to-end).                                                                          | Pending (pipeline scaffolded) |
 | 5     | **Content.** Remaining case studies, archive, experience storytelling.                                                            | Pending                       |
 | 6     | **Finishing & deploy.** A11y, performance, OG card, 404, reduced-motion -> Vercel + domain.                                       | Pending                       |

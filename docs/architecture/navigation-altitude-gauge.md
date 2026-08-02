@@ -22,9 +22,11 @@ No hamburger, no classic menu. The gauge is the signature of the navigation too.
 
 ## Component map
 
-| Element        | Component                                     | Scaffold state                                                                                                                             |
-| -------------- | --------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
-| Vertical gauge | `src/components/navigation/AltitudeGauge.tsx` | Wired to real scroll progress; active band highlighted; labels scroll to sections. Full fill animation + mobile collapse: roadmap Phase 3. |
-| Top bar        | `src/components/navigation/TopBar.tsx`        | Static structure; the upward-reveal/hide behaviour is roadmap Phase 3.                                                                     |
+| Element        | Component                                     | State                                                                                                                                                               |
+| -------------- | --------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Vertical gauge | `src/components/navigation/AltitudeGauge.tsx` | Rise-and-fall altitude fill (`useAltitudeProfile`), active band highlighted, labels scroll to sections, mobile collapse into a top journey-progress bar — all live. |
+| Top bar        | `src/components/navigation/TopBar.tsx`        | Upward-reveal/hide-on-scroll-down behaviour live (CSS transform, rAF-throttled); permanently visible under reduced motion.                                          |
 
-Stops are defined once in `src/lib/altitude.ts` (`ALTITUDE_STOPS`).
+Stops are defined once in `src/lib/altitude.ts` (`ALTITUDE_STOPS`); the
+rise-and-fall fill profile lives there too (`flightPositionAt` +
+`FlightAnchors`), so the gauge cannot drift from the page structure.
