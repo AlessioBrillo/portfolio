@@ -1,0 +1,126 @@
+import type { ComponentProps, ReactElement } from 'react';
+
+/**
+ * Maps the HTML blocks an MDX case study body can produce onto the design
+ * system. Tailwind's preflight neutralises native heading styles, so without
+ * this map the long-form body would render typographically flat — Phase 4's
+ * missing half (see docs/content/case-study-template.md).
+ *
+ * Discipline: typography only — the cover/meta frame is the page's job, this
+ * map never introduces decoration beyond the site's own accents.
+ *
+ * Typing note: `MDXComponents` from `mdx/types.js` resolves members to `never`
+ * under React 19 (the global `JSX` namespace it keys off no longer exists and
+ * `skipLibCheck` hides the error), so the map is typed structurally here and
+ * adapted at the `MDXProvider` boundary in `App.tsx`.
+ */
+
+type MdxBlockTag =
+  | 'h2'
+  | 'h3'
+  | 'p'
+  | 'a'
+  | 'ul'
+  | 'ol'
+  | 'li'
+  | 'strong'
+  | 'em'
+  | 'code'
+  | 'pre'
+  | 'blockquote'
+  | 'hr';
+
+export type MdxComponentMap = Readonly<{
+  [Tag in MdxBlockTag]: (props: ComponentProps<Tag>) => ReactElement;
+}>;
+
+function H2(props: ComponentProps<'h2'>): ReactElement {
+  return (
+    <h2
+      className="mt-10 scroll-mt-16 font-display text-[length:var(--text-h2)] font-medium leading-[1.1] text-balance first:mt-0"
+      {...props}
+    />
+  );
+}
+
+function H3(props: ComponentProps<'h3'>): ReactElement {
+  return (
+    <h3
+      className="mt-4 font-display text-[length:var(--text-h3)] font-medium leading-snug first:mt-0"
+      {...props}
+    />
+  );
+}
+
+function Paragraph(props: ComponentProps<'p'>): ReactElement {
+  return <p className="leading-relaxed text-pretty" {...props} />;
+}
+
+function Link(props: ComponentProps<'a'>): ReactElement {
+  return (
+    <a
+      className="font-medium text-ink underline decoration-orange decoration-2 underline-offset-4 transition-colors hover:text-orange"
+      {...props}
+    />
+  );
+}
+
+function UnorderedList(props: ComponentProps<'ul'>): ReactElement {
+  return <ul className="list-disc space-y-2 pl-6 marker:text-orange" {...props} />;
+}
+
+function OrderedList(props: ComponentProps<'ol'>): ReactElement {
+  return <ol className="list-decimal space-y-2 pl-6 marker:text-orange" {...props} />;
+}
+
+function ListItem(props: ComponentProps<'li'>): ReactElement {
+  return <li className="leading-relaxed" {...props} />;
+}
+
+function Strong(props: ComponentProps<'strong'>): ReactElement {
+  return <strong className="font-semibold" {...props} />;
+}
+
+function Emphasis(props: ComponentProps<'em'>): ReactElement {
+  return <em className="italic" {...props} />;
+}
+
+function InlineCode(props: ComponentProps<'code'>): ReactElement {
+  return (
+    <code className="rounded-[4px] bg-black/5 px-1.5 py-0.5 font-mono text-[0.875em]" {...props} />
+  );
+}
+
+function Preformatted(props: ComponentProps<'pre'>): ReactElement {
+  return (
+    <pre
+      className="overflow-x-auto rounded-[var(--radius-card)] bg-night px-5 py-4 font-mono text-sm leading-relaxed text-cream [&>code]:bg-transparent [&>code]:p-0"
+      {...props}
+    />
+  );
+}
+
+function Blockquote(props: ComponentProps<'blockquote'>): ReactElement {
+  return <blockquote className="border-l-2 border-orange pl-5 italic text-ink" {...props} />;
+}
+
+function Hr(props: ComponentProps<'hr'>): ReactElement {
+  return <hr className="my-2 border-t border-ink/10" {...props} />;
+}
+
+/** The component map consumed by the app-level `MDXProvider`. */
+export const mdxComponents: MdxComponentMap = {
+  h2: H2,
+  h3: H3,
+  p: Paragraph,
+  a: Link,
+  ul: UnorderedList,
+  ol: OrderedList,
+  li: ListItem,
+  strong: Strong,
+  em: Emphasis,
+  code: InlineCode,
+  pre: Preformatted,
+  blockquote: Blockquote,
+  hr: Hr,
+};
