@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { beforeEach, describe, expect, it } from 'vitest';
 import { renderHook } from '@testing-library/react';
 import { useDocumentMeta } from '@/hooks/useDocumentMeta';
 
@@ -8,6 +8,12 @@ import { useDocumentMeta } from '@/hooks/useDocumentMeta';
  * pin what the hook writes and that it restores the previous head on unmount.
  */
 describe('useDocumentMeta', () => {
+  beforeEach(() => {
+    document.head
+      .querySelectorAll('meta[name="description"], meta[property^="og:"], link[rel="canonical"]')
+      .forEach((node) => node.remove());
+    document.title = '';
+  });
   it('sets the document title with the site brand', () => {
     renderHook(() => useDocumentMeta({ title: 'A transformer on Italian' }));
     expect(document.title).toBe('A transformer on Italian — Alessio Brillo');

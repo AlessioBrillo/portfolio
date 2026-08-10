@@ -1,6 +1,7 @@
 import { Suspense, lazy, useEffect, useMemo, type ReactElement } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { getCaseStudy } from '@/content/case-studies/registry';
+import { useDocumentMeta } from '@/hooks/useDocumentMeta';
 import { Eyebrow } from '@/components/ui/Eyebrow';
 import { NotFoundPage } from '@/pages/NotFoundPage';
 
@@ -21,6 +22,16 @@ export function CaseStudyPage(): ReactElement {
   const { slug } = useParams();
   const entry = slug ? getCaseStudy(slug) : undefined;
   const Body = useMemo(() => (entry ? lazy(entry.load) : null), [entry]);
+
+  useDocumentMeta(
+    entry
+      ? {
+          title: entry.meta.title,
+          description: entry.meta.summary,
+          canonical: `${window.location.origin}/${entry.meta.domain}/${entry.meta.slug}`,
+        }
+      : { title: 'Lost altitude' },
+  );
 
   useEffect(() => {
     window.scrollTo(0, 0);
