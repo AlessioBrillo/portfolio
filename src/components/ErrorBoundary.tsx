@@ -33,7 +33,7 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
           <h1 className="font-display text-[length:var(--text-h2)] font-medium">
             Something went wrong.
           </h1>
-          <p className="max-w-md text-muted-light">
+          <p className="max-w-md text-ink-soft">
             {this.state.error?.message ?? 'An unexpected error occurred.'}
           </p>
           <Link

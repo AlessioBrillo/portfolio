@@ -23,6 +23,9 @@ import type { SectionId } from '@/types/domain';
  */
 const TARGETS = ALTITUDE_STOPS.map((s) => s.target);
 
+/** Sections resting on night — the same set the top bar uses. */
+const DARK_SECTIONS: ReadonlySet<SectionId> = new Set(['ai-physics', 'work-school', 'contact']);
+
 function activeGaugeIndex(currentSection: SectionId | null): number {
   if (!currentSection) return 0;
   const direct = TARGETS.indexOf(currentSection);
@@ -42,6 +45,7 @@ export function AltitudeGauge(): ReactElement {
   const altitude = useAltitudeProfile();
   const progress = useScrollProgress();
   const activeIndex = activeGaugeIndex(currentSection);
+  const inDark = currentSection ? DARK_SECTIONS.has(currentSection) : false;
 
   const goTo = (sectionId: string): void => {
     // CSS `scroll-behavior: auto` overrides only declarative scrolling, not
@@ -78,7 +82,11 @@ export function AltitudeGauge(): ReactElement {
               aria-current={index === activeIndex ? 'step' : undefined}
               className={cn(
                 'font-mono text-[0.6875rem] uppercase tracking-[0.18em] transition-colors',
-                index === activeIndex ? 'text-orange' : 'text-muted-light hover:text-ink',
+                index === activeIndex
+                  ? 'text-orange'
+                  : inDark
+                    ? 'text-muted-dark hover:text-cream'
+                    : 'text-ink-soft hover:text-ink',
               )}
             >
               {stop.label}

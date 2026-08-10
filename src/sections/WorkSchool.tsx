@@ -10,7 +10,7 @@ interface WorkSchoolProps {
 export function WorkSchool({ surface = 'solid' }: WorkSchoolProps): ReactElement {
   return (
     <Band id="work-school" ariaLabel="Work and school" tone="night" surface={surface}>
-      <SectionHeader eyebrow="04 — Work & School" title="Things I have shipped" />
+      <SectionHeader eyebrow="04 — Work & School" title="Things I have shipped" tone="dark" />
     </Band>
   );
 }

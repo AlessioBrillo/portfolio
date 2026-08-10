@@ -14,6 +14,7 @@ export function AiPhysics({ surface = 'solid' }: AiPhysicsProps): ReactElement {
         eyebrow="03 — AI & Physics"
         title="Where the thinking shows"
         intro="Problem -> approach -> result. Long-form case studies open as their own routes."
+        tone="dark"
       />
     </Band>
   );

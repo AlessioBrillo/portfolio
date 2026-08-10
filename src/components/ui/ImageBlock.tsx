@@ -20,14 +20,12 @@ export function ImageBlock({ alt, src, caption, className }: ImageBlockProps): R
           <img src={src} alt={alt} loading="lazy" className="block h-full w-full object-cover" />
         ) : (
           <div className="flex aspect-[4/3] items-center justify-center bg-black/5">
-            <span className="font-mono text-xs uppercase tracking-widest text-muted-light">
-              {alt}
-            </span>
+            <span className="font-mono text-xs uppercase tracking-widest text-ink-soft">{alt}</span>
           </div>
         )}
       </div>
       {caption ? (
-        <figcaption className="font-mono text-xs uppercase tracking-widest text-muted-light">
+        <figcaption className="font-mono text-xs uppercase tracking-widest text-ink-soft">
           {caption}
         </figcaption>
       ) : null}

@@ -44,7 +44,7 @@ export function CaseStudyPage(): ReactElement {
       <div className="mx-auto max-w-[760px] px-6 py-[var(--space-section)]">
         <Link
           to="/"
-          className="font-mono text-xs uppercase tracking-widest text-muted-light no-underline"
+          className="font-mono text-xs uppercase tracking-widest text-ink-soft no-underline"
         >
           &larr; Back to the ascent
         </Link>

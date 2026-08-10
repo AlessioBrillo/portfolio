@@ -21,7 +21,7 @@ export function MosaicTile({ entry }: MosaicTileProps): ReactElement {
   const content = (
     <>
       <h3 className="font-display text-[length:var(--text-h3)] font-medium">{entry.title}</h3>
-      <p className="text-sm leading-relaxed text-muted-light">{entry.line}</p>
+      <p className="text-sm leading-relaxed text-ink-soft">{entry.line}</p>
     </>
   );
 
