@@ -77,9 +77,12 @@ src/
 
 ## Status
 
-End of Phase 1 — **scaffold**. Sections, components, and the navigation are typed,
-compile-clean stubs; the GSAP tonal engine and real content arrive in later phases
-(see the [roadmap](docs/roadmap.md)).
+End of Phase 4 — **mosaic + one real case study end-to-end**. The tonal ascent is
+implemented and e2e-validated (climb and descent, `prefers-reduced-motion`
+included); case studies are real `/{domain}/{slug}` MDX routes with per-route
+document head, deterministic back-scroll, and AA-safe typography on every
+surface. Sections beyond Hero/Mosaic/AiPhysics are structural bands awaiting
+content (see the [roadmap](docs/roadmap.md)).
 
 ## License
 
