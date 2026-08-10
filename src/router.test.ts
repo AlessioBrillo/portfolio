@@ -2,8 +2,9 @@ import { describe, expect, it } from 'vitest';
 import { router } from '@/router';
 
 describe('router', () => {
-  it('defines the three expected routes', () => {
-    const paths = router.routes.map((r) => r.path);
-    expect(paths).toEqual(['/', '/:domain/:slug', '*']);
+  it('wraps the three expected routes in the scroll-restoring layout', () => {
+    const layout = router.routes[0];
+    expect(layout).toBeDefined();
+    expect(layout!.children?.map((r) => r.path)).toEqual(['/', '/:domain/:slug', '*']);
   });
 });

@@ -1,4 +1,4 @@
-import { Suspense, lazy, useEffect, useMemo, type ReactElement } from 'react';
+import { Suspense, lazy, useMemo, type ReactElement } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { getCaseStudy } from '@/content/case-studies/registry';
 import { useDocumentMeta } from '@/hooks/useDocumentMeta';
@@ -32,10 +32,6 @@ export function CaseStudyPage(): ReactElement {
         }
       : { title: 'Lost altitude' },
   );
-
-  useEffect(() => {
-    window.scrollTo(0, 0);
-  }, [slug]);
 
   if (!entry || !Body) {
     return <NotFoundPage />;
