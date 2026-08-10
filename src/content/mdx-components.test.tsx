@@ -33,9 +33,7 @@ describe('mdxComponents', () => {
   it('renders level-2 headings in the display face at section scale', () => {
     const H2 = mdxComponents.h2!;
     render(<H2>Context</H2>);
-    expect(screen.getByRole('heading', { level: 2, name: 'Context' })).toHaveClass(
-      'font-display',
-    );
+    expect(screen.getByRole('heading', { level: 2, name: 'Context' })).toHaveClass('font-display');
   });
 
   it('renders level-3 headings in the display face at sub-section scale', () => {
