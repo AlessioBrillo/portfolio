@@ -1,22 +1,105 @@
 ## Context
 
-_Placeholder body. This file demonstrates the end-to-end MDX pipeline; replace
-the prose with the real story (roadmap Phase 4-5)._
+Italian is a mid-resource language. It scores well in English-led benchmarks, but
+the models behind those scores carry English-shaped tokenizers, English-biased
+training mixes, and all the blind spots that come with a corpus nobody curated.
+When I wanted to *understand* what a transformer actually costs — data hygiene,
+tokenization, training dynamics — I decided to stop reading about pretrained
+models and build one, from scratch, in the language I grew up with.
 
-Where I was, and why this problem existed in the first place.
+The plan: a small decoder-only transformer trained on a curated Italian corpus,
+with a tokenizer trained on the same corpus. Small enough to train on a single
+GPU in a day, honest enough that every decision in the stack was mine.
 
 ## Problem
 
-The real, specific knot worth untangling.
+Three knots are specific to Italian and easy to get wrong:
+
+1. **Morphology grows the vocabulary.** Italian compounds and conjugates
+   prodigiously. A fixed 32k-vocab BPE trained on English survives because
+   English is morphologically poor; the same budget on Italian leaks
+   comprehension on rare-but-valid forms (_tergiverseranno_, _interconnetteremmo_).
+2. **Clitics and apostrophes break naive segmentation.** `l'`, `d'`, `un'`,
+   `glielo` are punctuation-adjacent but semantically atomic. A byte-level
+   tokenizer handles them fine; a whitespace-first one mangles the context
+   window.
+3. **Benchmark leakage is silent.** Public Italian corpora overlap heavily with
+   any downstream test set.
 
 ## Approach
 
-How I reasoned about it — this is where the thinking shows, not just the result.
+I designed the whole pipeline as three separate, testable stages:
+
+### Stage 1 — Corpus curation
+
+Deduplicated, decontaminated, licence-filtered: Wikipedia dumps, OSCAR-derived
+web text, and a legal/regulatory corpus, normalized to Unicode NFC. Any document
+within a held-out contamination threshold of common test sets was removed before
+training, not after.
+
+Run specifics (_fill in from the run log_):
+
+- Total tokens: **—**
+- Languages detected: `it` only, per-document
+- Deduplication: MinHash at paragraph level (_threshold: —_)
+
+### Stage 2 — A tokenizer that speaks Italian
+
+Byte-level BPE trained only on the curated corpus, vocabulary of 32,000.
+Two checks gate it before a single training step:
+
+```python
+compression = len(encoded) / len(text_bytes)
+assert compression < 1.0, "tokenizer must compress Italian, not leak it"
+
+roundtrip = tokenizer.decode(tokenizer.encode(sample)) == sample
+assert roundtrip, "byte-level BPE must round-trip losslessly"
+```
+
+A tokenizer that fails either check never sees a GPU.
+
+### Stage 3 — Training with an eval that tells the truth
+
+A small GPT-style decoder-only model — the exact configuration lives in
+`config.yaml` in the repo (_fill in: layers, heads, dim, context length,
+optimizer, schedule_). AdamW, cosine decay with warmup, gradient clipping,
+checkpointing every N steps. Every checkpoint is evaluated on a held-out
+Italian set that has *never* been seen by the optimizer.
+
+> The eval set is not "the harder benchmark I found on the internet".
+> It is the slice of the corpus I told myself, at the start, I would not
+> touch. That discipline is the whole point of the exercise.
 
 ## What I built
 
-Technical detail, figures, and snippets live here.
+The pipeline lives in a single repository (`transformer-italiano`): a data
+prep CLI, a tokenizer trainer, the training loop, and a small eval harness.
+The highlight is not the model size — it is that every stage ends with a
+verifiable artifact:
+
+- **Corpus** → `corpus.it.pq`, with the dedupe and contamination report
+- **Tokenizer** → `tokenizer.json`, gated by its compression ratio on held-out text
+- **Model** → `final.ckpt`, evaluated on the untouched held-out set
+- **Eval** → `report.json`, the numbers below
 
 ## Result / Reflection
 
-The outcome, and what I learned. The part that says "growing".
+Measured on the final checkpoint (_fill in from the run log_):
+
+- Held-out perplexity: **—** (baseline: an English-trained tokenizer at 32k with identical model — **—**)
+- Compression ratio vs. English-trained BPE: **—**
+- Parameter count: **—**
+
+The meta-result is the one I keep coming back to:
+
+1. **Data hygiene beats architecture.** The single largest quality jump came
+   from deduplication and contamination removal, not from any model decision.
+2. **Your own tokenizer is a forcing function.** Training BPE on Italian
+   surfaces morphology questions you never ask with a borrowed tokenizer.
+3. **Honest evals are a commitment device.** Deciding the held-out set *before*
+   training prevents the whole class of "the eval drifted into the data" sins.
+
+Would I do it differently? The model is small — a larger context and a longer
+schedule would likely buy more than a larger width. But the point of the
+project was never the leaderboard; it was to own the full stack end to end,
+and it delivered exactly that.
