@@ -38,6 +38,13 @@ describe('MosaicTile', () => {
     expect(link).toHaveAttribute('href', '/ai/test');
   });
 
+  it('keeps the heading inside the link so the link has an accessible name', () => {
+    renderWithRouter(<MosaicTile entry={linkedEntry} />);
+    expect(screen.getByRole('link')).toContainElement(
+      screen.getByRole('heading', { name: 'AI & Physics' }),
+    );
+  });
+
   it('does not render a link when href is missing', () => {
     renderWithRouter(<MosaicTile entry={plainEntry} />);
     expect(screen.queryByRole('link')).not.toBeInTheDocument();
