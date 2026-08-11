@@ -47,4 +47,17 @@ describe('CaseStudyPage', () => {
     expect(await screen.findByTestId('body')).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: 'Test Study' })).toBeInTheDocument();
   });
+
+  it('rejects a known slug under the wrong domain', () => {
+    render(
+      <MemoryRouter initialEntries={['/work/test-study']}>
+        <Routes>
+          <Route path="/:domain/:slug" element={<CaseStudyPage />} />
+          <Route path="*" element={<div />} />
+        </Routes>
+      </MemoryRouter>,
+    );
+    expect(screen.getByText('Lost altitude.')).toBeInTheDocument();
+    expect(screen.queryByTestId('body')).not.toBeInTheDocument();
+  });
 });

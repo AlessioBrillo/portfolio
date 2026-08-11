@@ -2,6 +2,7 @@ import { Suspense, lazy, useMemo, type ReactElement } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { getCaseStudy } from '@/content/case-studies/registry';
 import { useDocumentMeta } from '@/hooks/useDocumentMeta';
+import { canonicalOrigin } from '@/lib/site';
 import { Eyebrow } from '@/components/ui/Eyebrow';
 import { NotFoundPage } from '@/pages/NotFoundPage';
 
@@ -19,21 +20,22 @@ function Skeleton(): ReactElement {
 
 /** Renders a single case study from its MDX body at `/{domain}/{slug}`. */
 export function CaseStudyPage(): ReactElement {
-  const { slug } = useParams();
+  const { domain, slug } = useParams();
   const entry = slug ? getCaseStudy(slug) : undefined;
+  const valid = entry !== undefined && domain === entry.meta.domain;
   const Body = useMemo(() => (entry ? lazy(entry.load) : null), [entry]);
 
   useDocumentMeta(
-    entry
+    valid
       ? {
           title: entry.meta.title,
           description: entry.meta.summary,
-          canonical: `${window.location.origin}/${entry.meta.domain}/${entry.meta.slug}`,
+          canonical: `${canonicalOrigin()}/${entry.meta.domain}/${entry.meta.slug}`,
         }
       : { title: 'Lost altitude' },
   );
 
-  if (!entry || !Body) {
+  if (!valid || !Body) {
     return <NotFoundPage />;
   }
 

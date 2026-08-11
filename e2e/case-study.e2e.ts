@@ -10,9 +10,9 @@ test.describe('case study routes', () => {
   test('deep link renders the study with its meta head', async ({ page }) => {
     await page.goto('/ai/transformer-italian-corpus');
 
-    await expect(
-      page.getByRole('heading', { level: 1 }),
-    ).toContainText('A transformer on an Italian-language corpus');
+    await expect(page.getByRole('heading', { level: 1 })).toContainText(
+      'A transformer on an Italian-language corpus',
+    );
     await expect(page).toHaveTitle(/A transformer on an Italian-language corpus/);
     await expect(page.getByRole('link', { name: /Back to the ascent/ })).toBeVisible();
     await expect(page.getByRole('heading', { level: 2, name: 'Problem' })).toBeVisible();
@@ -25,16 +25,21 @@ test.describe('case study routes', () => {
     await expect(page).toHaveTitle(/Lost altitude/);
   });
 
-  test('back navigation returns to the exact scroll position (ADR-0005)', async ({
-    page,
-  }) => {
+  test('back navigation returns to the exact scroll position (ADR-0005)', async ({ page }) => {
     await page.goto('/');
-    await page.evaluate(() => window.scrollTo(0, 1400));
+
+    // Anchor the depth to the tile itself, not a magic number: the bands above
+    // the mosaic grow with content (Phase 5), so a fixed offset would land on
+    // different sections per breakpoint — and Playwright's actionability
+    // scroll would silently change the position the back button must restore.
+    const tile = page.getByRole('link', { name: /AI & Physics/ });
+    await tile.scrollIntoViewIfNeeded();
+    await page.evaluate(() => window.scrollTo(0, Math.max(0, window.scrollY - 150)));
     await page.waitForTimeout(150);
     const before = await page.evaluate(() => window.scrollY);
     expect(before).toBeGreaterThan(200);
 
-    await page.getByRole('link', { name: /AI & Physics/ }).click();
+    await tile.click();
     await expect(page).toHaveURL(/\/ai\/transformer-italian-corpus$/);
 
     await page.goBack();

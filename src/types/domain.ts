@@ -49,6 +49,49 @@ export interface MosaicEntry {
   readonly title: string;
   /** One-line teaser shown under the title. */
   readonly line: string;
+  /** Optional deep link to a case study route or a section anchor. */
+  readonly href?: string;
+}
+
+/** A project in the work & school band (04). */
+export interface ProjectEntry {
+  readonly id: string;
+  readonly title: string;
+  /** One-line teaser shown under the title. */
+  readonly line: string;
+  /** Completion year, shown as mono metadata. */
+  readonly year: string;
   /** Optional deep link to a case study route. */
   readonly href?: string;
+}
+
+/** A discipline shown in the sky & sport band (05). */
+export interface SportEntry {
+  readonly id: string;
+  readonly title: string;
+  /** One-line teaser shown under the title. */
+  readonly line: string;
+  /** Photo slot; the alt text is written for the intended photo (ADR-0009). */
+  readonly image: {
+    readonly alt: string;
+    readonly caption?: string;
+  };
+}
+
+/** A curated story in the experiences band (06). */
+export interface ExperienceEntry {
+  readonly id: string;
+  readonly title: string;
+  /** One-line teaser shown under the title. */
+  readonly line: string;
+  /** Optional year, shown as mono metadata. */
+  readonly year?: string;
+}
+
+/** One of the three character statements in the who band (01). */
+export interface WhoStatement {
+  readonly id: string;
+  readonly title: string;
+  /** Shows the adjective made concrete, rather than claiming it. */
+  readonly line: string;
 }

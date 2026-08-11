@@ -1,4 +1,5 @@
 import { useEffect } from 'react';
+import { SITE } from '@/lib/site';
 
 export interface DocumentMeta {
   /** Full page title, e.g. "A transformer on an Italian-language corpus". */
@@ -7,10 +8,8 @@ export interface DocumentMeta {
   readonly canonical?: string;
 }
 
-const BRAND = 'Alessio Brillo';
-
 function titled(title: string): string {
-  return `${title} — ${BRAND}`;
+  return `${title} — ${SITE.name}`;
 }
 
 function metaNode(selector: string): HTMLMetaElement | null {
