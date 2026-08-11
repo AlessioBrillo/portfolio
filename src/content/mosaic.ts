@@ -21,7 +21,12 @@ const MOSAIC_ENTRIES: readonly MosaicEntry[] = [
     line: 'Work and school, built end to end.',
     href: '#work-school',
   },
-  { id: 'sky', title: 'Sky', line: 'Aviation and the VDS licence.', href: '#sky-sport' },
+  {
+    id: 'sky',
+    title: 'Sky',
+    line: 'Aviation and the VDS licence.',
+    href: '/sky/vds-licence',
+  },
   { id: 'tennis', title: 'Tennis', line: 'Discipline on the court.', href: '#sky-sport' },
   { id: 'mtb', title: 'MTB', line: 'Lines down the mountain.', href: '#sky-sport' },
 ];

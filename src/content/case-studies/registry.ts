@@ -24,6 +24,18 @@ export const CASE_STUDIES: Readonly<Record<string, CaseStudyEntry>> = {
     },
     load: () => import('./transformer-italian-corpus.mdx'),
   },
+  'vds-licence': {
+    meta: {
+      slug: 'vds-licence',
+      domain: 'sky',
+      title: 'The VDS licence, on purpose',
+      role: 'Personal discipline',
+      year: '2026',
+      stack: ['Ultralight aircraft', 'VDS licence'],
+      summary: 'Earning the Italian ultralight licence as a study in decision hygiene.',
+    },
+    load: () => import('./vds-licence.mdx'),
+  },
 };
 
 export function getCaseStudy(slug: string): CaseStudyEntry | undefined {
