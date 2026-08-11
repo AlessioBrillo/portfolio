@@ -2,6 +2,7 @@ import { Suspense, lazy, useMemo, type ReactElement } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { getCaseStudy } from '@/content/case-studies/registry';
 import { useDocumentMeta } from '@/hooks/useDocumentMeta';
+import { canonicalOrigin } from '@/lib/site';
 import { Eyebrow } from '@/components/ui/Eyebrow';
 import { NotFoundPage } from '@/pages/NotFoundPage';
 
@@ -28,7 +29,7 @@ export function CaseStudyPage(): ReactElement {
       ? {
           title: entry.meta.title,
           description: entry.meta.summary,
-          canonical: `${window.location.origin}/${entry.meta.domain}/${entry.meta.slug}`,
+          canonical: `${canonicalOrigin()}/${entry.meta.domain}/${entry.meta.slug}`,
         }
       : { title: 'Lost altitude' },
   );
