@@ -122,9 +122,17 @@ describe('useTonalEngine', () => {
 
     const climb = TONAL_TRANSITIONS[0];
     if (!climb) throw new Error('expected a climb transition');
-    const flip = mocks.create.mock.calls[flipIndex(0)]?.[0] as CreateConfig & { start: unknown };
+    const flip = mocks.create.mock.calls[flipIndex(0)]?.[0] as CreateConfig & {
+      trigger: Element;
+      start: string;
+    };
 
-    expect(flip.start).toBeTypeOf('function');
+    // Anchored to the trigger heading at a *relative* start: the fade
+    // midpoint (`top bottom` -> `top center`), re-measured on every
+    // ScrollTrigger refresh so layout shifts can never freeze it.
+    expect(flip.trigger).toBe(document.getElementById('ai-physics'));
+    expect(flip.start).toBe('top 75%');
+
     flip.onEnter();
     expect(onToneChange).toHaveBeenLastCalledWith(climb.to);
     flip.onLeaveBack();
@@ -138,7 +146,11 @@ describe('useTonalEngine', () => {
 
     const descent = TONAL_TRANSITIONS[1];
     if (!descent) throw new Error('expected a descent transition');
-    const config = mocks.create.mock.calls[discreteIndex(1)]?.[0] as CreateConfig;
+    const config = mocks.create.mock.calls[discreteIndex(1)]?.[0] as CreateConfig & {
+      start: string;
+    };
+    expect(config.start).toBe('top 75%');
+
     config.onEnter();
     expect(mocks.set).toHaveBeenCalledWith(ref.current, { backgroundColor: TONE[descent.to] });
     expect(onToneChange).toHaveBeenLastCalledWith(descent.to);
@@ -154,45 +166,5 @@ describe('useTonalEngine', () => {
     });
     await Promise.resolve();
     expect(mocks.registerPlugin).not.toHaveBeenCalled();
-  });
-
-  it('re-measures switch points lazily so later layout shifts are respected', async () => {
-    renderEngine();
-    await waitFor(() => expect(mocks.create).toHaveBeenCalledTimes(TONAL_TRANSITIONS.length * 2));
-
-    const config = mocks.create.mock.calls[flipIndex(0)]?.[0] as { start: () => number };
-    expect(config.start).toBeTypeOf('function');
-
-    const trigger = document.getElementById('ai-physics');
-    expect(trigger).not.toBeNull();
-    if (!trigger) return;
-
-    vi.spyOn(trigger, 'getBoundingClientRect').mockReturnValue({
-      top: 100,
-      height: 40,
-      bottom: 140,
-      left: 0,
-      right: 0,
-      x: 0,
-      y: 100,
-      width: 0,
-      toJSON: () => ({}),
-    });
-
-    const before = config.start();
-    vi.spyOn(trigger, 'getBoundingClientRect').mockReturnValue({
-      top: 800,
-      height: 40,
-      bottom: 840,
-      left: 0,
-      right: 0,
-      x: 0,
-      y: 800,
-      width: 0,
-      toJSON: () => ({}),
-    });
-    const after = config.start();
-
-    expect(after).not.toBe(before);
   });
 });

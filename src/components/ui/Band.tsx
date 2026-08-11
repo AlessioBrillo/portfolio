@@ -45,11 +45,7 @@ export function Band({
     <section
       id={id}
       aria-label={ariaLabel}
-      className={cn(
-        'scroll-mt-16 px-6 py-[var(--space-section)] transition-colors duration-[var(--duration-slow)]',
-        background,
-        text,
-      )}
+      className={cn('scroll-mt-16 px-6 py-[var(--space-section)]', background, text)}
     >
       <div className="mx-auto max-w-[1200px]">{children}</div>
     </section>

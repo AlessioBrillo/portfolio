@@ -57,9 +57,15 @@ publishes flips at the points where the new tone becomes the more legible one:
   point the backdrop is exactly equidistant from the two committed tones and
   the incoming tone is strictly more legible from there on; each tone's
   sub-AA stretch is bounded to half a fade instead of a whole one.
-- **Reduced motion:** at the same instant the backdrop switches discretely
-  (the outgoing/incoming heading midpoint), so backdrop and text change
-  together with no blended intermediate.
+- **Reduced motion:** at the same fade-midpoint line (75% of the viewport),
+  where the backdrop switches discretely — so both paths flip backdrop and
+  text tone at the identical scroll position, with no blended intermediate.
+
+Both flips are anchored as _relative_ ScrollTrigger starts (`top 75%` of the
+trigger heading), which ScrollTrigger re-measures on every refresh: fonts or
+images that shift the layout after mount cannot freeze the flip at
+first-render geometry (an absolute pixel start does, and fires the flip late —
+the defect this anchor exists to prevent).
 
 Consumers: `Band` (`surface="scene"`) takes its text colour from the live tone
 (`text-cream` on night); `Eyebrow` derives its `light`/`dark` tone from it when
@@ -102,7 +108,7 @@ from scene state (that would snap the blend).
   exactly equally legible, bounding each tone's sub-AA stretch to half a
   crossfade (~a few hundred px of scroll) instead of the whole window. This is
   the deliberate trade-off of a fixed backdrop and is documented in the
-  engine's `fadeMidpointScrollY`.
+  engine's `FADE_MIDPOINT_START`.
 - **Testing:** the contract is guarded by unit tests (Band, Eyebrow,
   ImageBlock, section-level muted tones, engine flip/discrete publish,
   TonalScene provider wiring) and by the Playwright harness, which now also
