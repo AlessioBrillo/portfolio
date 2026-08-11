@@ -33,6 +33,7 @@ describe('ErrorBoundary', () => {
     expect(screen.getByText('Something went wrong.')).toBeInTheDocument();
     expect(screen.getByText('Boom')).toBeInTheDocument();
     expect(screen.getByRole('link', { name: /return to ground/i })).toBeInTheDocument();
+    expect(screen.getByRole('alert')).toHaveTextContent(/something went wrong/i);
 
     vi.restoreAllMocks();
   });
