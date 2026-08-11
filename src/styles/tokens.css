@@ -28,6 +28,9 @@
 
   --space-section: clamp(6rem, 4rem + 6vw, 10rem);
 
+  /* Shared page container width (Band, TopBar, Footer) → `max-w-page`. */
+  --container-page: 75rem;
+
   --duration-fast: 150ms;
   --duration-normal: 300ms;
   --duration-slow: 600ms;

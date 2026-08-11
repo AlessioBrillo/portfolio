@@ -56,7 +56,7 @@ export function TopBar(): ReactElement {
         inDark ? 'border-white/5 bg-night/70 text-cream' : 'border-black/5 bg-paper/70 text-ink',
       )}
     >
-      <div className="mx-auto flex max-w-[1200px] items-center justify-between px-6 py-4">
+      <div className="mx-auto flex max-w-page items-center justify-between px-6 py-4">
         <a
           href="#hero"
           className={cn(
