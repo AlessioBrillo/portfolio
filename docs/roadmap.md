@@ -25,6 +25,15 @@ for good means either animating each heading's own text colour in sync with the
 backdrop or revisiting the palette -- deferred as real, non-trivial work, not
 silently dropped.
 
+Since the close of Phase 4, the remaining bands (Who, AI & Physics, Work &
+School, Sky & Sport, Experiences) have been scaffolded as content-driven
+sections backed by tested content modules (`src/content/`), and the mosaic
+tiles now all resolve somewhere real -- either a case-study route or a section
+anchor. The SPA fallback for the `/{domain}/{slug}` deep links (a pending
+consequence of ADR-0005) is configured in `vercel.json`. Phase 5 still awaits
+the author's inputs below: real photos, real copy, and 1-2 more long-form case
+studies to fill the `/work/` and `/sky/` domains.
+
 ## Inputs needed to proceed
 
 1. **5-8 strong photos** (one sober portrait for "Who", the rest sport / flying /
