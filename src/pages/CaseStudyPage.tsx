@@ -20,12 +20,13 @@ function Skeleton(): ReactElement {
 
 /** Renders a single case study from its MDX body at `/{domain}/{slug}`. */
 export function CaseStudyPage(): ReactElement {
-  const { slug } = useParams();
+  const { domain, slug } = useParams();
   const entry = slug ? getCaseStudy(slug) : undefined;
+  const valid = entry !== undefined && domain === entry.meta.domain;
   const Body = useMemo(() => (entry ? lazy(entry.load) : null), [entry]);
 
   useDocumentMeta(
-    entry
+    valid
       ? {
           title: entry.meta.title,
           description: entry.meta.summary,
@@ -34,7 +35,7 @@ export function CaseStudyPage(): ReactElement {
       : { title: 'Lost altitude' },
   );
 
-  if (!entry || !Body) {
+  if (!valid || !Body) {
     return <NotFoundPage />;
   }
 
