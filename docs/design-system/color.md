@@ -44,5 +44,6 @@ Verify every pair with an AA checker (see
 
 ## Where tokens live
 
-Color tokens are declared CSS-first in the `@theme` block of `src/index.css`, so
-they are available as Tailwind utilities (`bg-night`, `text-orange`, ...).
+Color tokens are declared CSS-first in the `@theme` block of
+`src/styles/tokens.css` (imported by `src/index.css`), so they are available as
+Tailwind utilities (`bg-night`, `text-orange`, ...).

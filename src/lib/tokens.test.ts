@@ -5,7 +5,7 @@ import { TONE } from '@/lib/tone';
 /**
  * Verify JS motion and colour constants are internally consistent.
  *
- * These values must match the CSS custom properties in `src/index.css`:
+ * These values must match the CSS custom properties in `src/styles/tokens.css`:
  *
  *   --duration-fast: 150ms     →  DURATION.fast = 150
  *   --duration-normal: 300ms   →  DURATION.normal = 300

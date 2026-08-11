@@ -31,7 +31,7 @@ React Router (case-study routes), Vitest. Package manager: **npm**. Path alias:
 ## Key references
 
 - Decisions: `docs/adr/`
-- Design tokens: `src/index.css` (`@theme`), `src/styles/tokens.css`,
+- Design tokens: `src/styles/tokens.css` (`@theme`),
   `src/styles/typography.css`
 - Page order and bands: `docs/architecture/page-architecture.md`,
   `src/lib/altitude.ts`
