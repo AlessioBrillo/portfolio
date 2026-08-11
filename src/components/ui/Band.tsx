@@ -47,7 +47,7 @@ export function Band({
       aria-label={ariaLabel}
       className={cn('scroll-mt-16 px-6 py-[var(--space-section)]', background, text)}
     >
-      <div className="mx-auto max-w-[1200px]">{children}</div>
+      <div className="mx-auto max-w-page">{children}</div>
     </section>
   );
 }

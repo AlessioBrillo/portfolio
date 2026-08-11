@@ -7,7 +7,7 @@ export function Footer(): ReactElement {
 
   return (
     <footer className="bg-night text-cream">
-      <div className="mx-auto flex max-w-[1200px] flex-col gap-2 px-6 py-12">
+      <div className="mx-auto flex max-w-page flex-col gap-2 px-6 py-12">
         <span className="font-display text-lg">{SITE.name}</span>
         <span className="text-sm text-muted-dark">{SITE.tagline}</span>
         <span className="mt-4 font-mono text-xs uppercase tracking-widest text-muted-dark">

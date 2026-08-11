@@ -49,8 +49,9 @@ Phase 5 still awaits the author's inputs below: real photos, real copy, and
    recruiter).
 3. The current **LinkedIn headline** (for the hero eyebrow).
 4. A **domain** + how you want to sign (full name? a small personal brand?).
-5. **Font binaries** for Fraunces / Geist / Geist Mono (see
-   `src/assets/fonts/README.md`).
+5. ~~**Font binaries**~~ — resolved: the Latin-subset variable woff2 files
+   (Fraunces / Geist / Geist Mono, OFL licenses alongside) are committed under
+   `src/assets/fonts/` and wired via `@font-face` (ADR-0007).
 
 ## The one justified risk
 

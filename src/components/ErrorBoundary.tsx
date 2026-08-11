@@ -28,7 +28,10 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
   render(): ReactNode {
     if (this.state.hasError) {
       return (
-        <main className="flex min-h-screen flex-col items-center justify-center gap-6 bg-paper px-6 text-center text-ink">
+        <main
+          role="alert"
+          className="flex min-h-screen flex-col items-center justify-center gap-6 bg-paper px-6 text-center text-ink"
+        >
           <Eyebrow>Error</Eyebrow>
           <h1 className="font-display text-[length:var(--text-h2)] font-medium">
             Something went wrong.
