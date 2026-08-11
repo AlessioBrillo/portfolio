@@ -34,9 +34,12 @@ anchor. Scene bands also now follow the live backdrop tone (ADR-0011): the
 engine publishes each fade's winning tone and band text, eyebrows and muted
 copy flip with it, so every element stays AA-legible at both ends of the
 flight. The SPA fallback for the `/{domain}/{slug}` deep links (a pending
-consequence of ADR-0005) is configured in `vercel.json`. Phase 5 still awaits
-the author's inputs below: real photos, real copy, and 1-2 more long-form case
-studies to fill the `/work/` and `/sky/` domains.
+consequence of ADR-0005) is configured in `vercel.json`. A second real case
+study is now published: the VDS licence (`/sky/vds-licence`) closes the
+narrative circle -- the mosaic Sky tile deep-links into it, and the sky-domain
+route ships with its own code-split MDX body and E2E deep-link coverage.
+Phase 5 still awaits the author's inputs below: real photos, real copy, and
+1-2 more long-form case studies to fill the `/work/` and `/sky/` domains.
 
 ## Inputs needed to proceed
 
