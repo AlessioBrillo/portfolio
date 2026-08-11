@@ -1,6 +1,7 @@
 import { render, screen } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
 import { Experiences } from '@/sections/Experiences';
+import { ToneProvider } from '@/components/ascent/ToneProvider';
 import { getExperienceEntries } from '@/content/experiences';
 
 describe('Experiences', () => {
@@ -18,5 +19,16 @@ describe('Experiences', () => {
     for (const entry of withYear) {
       expect(screen.getByText(entry.year as string)).toBeInTheDocument();
     }
+  });
+
+  it('uses the night muted tone for stories when the scene is on night', () => {
+    render(
+      <ToneProvider initialTone="night">
+        <Experiences surface="scene" />
+      </ToneProvider>,
+    );
+    const entry = getExperienceEntries()[0];
+    if (!entry) return;
+    expect(screen.getByText(entry.line)).toHaveClass('text-muted-dark');
   });
 });

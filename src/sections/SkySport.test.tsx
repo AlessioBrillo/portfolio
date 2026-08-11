@@ -1,6 +1,7 @@
 import { render, screen } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
 import { SkySport } from '@/sections/SkySport';
+import { ToneProvider } from '@/components/ascent/ToneProvider';
 import { getSportEntries } from '@/content/sky';
 
 describe('SkySport', () => {
@@ -25,5 +26,16 @@ describe('SkySport', () => {
       if (caption) continue;
       expect(screen.queryByText(entry.image.alt)).toBeInTheDocument();
     }
+  });
+
+  it('uses the night muted tone for entry lines when the scene is on night', () => {
+    render(
+      <ToneProvider initialTone="night">
+        <SkySport surface="scene" />
+      </ToneProvider>,
+    );
+    const entry = getSportEntries()[0];
+    if (!entry) return;
+    expect(screen.getByText(entry.line)).toHaveClass('text-muted-dark');
   });
 });

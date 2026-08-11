@@ -1,6 +1,7 @@
 import { render, screen } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
 import { Who } from '@/sections/Who';
+import { ToneProvider } from '@/components/ascent/ToneProvider';
 import { getWhoPortrait, getWhoStatements } from '@/content/who';
 
 describe('Who', () => {
@@ -24,5 +25,16 @@ describe('Who', () => {
   it('renders the portrait slot with its alt text', () => {
     render(<Who />);
     expect(screen.getByText(getWhoPortrait().alt)).toBeInTheDocument();
+  });
+
+  it('uses the night muted tone for statements when the scene is on night', () => {
+    render(
+      <ToneProvider initialTone="night">
+        <Who surface="scene" />
+      </ToneProvider>,
+    );
+    const statement = getWhoStatements()[0];
+    if (!statement) return;
+    expect(screen.getByText(statement.line)).toHaveClass('text-muted-dark');
   });
 });

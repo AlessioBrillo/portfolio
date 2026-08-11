@@ -1,6 +1,7 @@
 import { render, screen } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
 import { Eyebrow } from '@/components/ui/Eyebrow';
+import { ToneProvider } from '@/components/ascent/ToneProvider';
 
 describe('Eyebrow', () => {
   it('renders its content', () => {
@@ -22,6 +23,24 @@ describe('Eyebrow', () => {
   it('uses the dark tone (muted-dark on night) when requested', () => {
     render(<Eyebrow tone="dark">Cruise</Eyebrow>);
     expect(screen.getByText('Cruise')).toHaveClass('text-muted-dark');
+  });
+
+  it('defaults to the dark tone when the scene is on night', () => {
+    render(
+      <ToneProvider initialTone="night">
+        <Eyebrow>Cruise</Eyebrow>
+      </ToneProvider>,
+    );
+    expect(screen.getByText('Cruise')).toHaveClass('text-muted-dark');
+  });
+
+  it('lets an explicit tone override the scene tone', () => {
+    render(
+      <ToneProvider initialTone="night">
+        <Eyebrow tone="light">Ground</Eyebrow>
+      </ToneProvider>,
+    );
+    expect(screen.getByText('Ground')).toHaveClass('text-ink-soft');
   });
 
   it('merges a custom className', () => {
