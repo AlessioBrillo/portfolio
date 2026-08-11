@@ -4,6 +4,7 @@ import { Band, type Surface } from '@/components/ui/Band';
 import { Eyebrow } from '@/components/ui/Eyebrow';
 import { useReducedMotion } from '@/hooks/useReducedMotion';
 import { EASE_OUT_EXPO, REVEAL_OFFSET_PX } from '@/lib/animation';
+import { SITE } from '@/lib/site';
 
 interface HeroProps {
   surface?: Surface;
@@ -50,7 +51,7 @@ export function Hero({ surface = 'solid' }: HeroProps): ReactElement {
           className="font-display text-[length:var(--text-hero)] font-medium leading-[1.02] tracking-[-0.02em] text-balance"
           variants={rise}
         >
-          Alessio Brillo
+          {SITE.name}
         </motion.h1>
 
         <motion.p
