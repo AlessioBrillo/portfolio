@@ -49,19 +49,25 @@ Commits.
 `npm run e2e` runs the Playwright signature harness (`playwright.config.ts`,
 `e2e/`) — the only thing that actually renders the tonal crossfade in a browser.
 Not part of the commit-time gate; run it after touching `TonalScene`,
-`useTonalEngine`, `src/lib/tone.ts`, or any section's tone/surface props.
+`useTonalEngine`, `src/lib/tone.ts`, the scene-tone context
+(`tone-context`/`ToneProvider`, ADR-0011), or any section's tone/surface props.
 
 ## Current state
 
 End of Phase 4 (mosaic + one real case study end-to-end). The tonal engine
 (`useTonalEngine` + `TonalScene`) is implemented, unit-tested, and validated
 end-to-end by the Playwright harness — both crossfades (climb paper→night,
-descent night→paper) render and hold under `prefers-reduced-motion`. Case
-studies are real routes: `/{domain}/{slug}` resolves through the data router
-(ADR-0005), owns its document head via `useDocumentMeta`, and returns to the
-exact scroll position via the layout's `ScrollRestoration`. The first study
+descent night→paper) render and hold under `prefers-reduced-motion`. Scene
+text follows the live backdrop tone (ADR-0011): `TonalScene` publishes the
+engine's flips through `tone-context`, and scene bands, eyebrows, and muted
+copy flip with the blend at each fade midpoint, so no ink-family text ever
+sits on the night half of the flight. Case studies are real routes:
+`/{domain}/{slug}` resolves through the data router (ADR-0005), owns its
+document head via `useDocumentMeta`, and returns to the exact scroll position
+via the layout's `ScrollRestoration`. The first study
 (`transformer-italian-corpus`) carries a professional draft; the mosaic index
 and its tiles are backed by a tested content module. Small-text contrast is
-AA-safe on every surface. Remaining sections (Who, Projects, Sky/Sport,
-Experiences, Contact) are structural bands awaiting their content — do not
-assume they exist yet.
+AA-safe on every surface. The bands after the mosaic (Who, AI & Physics, Work &
+School, Sky & Sport, Experiences) are scaffolded, content-driven sections backed
+by tested content modules; Contact is the last structural band awaiting its
+content — do not assume it exists yet.

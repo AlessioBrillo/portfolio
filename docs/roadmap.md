@@ -17,19 +17,23 @@ currently at the end of Phase 4 (mosaic + one real case study end-to-end).**
 Phase 2's crossfade (both climb and descent) is implemented and validated
 end-to-end by the Playwright harness (`npm run e2e`) -- it now stands as the
 signature's regression net for any future change to `TonalScene`,
-`useTonalEngine`, or `src/lib/tone.ts`. One known, documented residual remains:
-right at a crossfade's exact mathematical midpoint, text contrast can dip below
-its nominal WCAG floor, since the backdrop there is a fixed blend of the two
-locked ADR-0008 tones (see the diagnostic in `e2e/signature.e2e.ts`). Closing it
-for good means either animating each heading's own text colour in sync with the
-backdrop or revisiting the palette -- deferred as real, non-trivial work, not
-silently dropped.
+`useTonalEngine`, `src/lib/tone.ts`, or the scene-tone context (ADR-0011). One
+residual is now _bounded_ rather than open-ended: ADR-0011 flips scene text
+tones at each fade's exact mathematical midpoint (where the two tones are
+equally legible), so the sub-AA stretch is a single instant at the midpoint
+instead of an entire crossfade at the wrong tone. Closing the last instant for
+good means animating each heading's own text colour in sync with the backdrop
+or revisiting the palette -- deferred as real, non-trivial work, not silently
+dropped.
 
 Since the close of Phase 4, the remaining bands (Who, AI & Physics, Work &
 School, Sky & Sport, Experiences) have been scaffolded as content-driven
 sections backed by tested content modules (`src/content/`), and the mosaic
 tiles now all resolve somewhere real -- either a case-study route or a section
-anchor. The SPA fallback for the `/{domain}/{slug}` deep links (a pending
+anchor. Scene bands also now follow the live backdrop tone (ADR-0011): the
+engine publishes each fade's winning tone and band text, eyebrows and muted
+copy flip with it, so every element stays AA-legible at both ends of the
+flight. The SPA fallback for the `/{domain}/{slug}` deep links (a pending
 consequence of ADR-0005) is configured in `vercel.json`. Phase 5 still awaits
 the author's inputs below: real photos, real copy, and 1-2 more long-form case
 studies to fill the `/work/` and `/sky/` domains.
