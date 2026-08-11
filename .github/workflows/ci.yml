@@ -52,12 +52,8 @@ jobs:
           wait $pid3 || status=$?
           exit $status
 
-      - name: Test
-        run: npm test
+      - name: Test (with the 80% coverage floor, enforced pre-merge)
+        run: npm run test:coverage
 
       - name: Build
         run: npm run build
-
-      - name: Coverage
-        if: github.ref == 'refs/heads/main'
-        run: npm run test:coverage
