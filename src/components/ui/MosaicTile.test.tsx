@@ -21,6 +21,13 @@ const plainEntry: MosaicEntry = {
   line: 'Work and school.',
 };
 
+const anchorEntry: MosaicEntry = {
+  id: 'sky',
+  title: 'Sky',
+  line: 'Aviation and the VDS licence.',
+  href: '#sky-sport',
+};
+
 describe('MosaicTile', () => {
   it('renders the entry title', () => {
     renderWithRouter(<MosaicTile entry={linkedEntry} />);
@@ -48,5 +55,12 @@ describe('MosaicTile', () => {
   it('does not render a link when href is missing', () => {
     renderWithRouter(<MosaicTile entry={plainEntry} />);
     expect(screen.queryByRole('link')).not.toBeInTheDocument();
+  });
+
+  it('wraps in an in-page anchor when href points at a section', () => {
+    renderWithRouter(<MosaicTile entry={anchorEntry} />);
+    const link = screen.getByRole('link');
+    expect(link).toHaveAttribute('href', '#sky-sport');
+    expect(link).toContainElement(screen.getByRole('heading', { name: 'Sky' }));
   });
 });

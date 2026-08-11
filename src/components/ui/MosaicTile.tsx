@@ -16,7 +16,13 @@ const CARD_CLASSES =
   'bg-cream/60 p-6 transition-[transform,border-color] duration-[var(--duration-normal)] ' +
   'ease-[var(--ease-out-expo)] hover:-translate-y-1 hover:border-orange';
 
-/** A puzzle piece in the mosaic index. Hover lifts it and reveals an orange edge. */
+const LINK_CLASSES = `${CARD_CLASSES} block h-full no-underline text-current`;
+
+/**
+ * A puzzle piece in the mosaic index. Hover lifts it and reveals an orange
+ * edge. Route hrefs are SPA links into a case study; `#section` hrefs are
+ * in-page anchors into the band that tells that story on the page.
+ */
 export function MosaicTile({ entry }: MosaicTileProps): ReactElement {
   const content = (
     <>
@@ -25,11 +31,17 @@ export function MosaicTile({ entry }: MosaicTileProps): ReactElement {
     </>
   );
 
-  return entry.href ? (
-    <Link to={entry.href} className={`${CARD_CLASSES} block h-full no-underline text-current`}>
+  if (!entry.href) {
+    return <article className={CARD_CLASSES}>{content}</article>;
+  }
+
+  return entry.href.startsWith('#') ? (
+    <a href={entry.href} className={LINK_CLASSES}>
+      {content}
+    </a>
+  ) : (
+    <Link to={entry.href} className={LINK_CLASSES}>
       {content}
     </Link>
-  ) : (
-    <article className={CARD_CLASSES}>{content}</article>
   );
 }
