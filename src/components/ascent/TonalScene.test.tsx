@@ -1,5 +1,6 @@
 import { fireEvent, render, screen } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
+import type { ReactElement } from 'react';
 import { TonalScene } from '@/components/ascent/TonalScene';
 import { useSceneTone } from '@/components/ascent/tone-context';
 import { TONE } from '@/lib/tone';
@@ -10,7 +11,7 @@ vi.mock('@/components/ascent/useTonalEngine', () => ({
   useTonalEngine: vi.fn(),
 }));
 
-function ToneProbe() {
+function ToneProbe(): ReactElement {
   const { tone, setTone } = useSceneTone();
   return (
     <button type="button" onClick={() => setTone('night')}>
