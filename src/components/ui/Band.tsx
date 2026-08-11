@@ -1,5 +1,6 @@
 import type { ReactElement, ReactNode } from 'react';
 import type { SectionId } from '@/types/domain';
+import { useSceneTone } from '@/components/ascent/tone-context';
 import { cn } from '@/lib/utils';
 
 type Tone = 'paper' | 'night';
@@ -7,7 +8,9 @@ type Tone = 'paper' | 'night';
 /**
  * `solid` paints its own background tone (the default, used by bands outside an
  * animated transition). `scene` stays transparent so a `TonalScene` backdrop
- * can crossfade behind it — the band still sets its text colour from `tone`.
+ * can crossfade behind it -- the band then takes its text colour from the
+ * *live* scene tone (ADR-0011) instead of the static `tone` prop, so text
+ * stays legible as the backdrop blends.
  */
 export type Surface = 'solid' | 'scene';
 
@@ -22,7 +25,8 @@ interface BandProps {
 /**
  * One tonal band of the ascent. A `solid` band paints its own background; a
  * `scene` band defers its background to a `TonalScene` so the tone can crossfade
- * on scroll (ADR-0003, ADR-0010).
+ * on scroll (ADR-0003, ADR-0010), and reads the live scene tone for its text
+ * colour (ADR-0011).
  */
 export function Band({
   id,
@@ -31,7 +35,9 @@ export function Band({
   tone = 'paper',
   surface = 'solid',
 }: BandProps): ReactElement {
-  const text = tone === 'night' ? 'text-cream' : 'text-ink';
+  const sceneTone = useSceneTone();
+  const effectiveTone = surface === 'scene' ? sceneTone.tone : tone;
+  const text = effectiveTone === 'night' ? 'text-cream' : 'text-ink';
   const background =
     surface === 'scene' ? 'bg-transparent' : tone === 'night' ? 'bg-night' : 'bg-paper';
 

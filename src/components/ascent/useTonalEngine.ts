@@ -1,7 +1,7 @@
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import type { RefObject } from 'react';
 import { SECTION_ORDER } from '@/lib/altitude';
-import { TONE, TONAL_TRANSITIONS } from '@/lib/tone';
+import { TONE, TONAL_TRANSITIONS, type ToneName } from '@/lib/tone';
 
 /**
  * The element a transition's `start`/`end` marks are measured against. A
@@ -55,7 +55,37 @@ function discreteSwitchScrollY(triggerSectionId: string): (() => number) | null 
   };
 }
 
-export function useTonalEngine(backdropRef: RefObject<HTMLDivElement | null>): void {
+/**
+ * The scroll position at which a scene band's text tone should flip while the
+ * backdrop is *blending* (full-motion path, ADR-0011): the mathematical
+ * midpoint of the fade window, where the backdrop is exactly equidistant from
+ * the two committed tones (`top bottom` = heading top at 100% of the viewport,
+ * `top center` = 50%, so the midpoint sits at 75%). From that point on the
+ * incoming tone is strictly more legible than the outgoing one; flipping there
+ * bounds each tone's sub-AA stretch to half the fade instead of sustaining it
+ * for the whole crossfade. Measured lazily, like `discreteSwitchScrollY`.
+ */
+function fadeMidpointScrollY(sectionId: string): (() => number) | null {
+  const section = document.getElementById(sectionId);
+  const target = section?.querySelector('h1, h2') ?? section;
+  if (!target) return null;
+  return () => {
+    const rect = target.getBoundingClientRect();
+    const topPage = rect.top + window.scrollY;
+    return topPage - window.innerHeight * 0.75;
+  };
+}
+
+export function useTonalEngine(
+  backdropRef: RefObject<HTMLDivElement | null>,
+  onToneChange?: (tone: ToneName) => void,
+): void {
+  // Kept in a ref so the GSAP effect only depends on the backdrop element:
+  // `TonalScene` passes the stable `setTone` state setter, and re-running the
+  // whole engine setup on every render would rebuild every ScrollTrigger.
+  const onToneChangeRef = useRef(onToneChange);
+  onToneChangeRef.current = onToneChange;
+
   useEffect(() => {
     const el = backdropRef.current;
     if (!el) return;
@@ -94,6 +124,18 @@ export function useTonalEngine(backdropRef: RefObject<HTMLDivElement | null>): v
                   },
                 },
               );
+
+              // Text tone flip: at the fade midpoint the incoming tone becomes
+              // the strictly more legible choice (ADR-0011), so scene bands
+              // switch their text colour there. The `transition-colors` on
+              // `Band` smooths the flip over `--duration-slow`.
+              const flip = fadeMidpointScrollY(transition.trigger);
+              if (!flip) continue;
+              ScrollTrigger.create({
+                start: flip,
+                onEnter: () => onToneChangeRef.current?.(transition.to),
+                onLeaveBack: () => onToneChangeRef.current?.(transition.from),
+              });
             }
           });
 
@@ -104,11 +146,18 @@ export function useTonalEngine(backdropRef: RefObject<HTMLDivElement | null>): v
               // No `trigger` element: `start` is already an absolute page
               // scroll position (the outgoing/incoming heading midpoint),
               // not a box measurement, so ScrollTrigger just watches the
-              // scroller directly.
+              // scroller directly. The backdrop and the scene text tone
+              // switch together at the same instant.
               ScrollTrigger.create({
                 start,
-                onEnter: () => gsap.set(el, { backgroundColor: TONE[transition.to] }),
-                onLeaveBack: () => gsap.set(el, { backgroundColor: TONE[transition.from] }),
+                onEnter: () => {
+                  gsap.set(el, { backgroundColor: TONE[transition.to] });
+                  onToneChangeRef.current?.(transition.to);
+                },
+                onLeaveBack: () => {
+                  gsap.set(el, { backgroundColor: TONE[transition.from] });
+                  onToneChangeRef.current?.(transition.from);
+                },
               });
             }
           });

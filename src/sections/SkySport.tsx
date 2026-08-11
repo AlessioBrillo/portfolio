@@ -2,6 +2,7 @@ import type { ReactElement } from 'react';
 import { Band, type Surface } from '@/components/ui/Band';
 import { SectionHeader } from '@/components/ui/SectionHeader';
 import { ImageBlock } from '@/components/ui/ImageBlock';
+import { SCENE_SOFT_TEXT, useSceneTone } from '@/components/ascent/tone-context';
 import { getSportEntries } from '@/content/sky';
 
 interface SkySportProps {
@@ -10,6 +11,7 @@ interface SkySportProps {
 
 /** 05 — The adventurous side: aviation/VDS, tennis, MTB. Very visual. */
 export function SkySport({ surface = 'solid' }: SkySportProps): ReactElement {
+  const { tone } = useSceneTone();
   return (
     <Band id="sky-sport" ariaLabel="Sky and sport" tone="paper" surface={surface}>
       <SectionHeader
@@ -25,7 +27,7 @@ export function SkySport({ surface = 'solid' }: SkySportProps): ReactElement {
               <h3 className="font-display text-[length:var(--text-h3)] font-medium">
                 {entry.title}
               </h3>
-              <p className="text-sm leading-relaxed text-ink-soft">{entry.line}</p>
+              <p className={`text-sm leading-relaxed ${SCENE_SOFT_TEXT[tone]}`}>{entry.line}</p>
             </article>
           </li>
         ))}

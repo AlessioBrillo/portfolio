@@ -3,7 +3,7 @@ import { useRef } from 'react';
 import type { RefObject } from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { useTonalEngine } from '@/components/ascent/useTonalEngine';
-import { TONAL_TRANSITIONS, TONE } from '@/lib/tone';
+import { TONAL_TRANSITIONS, TONE, type ToneName } from '@/lib/tone';
 
 interface CreateConfig {
   onEnter: () => void;
@@ -58,12 +58,12 @@ afterEach(() => {
   vi.clearAllMocks();
 });
 
-/** Renders the hook against a real backdrop element. */
-function renderEngine(): RefObject<HTMLDivElement | null> {
+/** Renders the hook against a real backdrop element, with an optional tone listener. */
+function renderEngine(onToneChange?: (tone: ToneName) => void): RefObject<HTMLDivElement | null> {
   const { result } = renderHook(() => {
     const ref = useRef<HTMLDivElement>(null);
     if (!ref.current) ref.current = document.createElement('div');
-    useTonalEngine(ref);
+    useTonalEngine(ref, onToneChange);
     return ref;
   });
   return result.current;
@@ -106,17 +106,45 @@ describe('useTonalEngine', () => {
     );
   });
 
-  it('switches tone discretely under reduced motion', async () => {
-    const ref = renderEngine();
-    await waitFor(() => expect(mocks.create).toHaveBeenCalledTimes(TONAL_TRANSITIONS.length));
+  // ScrollTrigger.create call order is deterministic under the stubbed
+  // matchMedia: the full-motion branch runs first (one fade-midpoint flip per
+  // transition), then the reduced-motion branch (one discrete switch per
+  // transition). Indices below follow that order.
+  const flipIndex = (transitionIndex: number): number => transitionIndex;
+  const discreteIndex = (transitionIndex: number): number => {
+    return TONAL_TRANSITIONS.length + transitionIndex;
+  };
+
+  it('flips the scene text tone at each fade midpoint under full motion', async () => {
+    const onToneChange = vi.fn();
+    renderEngine(onToneChange);
+    await waitFor(() => expect(mocks.create).toHaveBeenCalledTimes(TONAL_TRANSITIONS.length * 2));
+
+    const climb = TONAL_TRANSITIONS[0];
+    if (!climb) throw new Error('expected a climb transition');
+    const flip = mocks.create.mock.calls[flipIndex(0)]?.[0] as CreateConfig & { start: unknown };
+
+    expect(flip.start).toBeTypeOf('function');
+    flip.onEnter();
+    expect(onToneChange).toHaveBeenLastCalledWith(climb.to);
+    flip.onLeaveBack();
+    expect(onToneChange).toHaveBeenLastCalledWith(climb.from);
+  });
+
+  it('switches tone discretely and publishes it under reduced motion', async () => {
+    const onToneChange = vi.fn();
+    const ref = renderEngine(onToneChange);
+    await waitFor(() => expect(mocks.create).toHaveBeenCalledTimes(TONAL_TRANSITIONS.length * 2));
 
     const descent = TONAL_TRANSITIONS[1];
     if (!descent) throw new Error('expected a descent transition');
-    const config = mocks.create.mock.calls[1]?.[0] as CreateConfig;
+    const config = mocks.create.mock.calls[discreteIndex(1)]?.[0] as CreateConfig;
     config.onEnter();
     expect(mocks.set).toHaveBeenCalledWith(ref.current, { backgroundColor: TONE[descent.to] });
+    expect(onToneChange).toHaveBeenLastCalledWith(descent.to);
     config.onLeaveBack();
     expect(mocks.set).toHaveBeenCalledWith(ref.current, { backgroundColor: TONE[descent.from] });
+    expect(onToneChange).toHaveBeenLastCalledWith(descent.from);
   });
 
   it('does nothing when the backdrop ref is empty', async () => {
@@ -130,9 +158,9 @@ describe('useTonalEngine', () => {
 
   it('re-measures switch points lazily so later layout shifts are respected', async () => {
     renderEngine();
-    await waitFor(() => expect(mocks.create).toHaveBeenCalledTimes(TONAL_TRANSITIONS.length));
+    await waitFor(() => expect(mocks.create).toHaveBeenCalledTimes(TONAL_TRANSITIONS.length * 2));
 
-    const config = mocks.create.mock.calls[0]?.[0] as { start: () => number };
+    const config = mocks.create.mock.calls[flipIndex(0)]?.[0] as { start: () => number };
     expect(config.start).toBeTypeOf('function');
 
     const trigger = document.getElementById('ai-physics');

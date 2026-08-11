@@ -20,6 +20,18 @@ export const SceneToneContext = createContext<SceneToneValue>({
   setTone: () => undefined,
 });
 
+/**
+ * The muted-text colour class for each scene tone (ADR-0011): `ink-soft`
+ * (8.3:1 on paper) on daylight, `muted-dark` (4.8:1 on night) after the
+ * climb. Text that reads "secondary" while the backdrop blends uses this map
+ * instead of a hardcoded class, so it never sits in an ink-family colour on a
+ * night backdrop.
+ */
+export const SCENE_SOFT_TEXT: Record<ToneName, string> = {
+  paper: 'text-ink-soft',
+  night: 'text-muted-dark',
+};
+
 /** Reads the live scene tone; falls back to `paper` when no `TonalScene` is mounted. */
 export function useSceneTone(): SceneToneValue {
   return useContext(SceneToneContext);
