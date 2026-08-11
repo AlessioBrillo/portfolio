@@ -130,8 +130,17 @@ export function useTonalEngine(
         }, el);
 
         revert = () => ctx.revert();
-      } catch {
-        // Silently ignore — GSAP may fail to load in test environments.
+      } catch (error) {
+        // GSAP is a runtime enhancement: the seed `paper` backdrop and the
+        // scene context's default `paper` tone keep every band AA-legible
+        // even if the dynamic import fails, so the page degrades to the
+        // ground tone instead of breaking. The failure is surfaced loudly
+        // rather than swallowed -- a silent miss of the signature would be
+        // far harder to debug.
+        console.error(
+          'Tonal engine: GSAP failed to load; the page stays on the paper tone.',
+          error,
+        );
       }
     }
 
