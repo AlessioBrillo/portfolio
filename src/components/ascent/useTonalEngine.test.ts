@@ -3,7 +3,7 @@ import { useRef } from 'react';
 import type { RefObject } from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { useTonalEngine } from '@/components/ascent/useTonalEngine';
-import { TONAL_TRANSITIONS, TONE } from '@/lib/tone';
+import { TONAL_TRANSITIONS, TONE, type ToneName } from '@/lib/tone';
 
 interface CreateConfig {
   onEnter: () => void;
@@ -58,12 +58,12 @@ afterEach(() => {
   vi.clearAllMocks();
 });
 
-/** Renders the hook against a real backdrop element. */
-function renderEngine(): RefObject<HTMLDivElement | null> {
+/** Renders the hook against a real backdrop element, with an optional tone listener. */
+function renderEngine(onToneChange?: (tone: ToneName) => void): RefObject<HTMLDivElement | null> {
   const { result } = renderHook(() => {
     const ref = useRef<HTMLDivElement>(null);
     if (!ref.current) ref.current = document.createElement('div');
-    useTonalEngine(ref);
+    useTonalEngine(ref, onToneChange);
     return ref;
   });
   return result.current;
@@ -106,17 +106,57 @@ describe('useTonalEngine', () => {
     );
   });
 
-  it('switches tone discretely under reduced motion', async () => {
-    const ref = renderEngine();
-    await waitFor(() => expect(mocks.create).toHaveBeenCalledTimes(TONAL_TRANSITIONS.length));
+  // ScrollTrigger.create call order is deterministic under the stubbed
+  // matchMedia: the full-motion branch runs first (one fade-midpoint flip per
+  // transition), then the reduced-motion branch (one discrete switch per
+  // transition). Indices below follow that order.
+  const flipIndex = (transitionIndex: number): number => transitionIndex;
+  const discreteIndex = (transitionIndex: number): number => {
+    return TONAL_TRANSITIONS.length + transitionIndex;
+  };
+
+  it('flips the scene text tone at each fade midpoint under full motion', async () => {
+    const onToneChange = vi.fn();
+    renderEngine(onToneChange);
+    await waitFor(() => expect(mocks.create).toHaveBeenCalledTimes(TONAL_TRANSITIONS.length * 2));
+
+    const climb = TONAL_TRANSITIONS[0];
+    if (!climb) throw new Error('expected a climb transition');
+    const flip = mocks.create.mock.calls[flipIndex(0)]?.[0] as CreateConfig & {
+      trigger: Element;
+      start: string;
+    };
+
+    // Anchored to the trigger heading at a *relative* start: the fade
+    // midpoint (`top bottom` -> `top center`), re-measured on every
+    // ScrollTrigger refresh so layout shifts can never freeze it.
+    expect(flip.trigger).toBe(document.getElementById('ai-physics'));
+    expect(flip.start).toBe('top 75%');
+
+    flip.onEnter();
+    expect(onToneChange).toHaveBeenLastCalledWith(climb.to);
+    flip.onLeaveBack();
+    expect(onToneChange).toHaveBeenLastCalledWith(climb.from);
+  });
+
+  it('switches tone discretely and publishes it under reduced motion', async () => {
+    const onToneChange = vi.fn();
+    const ref = renderEngine(onToneChange);
+    await waitFor(() => expect(mocks.create).toHaveBeenCalledTimes(TONAL_TRANSITIONS.length * 2));
 
     const descent = TONAL_TRANSITIONS[1];
     if (!descent) throw new Error('expected a descent transition');
-    const config = mocks.create.mock.calls[1]?.[0] as CreateConfig;
+    const config = mocks.create.mock.calls[discreteIndex(1)]?.[0] as CreateConfig & {
+      start: string;
+    };
+    expect(config.start).toBe('top 75%');
+
     config.onEnter();
     expect(mocks.set).toHaveBeenCalledWith(ref.current, { backgroundColor: TONE[descent.to] });
+    expect(onToneChange).toHaveBeenLastCalledWith(descent.to);
     config.onLeaveBack();
     expect(mocks.set).toHaveBeenCalledWith(ref.current, { backgroundColor: TONE[descent.from] });
+    expect(onToneChange).toHaveBeenLastCalledWith(descent.from);
   });
 
   it('does nothing when the backdrop ref is empty', async () => {
@@ -126,45 +166,5 @@ describe('useTonalEngine', () => {
     });
     await Promise.resolve();
     expect(mocks.registerPlugin).not.toHaveBeenCalled();
-  });
-
-  it('re-measures switch points lazily so later layout shifts are respected', async () => {
-    renderEngine();
-    await waitFor(() => expect(mocks.create).toHaveBeenCalledTimes(TONAL_TRANSITIONS.length));
-
-    const config = mocks.create.mock.calls[0]?.[0] as { start: () => number };
-    expect(config.start).toBeTypeOf('function');
-
-    const trigger = document.getElementById('ai-physics');
-    expect(trigger).not.toBeNull();
-    if (!trigger) return;
-
-    vi.spyOn(trigger, 'getBoundingClientRect').mockReturnValue({
-      top: 100,
-      height: 40,
-      bottom: 140,
-      left: 0,
-      right: 0,
-      x: 0,
-      y: 100,
-      width: 0,
-      toJSON: () => ({}),
-    });
-
-    const before = config.start();
-    vi.spyOn(trigger, 'getBoundingClientRect').mockReturnValue({
-      top: 800,
-      height: 40,
-      bottom: 840,
-      left: 0,
-      right: 0,
-      x: 0,
-      y: 800,
-      width: 0,
-      toJSON: () => ({}),
-    });
-    const after = config.start();
-
-    expect(after).not.toBe(before);
   });
 });

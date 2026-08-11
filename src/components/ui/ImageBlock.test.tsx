@@ -1,6 +1,7 @@
 import { render, screen } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
 import { ImageBlock } from '@/components/ui/ImageBlock';
+import { ToneProvider } from '@/components/ascent/ToneProvider';
 
 describe('ImageBlock', () => {
   it('renders placeholder text when no src', () => {
@@ -23,5 +24,14 @@ describe('ImageBlock', () => {
   it('does not render caption when omitted', () => {
     const { container } = render(<ImageBlock alt="Photo" />);
     expect(container.querySelector('figcaption')).not.toBeInTheDocument();
+  });
+
+  it('uses the night muted tone for captions when the scene is on night', () => {
+    render(
+      <ToneProvider initialTone="night">
+        <ImageBlock alt="Photo" caption="A night view" />
+      </ToneProvider>,
+    );
+    expect(screen.getByText('A night view')).toHaveClass('text-muted-dark');
   });
 });

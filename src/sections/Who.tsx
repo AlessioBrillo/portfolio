@@ -2,6 +2,7 @@ import type { ReactElement } from 'react';
 import { Band, type Surface } from '@/components/ui/Band';
 import { SectionHeader } from '@/components/ui/SectionHeader';
 import { ImageBlock } from '@/components/ui/ImageBlock';
+import { SCENE_SOFT_TEXT, useSceneTone } from '@/components/ascent/tone-context';
 import { getWhoPortrait, getWhoStatements } from '@/content/who';
 
 interface WhoProps {
@@ -10,6 +11,7 @@ interface WhoProps {
 
 /** 01 — Character. Three adjectives made concrete, not listed. */
 export function Who({ surface = 'solid' }: WhoProps): ReactElement {
+  const { tone } = useSceneTone();
   return (
     <Band id="who" ariaLabel="Who I am" tone="paper" surface={surface}>
       <SectionHeader
@@ -25,7 +27,9 @@ export function Who({ surface = 'solid' }: WhoProps): ReactElement {
               <h3 className="font-display text-[length:var(--text-h3)] font-medium">
                 {statement.title}
               </h3>
-              <p className="max-w-prose leading-relaxed text-ink-soft">{statement.line}</p>
+              <p className={`max-w-prose leading-relaxed ${SCENE_SOFT_TEXT[tone]}`}>
+                {statement.line}
+              </p>
             </li>
           ))}
         </ul>

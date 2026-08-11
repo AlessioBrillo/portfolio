@@ -17,6 +17,7 @@ trade-offs without re-running the original arguments.
 | [0008](0008-visual-identity-palette.md)         | Visual identity & palette — "Terra -> Cielo -> Notte"          | 2026-06-21 | Accepted |
 | [0009](0009-accessibility-performance-floor.md) | Accessibility & performance quality floor                      | 2026-06-21 | Accepted |
 | [0010](0010-flight-profile-tonal-bands.md)      | Flight-profile tonal bands (reframing the ascent)              | 2026-06-22 | Accepted |
+| [0011](0011-scene-tone-publishing.md)           | Scene-tone publishing (live text tone for scene bands)         | 2026-08-11 | Accepted |
 
 ## Conventions
 
@@ -41,3 +42,7 @@ kept out of the repository.
 ADR-0010 is the first post-paper decision: it reconciles a contradiction the paper
 carried (a monotonic "climb" framing over an intentionally oscillating light/dark
 sequence) by reframing the journey as a flight profile.
+
+ADR-0011 closes the follow-up ADR-0010 left open: it makes scene text follow the
+live backdrop tone (published by the tonal engine through React context) so no
+ink-family text ever sits on the night half of the flight.

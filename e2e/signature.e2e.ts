@@ -2,11 +2,12 @@ import { expect, test, type Page } from '@playwright/test';
 import { contrastRatio, parseRgb } from './contrast';
 
 /**
- * Validates the tonal signature (ADR-0003, ADR-0010, roadmap Phase 2): the
- * hero loads, the `TonalScene` backdrop actually crossfades paper<->night as
- * you scroll, and section text stays WCAG-legible against the backdrop at
- * every point along the fade -- including under `prefers-reduced-motion`,
- * where the fade collapses to a discrete switch.
+ * Validates the tonal signature (ADR-0003, ADR-0010, ADR-0011, roadmap Phase 2):
+ * the hero loads, the `TonalScene` backdrop actually crossfades paper<->night as
+ * you scroll, scene text follows the live backdrop tone (no ink-family text on
+ * the night half of the flight), and section text stays WCAG-legible against
+ * the backdrop at every point along the fade -- including under
+ * `prefers-reduced-motion`, where the fade collapses to a discrete switch.
  *
  * Two contrast thresholds apply (WCAG 2.1 SC 1.4.3): 3:1 for "large" text
  * (headings here are >=36px, well past the >=24px/>=18.66px-bold cutoff) and
@@ -19,24 +20,26 @@ import { contrastRatio, parseRgb } from './contrast';
  * (see the HTML report) for human review at each breakpoint.
  * ponytail: pixel-diff baselines, add once a matched-environment (Docker) runner exists.
  *
- * Known residual (accepted, tracked -- not fixed here): right around a
- * crossfade's mathematical midpoint, the backdrop is a blend of the two
- * ADR-0008 tones, and both heading and intro text can measure below their
- * WCAG floor against it (as low as ~1.5:1 for headings on narrow viewports).
- * This isn't a timing bug: no retiming of the trigger's scroll window
- * changes the *colour* at a given blend fraction, only where along the
- * scroll it falls, and the exact fraction sampled at a fixed pixel step
- * shifts with viewport height -- so any single hard threshold here would be
- * whack-a-mole across breakpoints, not real regression protection. Fixing it
- * for real means either animating each heading's own text colour in sync
- * with the backdrop (a second tween per element -- meaningfully more
- * engineering) or revisiting the locked palette (ADR-0008). Both checks
- * below are diagnostic (`console.info`), not gates -- they log every sample
- * so the gap stays visible without perpetually failing CI over an accepted,
- * documented limitation. The real regression gates for this file are the
- * other three tests, which verify the fixes (heading-anchored trigger,
- * midpoint-anchored reduced-motion switch) actually hold.
- * ponytail: text-colour sync (or a palette revisit) closes this properly.
+ * Known residual (bounded by ADR-0011, tracked -- not fixed here): exactly at
+ * a crossfade's mathematical midpoint, the backdrop is a 50/50 blend of the
+ * two ADR-0008 tones and *both* text tones measure near their WCAG floor
+ * against it. ADR-0011 flips scene text at that midpoint (the point where the
+ * incoming tone becomes strictly more legible), bounding each tone's sub-AA
+ * stretch to a single instant rather than an entire crossfade -- but the
+ * instant itself remains. This isn't a timing bug: no retiming of the
+ * trigger's scroll window changes the *colour* at a given blend fraction,
+ * only where along the scroll it falls, and the exact fraction sampled at a
+ * fixed pixel step shifts with viewport height -- so any single hard
+ * threshold there would be whack-a-mole across breakpoints, not real
+ * regression protection. The checks below are diagnostic (`console.info`),
+ * not gates, for that sample: they log every measurement so the gap stays
+ * visible without perpetually failing CI over an accepted, documented
+ * limitation. The real regression gates are the other tests, which verify
+ * the fixes (heading-anchored trigger, midpoint-anchored reduced-motion
+ * switch, and the text-tone flip) actually hold at the committed ends of
+ * every crossfade.
+ * ponytail: per-heading text-colour animation (or a palette revisit) closes the
+ * midpoint instant for good.
  */
 
 const AA_LARGE_TEXT = 3;
@@ -170,6 +173,41 @@ test.describe('tonal signature', () => {
     }
   });
 
+  test('scene text tone follows the backdrop at both committed ends of each crossfade', async ({
+    page,
+  }) => {
+    await page.goto('/');
+
+    // ADR-0011: near the start of each fade window the backdrop is still the
+    // outgoing tone and text must still be in that tone's ink/cream family;
+    // near the end the backdrop has committed to the incoming tone and text
+    // must have flipped with it. At both ends the *current* backdrop and the
+    // *current* text colour must clear their WCAG floors -- the flip itself
+    // is what gates this, so a band that stops following the live tone fails
+    // the moment the backdrop crosses past the midpoint.
+    for (const trigger of TRANSITION_TRIGGERS) {
+      await scrollToTransitionProgress(page, trigger, 0.08);
+      const bgOutgoing = parseRgb(await backdropColor(page));
+
+      const headingOutgoing = await currentVisibleTextColor(page, 'h1, h2');
+      expect(headingOutgoing, `${trigger} heading missing at outgoing end`).not.toBeNull();
+      if (headingOutgoing) {
+        const ratio = contrastRatio(parseRgb(headingOutgoing), bgOutgoing);
+        expect(ratio, `${trigger} heading contrast at outgoing end`).toBeGreaterThan(AA_LARGE_TEXT);
+      }
+
+      await scrollToTransitionProgress(page, trigger, 0.92);
+      const bgIncoming = parseRgb(await backdropColor(page));
+
+      const headingIncoming = await currentVisibleTextColor(page, 'h1, h2');
+      expect(headingIncoming, `${trigger} heading missing at incoming end`).not.toBeNull();
+      if (headingIncoming) {
+        const ratio = contrastRatio(parseRgb(headingIncoming), bgIncoming);
+        expect(ratio, `${trigger} heading contrast at incoming end`).toBeGreaterThan(AA_LARGE_TEXT);
+      }
+    }
+  });
+
   test('reduced motion switches the tone discretely, not blended', async ({ page }, testInfo) => {
     test.skip(
       testInfo.project.name !== 'reduced-motion',
@@ -186,5 +224,17 @@ test.describe('tonal signature', () => {
     const isPaper = r === 244 && g === 239 && b === 230;
     const isNight = r === 20 && g === 22 && b === 29;
     expect(isPaper || isNight, `expected an exact committed tone, got ${color}`).toBe(true);
+
+    // ADR-0011: the discrete switch publishes the tone, so visible text must
+    // already sit in the committed tone's family -- cream on night -- instead
+    // of lagging one full scroll window behind the backdrop.
+    const heading = await currentVisibleTextColor(page, 'h1, h2');
+    expect(heading, 'heading missing at the reduced-motion switch point').not.toBeNull();
+    if (heading) {
+      const ratio = contrastRatio(parseRgb(heading), parseRgb(color));
+      expect(ratio, 'heading contrast after the reduced-motion switch').toBeGreaterThan(
+        AA_LARGE_TEXT,
+      );
+    }
   });
 });
