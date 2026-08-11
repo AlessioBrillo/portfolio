@@ -1,5 +1,6 @@
 import { Suspense, lazy, useMemo, type ReactElement } from 'react';
 import { Link, useParams } from 'react-router-dom';
+import { CaseStudyErrorBoundary } from '@/components/CaseStudyErrorBoundary';
 import { getCaseStudy } from '@/content/case-studies/registry';
 import { useDocumentMeta } from '@/hooks/useDocumentMeta';
 import { canonicalOrigin } from '@/lib/site';
@@ -61,9 +62,11 @@ export function CaseStudyPage(): ReactElement {
           </h1>
         </header>
         <article className="mt-12 flex flex-col gap-6 text-[length:var(--text-body)] leading-relaxed">
-          <Suspense fallback={<Skeleton />}>
-            <Body />
-          </Suspense>
+          <CaseStudyErrorBoundary key={`${entry.meta.domain}/${entry.meta.slug}`}>
+            <Suspense fallback={<Skeleton />}>
+              <Body />
+            </Suspense>
+          </CaseStudyErrorBoundary>
         </article>
       </div>
     </main>

@@ -2,9 +2,8 @@ import { useEffect, useRef, useState } from 'react';
 import type { ReactElement } from 'react';
 import { useCurrentSection } from '@/hooks/useCurrentSection';
 import { useReducedMotion } from '@/hooks/useReducedMotion';
+import { isNightSection } from '@/lib/section-tone';
 import { cn } from '@/lib/utils';
-
-const DARK_SECTIONS = new Set(['ai-physics', 'work-school', 'contact']);
 
 /** Minimum scroll delta (px) between ticks before the bar hides/shows. */
 const DIRECTION_THRESHOLD_PX = 8;
@@ -45,7 +44,7 @@ export function TopBar(): ReactElement {
     };
   }, []);
 
-  const inDark = currentSection ? DARK_SECTIONS.has(currentSection) : false;
+  const inDark = isNightSection(currentSection);
   const visible = prefersReducedMotion || !hidden;
 
   return (

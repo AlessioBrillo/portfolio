@@ -63,11 +63,15 @@ engine's flips through `tone-context`, and scene bands, eyebrows, and muted
 copy flip with the blend at each fade midpoint, so no ink-family text ever
 sits on the night half of the flight. Case studies are real routes:
 `/{domain}/{slug}` resolves through the data router (ADR-0005), owns its
-document head via `useDocumentMeta`, and returns to the exact scroll position
-via the layout's `ScrollRestoration`. The first study
-(`transformer-italian-corpus`) carries a professional draft; the mosaic index
-and its tiles are backed by a tested content module. Small-text contrast is
-AA-safe on every surface. The bands after the mosaic (Who, AI & Physics, Work &
-School, Sky & Sport, Experiences) are scaffolded, content-driven sections backed
-by tested content modules; Contact is the last structural band awaiting its
-content — do not assume it exists yet.
+document head via `useDocumentMeta`, returns to the exact scroll position via
+the layout's `ScrollRestoration`, and contains lazy-MDX failures behind a
+route-level error boundary so one broken study never crashes the app. The
+first study (`transformer-italian-corpus`) carries a professional draft;
+the mosaic index and its tiles are backed by a tested content module.
+Small-text contrast is AA-safe on every surface. All eight bands — Hero, Who,
+Mosaic, AI & Physics, Work & School, Sky & Sport, Experiences, and Contact —
+are implemented, content-driven sections backed by tested content modules;
+Contact is complete (email + LinkedIn CTAs sourced from `lib/site.ts`) and
+paints its own solid night outside `TonalScene`. What remains for Phase 5 is
+content, not structure: real photos, real copy, and 1–2 more long-form case
+studies (a `work`-domain study is still unpublished).

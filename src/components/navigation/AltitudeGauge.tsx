@@ -4,6 +4,7 @@ import { useCurrentSection } from '@/hooks/useCurrentSection';
 import { useReducedMotion } from '@/hooks/useReducedMotion';
 import { useAltitudeProfile } from '@/hooks/useAltitudeProfile';
 import { useScrollProgress } from '@/hooks/useScrollProgress';
+import { isNightSection } from '@/lib/section-tone';
 import { cn } from '@/lib/utils';
 import type { SectionId } from '@/types/domain';
 
@@ -22,9 +23,6 @@ import type { SectionId } from '@/types/domain';
  * (`useScrollProgress`).
  */
 const TARGETS = ALTITUDE_STOPS.map((s) => s.target);
-
-/** Sections resting on night — the same set the top bar uses. */
-const DARK_SECTIONS: ReadonlySet<SectionId> = new Set(['ai-physics', 'work-school', 'contact']);
 
 function activeGaugeIndex(currentSection: SectionId | null): number {
   if (!currentSection) return 0;
@@ -45,7 +43,7 @@ export function AltitudeGauge(): ReactElement {
   const altitude = useAltitudeProfile();
   const progress = useScrollProgress();
   const activeIndex = activeGaugeIndex(currentSection);
-  const inDark = currentSection ? DARK_SECTIONS.has(currentSection) : false;
+  const inDark = isNightSection(currentSection);
 
   const goTo = (sectionId: string): void => {
     // CSS `scroll-behavior: auto` overrides only declarative scrolling, not
