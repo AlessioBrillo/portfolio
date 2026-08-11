@@ -10,6 +10,14 @@ describe('getCaseStudy', () => {
     expect(entry?.load).toBeInstanceOf(Function);
   });
 
+  it('returns the sky-domain entry for the VDS licence study', () => {
+    const entry = getCaseStudy('vds-licence');
+    expect(entry).toBeDefined();
+    expect(entry?.meta.slug).toBe('vds-licence');
+    expect(entry?.meta.domain).toBe('sky');
+    expect(entry?.load).toBeInstanceOf(Function);
+  });
+
   it('returns undefined for an unknown slug', () => {
     expect(getCaseStudy('non-existent')).toBeUndefined();
   });

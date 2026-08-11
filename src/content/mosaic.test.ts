@@ -46,6 +46,11 @@ describe('mosaic content module', () => {
     expect(ai?.href).toBe('/ai/transformer-italian-corpus');
   });
 
+  it('points the sky entry at the VDS licence study', () => {
+    const sky = getMosaicEntries().find((e) => e.id === 'sky');
+    expect(sky?.href).toBe('/sky/vds-licence');
+  });
+
   it('does not expose a mutable live array to callers', () => {
     expect(Object.isFrozen(getMosaicEntries())).toBe(false);
     const first = getMosaicEntries()[0]!;
