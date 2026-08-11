@@ -10,10 +10,18 @@ import { TONE, TONAL_TRANSITIONS, type ToneName } from '@/lib/tone';
  * point ScrollTrigger considers the fade "done", leaving it briefly on a
  * backdrop of the wrong tone. Falls back to the section itself if it somehow
  * has no heading.
+ *
+ * The heading is located through the explicit `data-tone-trigger` marker
+ * (rendered by `SectionHeader`) rather than a bare tag query, so the fade
+ * anchor survives heading wrappers, a change of heading level, or future
+ * styling moves. The tag query remains as a fallback for sections that do not
+ * render a `SectionHeader`.
  */
 function transitionTrigger(sectionId: string): Element | null {
   const section = document.getElementById(sectionId);
-  return section?.querySelector('h1, h2') ?? section;
+  return (
+    section?.querySelector('[data-tone-trigger]') ?? section?.querySelector('h1, h2') ?? section
+  );
 }
 
 /**

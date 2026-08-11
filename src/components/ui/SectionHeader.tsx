@@ -19,7 +19,10 @@ export function SectionHeader({
   return (
     <header className="flex flex-col gap-4">
       <Eyebrow tone={tone}>{eyebrow}</Eyebrow>
-      <h2 className="font-display text-[length:var(--text-h2)] font-medium leading-[1.1]">
+      <h2
+        data-tone-trigger
+        className="font-display text-[length:var(--text-h2)] font-medium leading-[1.1]"
+      >
         {title}
       </h2>
       {intro ? (

@@ -167,4 +167,35 @@ describe('useTonalEngine', () => {
     await Promise.resolve();
     expect(mocks.registerPlugin).not.toHaveBeenCalled();
   });
+
+  it('anchors fades to the explicit data-tone-trigger marker when present', async () => {
+    const section = document.getElementById('ai-physics');
+    const marker = document.createElement('h2');
+    marker.setAttribute('data-tone-trigger', '');
+    marker.textContent = 'Trigger heading';
+    if (!section) throw new Error('expected the ai-physics section');
+    section.appendChild(marker);
+
+    renderEngine();
+    await waitFor(() => expect(mocks.fromTo).toHaveBeenCalled());
+
+    const climb = mocks.fromTo.mock.calls[0]?.[2] as { scrollTrigger: { trigger: Element } };
+    expect(climb.scrollTrigger.trigger).toBe(marker);
+  });
+
+  it('falls back to the heading query then the section when no marker exists', async () => {
+    const section = document.getElementById('sky-sport');
+    if (!section) throw new Error('expected the sky-sport section');
+    const h3 = document.createElement('h3');
+    h3.textContent = 'Section title';
+    section.appendChild(h3);
+
+    renderEngine();
+    await waitFor(() => expect(mocks.fromTo).toHaveBeenCalled());
+
+    const descent = mocks.fromTo.mock.calls[1]?.[2] as { scrollTrigger: { trigger: Element } };
+    expect(descent.scrollTrigger.trigger).toBe(section);
+
+    h3.remove();
+  });
 });
