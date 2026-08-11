@@ -3,13 +3,12 @@ import { RouterProvider } from 'react-router-dom';
 import { MDXProvider } from '@mdx-js/react';
 import { router } from '@/router';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
-
-const MDX_COMPONENTS = {};
+import { mdxComponents } from '@/content/mdx-components';
 
 export function App(): ReactElement {
   return (
     <ErrorBoundary>
-      <MDXProvider components={MDX_COMPONENTS}>
+      <MDXProvider components={mdxComponents}>
         <RouterProvider router={router} />
       </MDXProvider>
     </ErrorBoundary>

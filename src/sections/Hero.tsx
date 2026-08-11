@@ -25,9 +25,9 @@ const rise: Variants = {
  * orange tick echoes the altitude gauge's position marker. Copy direction lives
  * in docs/content/sections.md.
  *
- * Contrast: the eyebrow is ink/70 (~5.7:1) and the manifesto is ink (~13:1) on
- * paper — both clear AA. `muted-light` is avoided here because it fails AA as
- * body text on paper.
+ * Contrast (measured): the eyebrow defaults to `ink-soft` (8.3:1) and the
+ * manifesto is ink (~13:1) on paper — both clear AA. `muted-light` (3.3:1) and
+ * translucent ink (~2.8-3.9:1) fail AA as small text on paper and are avoided.
  */
 export function Hero({ surface = 'solid' }: HeroProps): ReactElement {
   const prefersReducedMotion = useReducedMotion();
@@ -43,7 +43,7 @@ export function Hero({ surface = 'solid' }: HeroProps): ReactElement {
       >
         <motion.p className="flex items-center gap-3" variants={rise}>
           <span aria-hidden className="h-px w-8 bg-orange" />
-          <Eyebrow className="text-ink/70">45.6306&deg; N &middot; 8.7281&deg; E — VDS</Eyebrow>
+          <Eyebrow>45.6306&deg; N &middot; 8.7281&deg; E — VDS</Eyebrow>
         </motion.p>
 
         <motion.h1

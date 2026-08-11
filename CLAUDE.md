@@ -53,10 +53,15 @@ Not part of the commit-time gate; run it after touching `TonalScene`,
 
 ## Current state
 
-End of Phase 2 (the signature). The GSAP tonal engine (`useTonalEngine` +
-`TonalScene`) is implemented, unit-tested, and validated end-to-end by the
-Playwright harness — both crossfades (climb paper→night, descent night→paper)
-render and hold under `prefers-reduced-motion`. Sections/components/navigation
-are otherwise still typed, compile-clean stubs; real content and the full
-multi-band altitude gauge (Phase 3+) are later roadmap phases — do not assume
-they exist yet.
+End of Phase 4 (mosaic + one real case study end-to-end). The tonal engine
+(`useTonalEngine` + `TonalScene`) is implemented, unit-tested, and validated
+end-to-end by the Playwright harness — both crossfades (climb paper→night,
+descent night→paper) render and hold under `prefers-reduced-motion`. Case
+studies are real routes: `/{domain}/{slug}` resolves through the data router
+(ADR-0005), owns its document head via `useDocumentMeta`, and returns to the
+exact scroll position via the layout's `ScrollRestoration`. The first study
+(`transformer-italian-corpus`) carries a professional draft; the mosaic index
+and its tiles are backed by a tested content module. Small-text contrast is
+AA-safe on every surface. Remaining sections (Who, Projects, Sky/Sport,
+Experiences, Contact) are structural bands awaiting their content — do not
+assume they exist yet.

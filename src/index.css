@@ -10,6 +10,9 @@
   --color-cream: #fbf8f2;
   --color-muted-light: #8a8377;
   --color-muted-dark: #7b8190;
+  /* 85% ink over paper: 8.3:1 on paper, 8.7:1 on the cream tile surface —
+     the muted tone for small text on light backgrounds (AA floor is 4.5:1). */
+  --color-ink-soft: #48453f;
 
   --font-display: 'Fraunces', ui-serif, Georgia, 'Times New Roman', serif;
   --font-sans: 'Geist Sans', ui-sans-serif, system-ui, -apple-system, sans-serif;

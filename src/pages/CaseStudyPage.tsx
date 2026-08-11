@@ -1,6 +1,7 @@
-import { Suspense, lazy, useEffect, useMemo, type ReactElement } from 'react';
+import { Suspense, lazy, useMemo, type ReactElement } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { getCaseStudy } from '@/content/case-studies/registry';
+import { useDocumentMeta } from '@/hooks/useDocumentMeta';
 import { Eyebrow } from '@/components/ui/Eyebrow';
 import { NotFoundPage } from '@/pages/NotFoundPage';
 
@@ -22,9 +23,15 @@ export function CaseStudyPage(): ReactElement {
   const entry = slug ? getCaseStudy(slug) : undefined;
   const Body = useMemo(() => (entry ? lazy(entry.load) : null), [entry]);
 
-  useEffect(() => {
-    window.scrollTo(0, 0);
-  }, [slug]);
+  useDocumentMeta(
+    entry
+      ? {
+          title: entry.meta.title,
+          description: entry.meta.summary,
+          canonical: `${window.location.origin}/${entry.meta.domain}/${entry.meta.slug}`,
+        }
+      : { title: 'Lost altitude' },
+  );
 
   if (!entry || !Body) {
     return <NotFoundPage />;
@@ -37,7 +44,7 @@ export function CaseStudyPage(): ReactElement {
       <div className="mx-auto max-w-[760px] px-6 py-[var(--space-section)]">
         <Link
           to="/"
-          className="font-mono text-xs uppercase tracking-widest text-muted-light no-underline"
+          className="font-mono text-xs uppercase tracking-widest text-ink-soft no-underline"
         >
           &larr; Back to the ascent
         </Link>

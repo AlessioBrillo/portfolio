@@ -14,7 +14,7 @@ export function PullQuote({ children, cite }: PullQuoteProps): ReactElement {
         {children}
       </p>
       {cite ? (
-        <cite className="mt-3 block font-mono text-xs uppercase tracking-widest text-muted-light">
+        <cite className="mt-3 block font-mono text-xs uppercase tracking-widest text-ink-soft">
           {cite}
         </cite>
       ) : null}

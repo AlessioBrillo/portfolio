@@ -1,18 +1,18 @@
 # Build Roadmap
 
 Incremental construction: each phase is independently verifiable. **This repo is
-currently at the end of Phase 2 (the signature).**
+currently at the end of Phase 4 (mosaic + one real case study end-to-end).**
 
-| Phase | Goal                                                                                                                              | Status                        |
-| ----- | --------------------------------------------------------------------------------------------------------------------------------- | ----------------------------- |
-| 0     | **Content & assets.** Selected photos, 2-3 written case studies, headline, domain. _(The site is only as strong as its content.)_ | Pending (needs inputs)        |
-| 1     | **Foundations.** Vite + Tailwind, color/typography tokens, self-hosted fonts, scale and grid.                                     | **Scaffolded**                |
-| 2     | **The signature.** Hero + first working quota transition. _Validate "the Ascent" before going further._                           | **Validated**                 |
-| 3     | **The full ascent.** All tonal bands + altitude gauge + scroll engine (GSAP).                                                     | **Validated**                 |
-| 4     | **Mosaic + one real case study** (MDX route end-to-end).                                                                          | Pending (pipeline scaffolded) |
-| 5     | **Content.** Remaining case studies, archive, experience storytelling.                                                            | Pending                       |
-| 6     | **Finishing & deploy.** A11y, performance, OG card, 404, reduced-motion -> Vercel + domain.                                       | Pending                       |
-| 7     | **After.** CV hook, analytics, optional private area.                                                                             | Pending                       |
+| Phase | Goal                                                                                                                              | Status                 |
+| ----- | --------------------------------------------------------------------------------------------------------------------------------- | ---------------------- |
+| 0     | **Content & assets.** Selected photos, 2-3 written case studies, headline, domain. _(The site is only as strong as its content.)_ | Pending (needs inputs) |
+| 1     | **Foundations.** Vite + Tailwind, color/typography tokens, self-hosted fonts, scale and grid.                                     | **Scaffolded**         |
+| 2     | **The signature.** Hero + first working quota transition. _Validate "the Ascent" before going further._                           | **Validated**          |
+| 3     | **The full ascent.** All tonal bands + altitude gauge + scroll engine (GSAP).                                                     | **Validated**          |
+| 4     | **Mosaic + one real case study** (MDX route end-to-end).                                                                          | **Validated**          |
+| 5     | **Content.** Remaining case studies, archive, experience storytelling.                                                            | Pending                |
+| 6     | **Finishing & deploy.** A11y, performance, OG card, 404, reduced-motion -> Vercel + domain.                                       | Pending                |
+| 7     | **After.** CV hook, analytics, optional private area.                                                                             | Pending                |
 
 Phase 2's crossfade (both climb and descent) is implemented and validated
 end-to-end by the Playwright harness (`npm run e2e`) -- it now stands as the
