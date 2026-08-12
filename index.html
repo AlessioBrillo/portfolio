@@ -3,13 +3,20 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="description" content="Personal portfolio — The Ascent." />
+    <meta name="description" content="Student of AI and physics — building, flying, learning." />
     <title>The Ascent — Portfolio</title>
-    <link
-      rel="icon"
-      type="image/svg+xml"
-      href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><path d='M20 80 L50 20 L80 80' fill='none' stroke='%23E9622E' stroke-width='10' stroke-linecap='round' stroke-linejoin='round'/></svg>"
-    />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <!--
+      Social cards (og:image must be absolute at deploy; the relative path keeps
+      the interim deployment truthful). The card source is
+      docs/design/og-image.svg — see its header for regeneration.
+    -->
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="The Ascent — Alessio Brillo" />
+    <meta property="og:description" content="Student of AI and physics — building, flying, learning." />
+    <meta property="og:image" content="/og-image.png" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="theme-color" content="#f4efe6" />
   </head>
   <body>
     <div id="root"></div>
