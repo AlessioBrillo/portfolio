@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+# Sitemap: https://<domain>/sitemap.xml — add the real domain at deploy (Phase 6).
