@@ -53,10 +53,73 @@ async function backdropColor(page: Page): Promise<string> {
   return page.getByTestId('tonal-backdrop').evaluate((el) => getComputedStyle(el).backgroundColor);
 }
 
-/** Scroll a section into view and give GSAP ScrollTrigger's rAF a tick to update the backdrop. */
+/**
+ * Waits until the backdrop colour, the nearest visible heading colour, and the
+ * scroll position all stop changing. The reduced-motion flip is two-phase:
+ * GSAP paints the backdrop synchronously in the scroll handler, while the
+ * scene text tone lands through a React state commit that lags by up to
+ * ~270ms under parallel-worker load (measured) — a frame-count stall
+ * reliably resolves in that gap, so the exit condition is time-based.
+ */
+async function settleToneState(page: Page): Promise<void> {
+  await page.evaluate(
+    () =>
+      new Promise<void>((resolve) => {
+        const bg = document.querySelector<HTMLElement>(
+          'div[data-testid="tonal-backdrop"]',
+        );
+        if (!bg) return resolve();
+        const center = window.innerHeight / 2;
+        let lastBg = getComputedStyle(bg).backgroundColor;
+        let lastHeading = '';
+        let lastY = window.scrollY;
+        let lastChange = performance.now();
+        const started = performance.now();
+        const nearestHeading = (): Element | null => {
+          let best: Element | null = null;
+          let bestDistance = Infinity;
+          for (const candidate of document.querySelectorAll('h1, h2')) {
+            const rect = candidate.getBoundingClientRect();
+            if (rect.bottom < 0 || rect.top > window.innerHeight) continue;
+            const distance = Math.abs((rect.top + rect.bottom) / 2 - center);
+            if (distance < bestDistance) {
+              bestDistance = distance;
+              best = candidate;
+            }
+          }
+          return best;
+        };
+        const tick = (): void => {
+          const nowBg = getComputedStyle(bg).backgroundColor;
+          const heading = nearestHeading();
+          const nowHeading = heading ? getComputedStyle(heading).color : '';
+          const nowY = window.scrollY;
+          if (nowBg !== lastBg || nowHeading !== lastHeading || nowY !== lastY) {
+            lastChange = performance.now();
+          }
+          lastBg = nowBg;
+          lastHeading = nowHeading;
+          lastY = nowY;
+          // Resolve once the tone state has held for half a second. Measured
+          // under parallel-worker load, the React tone commit trails the GSAP
+          // backdrop paint by up to ~270ms, so a frame-count stall reliably
+          // resolves in the gap; a quiet stop (nothing to flip) exits on the
+          // same time floor. Hard cap bounds pathological thread starvation.
+          if (performance.now() - lastChange >= 500 || performance.now() - started >= 2000) {
+            resolve();
+          } else {
+            requestAnimationFrame(tick);
+          }
+        };
+        requestAnimationFrame(tick);
+      }),
+  );
+}
+
+/** Scroll a section into view and wait until the tone state settles. */
 async function scrollTo(page: Page, selector: string): Promise<void> {
   await page.locator(selector).scrollIntoViewIfNeeded();
-  await page.waitForTimeout(100);
+  await settleToneState(page);
 }
 
 /**
@@ -83,7 +146,7 @@ async function scrollToTransitionProgress(
     },
     { triggerId, progress },
   );
-  await page.waitForTimeout(100);
+  await settleToneState(page);
 }
 
 /**
@@ -125,10 +188,15 @@ test.describe('tonal signature', () => {
     await page.goto('/');
     const ground = parseRgb(await backdropColor(page));
 
-    await scrollTo(page, '#work-school'); // settled past the climb fade (cruise)
+    // Cruise: heading top parked at viewport centre = the climb fade window's
+    // own `top center` end mark, so the backdrop is deterministically at "night"
+    // (either end of the scrub or past the discrete flip). `scrollIntoViewIfNeeded`
+    // is NOT enough -- it stops at the nearest edge, short of the flip line.
+    await scrollToTransitionProgress(page, 'ai-physics', 1);
     const cruise = parseRgb(await backdropColor(page));
 
-    await scrollTo(page, '#experiences'); // settled past the descent fade
+    // Descent: same geometry on the sky-sport window (night -> paper).
+    await scrollToTransitionProgress(page, 'sky-sport', 1);
     const afterDescent = parseRgb(await backdropColor(page));
 
     // Ground starts light, cruise is dark, descent returns to light -- the

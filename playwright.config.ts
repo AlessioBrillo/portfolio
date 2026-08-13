@@ -13,6 +13,9 @@ export default defineConfig({
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 1 : 0,
+  // The dev-server harness transforms modules on demand under parallel
+  // workers; the Playwright default (30s) times out cold-page loads.
+  timeout: 60_000,
   reporter: process.env.CI ? 'github' : 'list',
   use: {
     baseURL: 'http://localhost:5173',
@@ -46,6 +49,10 @@ export default defineConfig({
       use: {
         ...devices['Desktop Chrome'],
         viewport: { width: 1440, height: 960 },
+        // `contextOptions` is the TestOption the runner unpacks into
+        // browser.newContext(); it is the only path through which the
+        // reduced-motion emulation reaches matchMedia (a bare `reducedMotion`
+        // key in `use` is silently dropped — it is not a TestOption).
         contextOptions: { reducedMotion: 'reduce' },
       },
     },
