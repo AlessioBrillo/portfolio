@@ -23,6 +23,18 @@ interface TonalSceneProps {
  * The scene's current tone is published through `SceneToneContext` (ADR-0011):
  * scene bands read it for their text colour, so text stays legible while the
  * backdrop blends instead of sitting on a static per-band tone.
+ *
+ * **Stacking contract:** the backdrop must paint *behind all page content*,
+ * not just behind the scene's own children. The wrapper divs carry no
+ * `z-index`, so they do not create a stacking context -- the backdrop's
+ * `z-index: -10` therefore resolves against the root stacking context, where
+ * negative values paint above the body's paper background but below every
+ * in-flow element. Scene bands (`surface="scene"`, transparent) show the
+ * backdrop through them, while solid bands rendered *outside* the scene
+ * (Contact, Footer) paint their own background over it -- without the
+ * negative index, a `position: fixed; z-index: 0` backdrop paints above
+ * static siblings and silently covers them (the night landing rendered as
+ * paper; e2e `signature.e2e.ts` gates the composited result).
  */
 export function TonalScene({ children }: TonalSceneProps): ReactElement {
   const backdropRef = useRef<HTMLDivElement>(null);
@@ -36,7 +48,7 @@ export function TonalScene({ children }: TonalSceneProps): ReactElement {
           ref={backdropRef}
           aria-hidden
           data-testid="tonal-backdrop"
-          className="pointer-events-none fixed inset-0 z-0"
+          className="pointer-events-none fixed inset-0 -z-10"
           style={{ backgroundColor: TONE.paper }}
         />
         <div className="relative z-10">{children}</div>

@@ -42,6 +42,22 @@ describe('TonalScene', () => {
     expect(backdrop).toHaveStyle({ backgroundColor: TONE.paper });
   });
 
+  it('paints the backdrop below all page content (negative z, no wrapper stacking context)', () => {
+    const { container } = render(
+      <TonalScene>
+        <span>content</span>
+      </TonalScene>,
+    );
+    // The backdrop's z-index resolves against the root stacking context (the
+    // scene's wrapper divs are z-auto and create no context), so a negative
+    // value paints it above the body background but below every in-flow
+    // element -- solid bands outside the scene (Contact, Footer) must be able
+    // to cover it. A z-0 backdrop would paint above static siblings and
+    // silently cover the night landing (gated in e2e by pixel sampling).
+    const backdrop = container.querySelector('.pointer-events-none.fixed.inset-0');
+    expect(backdrop).toHaveClass('-z-10');
+  });
+
   it('shows children above the backdrop in the z-stack', () => {
     render(
       <TonalScene>

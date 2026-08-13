@@ -169,6 +169,64 @@ async function currentVisibleTextColor(page: Page, selector: string): Promise<st
   }, selector);
 }
 
+/**
+ * The dominant colour of a top-left background strip taken from the element's
+ * own composited box (Playwright scrolls it into view, then the screenshot ->
+ * canvas readback gives the painted truth). Computed styles cannot express
+ * paint order, so this is the only way to assert what actually renders on top
+ * -- e.g. that Contact's solid night covers the fixed tonal backdrop. Each
+ * target keeps a >=48px background-only padding strip at its top, which is
+ * what the clip reads; the element screenshot's scroll-into-view is
+ * deterministic: tall scene bands align their top edge with the viewport
+ * (heading well past the fade midpoint), while the bottom-of-page sections
+ * are already fully visible and cannot scroll further.
+ */
+async function elementClipDominant(
+  page: Page,
+  selector: string,
+  clip: { x: number; y: number; width: number; height: number },
+): Promise<{ r: number; g: number; b: number }> {
+  const shot = await page.locator(selector).screenshot();
+  const dataUrl = `data:image/png;base64,${shot.toString('base64')}`;
+  return page.evaluate(
+    async ({ src, clip }) => {
+      const img = new Image();
+      img.src = src;
+      await img.decode();
+      const canvas = document.createElement('canvas');
+      canvas.width = img.width;
+      canvas.height = img.height;
+      const ctx = canvas.getContext('2d');
+      if (!ctx) throw new Error('2d context unavailable');
+      ctx.drawImage(img, 0, 0);
+      const data = ctx.getImageData(clip.x, clip.y, clip.width, clip.height).data;
+      const counts = new Map<string, number>();
+      for (let i = 0; i < data.length; i += 4) {
+        const key = `${data[i]!},${data[i + 1]!},${data[i + 2]!}`;
+        counts.set(key, (counts.get(key) ?? 0) + 1);
+      }
+      let bestKey = '';
+      let bestCount = 0;
+      for (const [key, count] of counts) {
+        if (count > bestCount) {
+          bestCount = count;
+          bestKey = key;
+        }
+      }
+      const parts = bestKey.split(',').map(Number);
+      return { r: parts[0]!, g: parts[1]!, b: parts[2]! };
+    },
+    { src: dataUrl, clip },
+  );
+}
+
+/** Whether a sampled colour matches the ADR-0008 night tone, within AA-noise tolerance. */
+function isNightTone(color: { r: number; g: number; b: number }): boolean {
+  return (
+    Math.abs(color.r - 20) <= 6 && Math.abs(color.g - 22) <= 6 && Math.abs(color.b - 29) <= 6
+  );
+}
+
 test.describe('tonal signature', () => {
   test('hero loads with the manifesto visible', async ({ page }) => {
     await page.goto('/');
@@ -268,6 +326,35 @@ test.describe('tonal signature', () => {
         expect(ratio, `${trigger} heading contrast at incoming end`).toBeGreaterThan(AA_LARGE_TEXT);
       }
     }
+  });
+
+  test('stacking contract: scene bands show the backdrop, solid bands cover it', async ({
+    page,
+  }) => {
+    await page.goto('/');
+
+    // The sampled strip: the element's own top-left background-only padding
+    // (>=48px on every target), free of text or chrome.
+    const strip = { x: 40, y: 10, width: 160, height: 40 };
+
+    // Cruise: a transparent scene band (ai-physics). The element screenshot
+    // parks its top edge at the viewport top, so the climb fade -- anchored
+    // to the heading, completed at heading-top-centred -- is long over and the
+    // backdrop is night. The band's padding must sample that night, proving
+    // the backdrop paints through scene bands.
+    const cruise = await elementClipDominant(page, '#ai-physics', strip);
+    expect(isNightTone(cruise), `cruise backdrop should paint through the scene band, got rgb(${cruise.r},${cruise.g},${cruise.b})`).toBe(true);
+
+    // Night landing: Contact's own solid night must cover the backdrop -- the
+    // composited pixels are the truth here (a `z-0` fixed backdrop paints
+    // above static siblings, silently rendering the landing as paper; the
+    // `-z-10` contract in TonalScene gates this).
+    const landing = await elementClipDominant(page, '#contact', strip);
+    expect(isNightTone(landing), `contact must paint its own night, got rgb(${landing.r},${landing.g},${landing.b})`).toBe(true);
+
+    // The footer is a static night sibling as well -- same contract.
+    const foot = await elementClipDominant(page, 'footer', strip);
+    expect(isNightTone(foot), `footer must paint its own night, got rgb(${foot.r},${foot.g},${foot.b})`).toBe(true);
   });
 
   test('reduced motion switches the tone discretely, not blended', async ({ page }, testInfo) => {
