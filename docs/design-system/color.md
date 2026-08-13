@@ -5,14 +5,14 @@
 Six named values. Orange is the signature and the only true accent; olive enters
 sparingly for the nature/outdoor theme.
 
-| Token  | Hex       | Tailwind | Role                                                                 |
-| ------ | --------- | -------- | -------------------------------------------------------------------- |
-| Orange | `#E9622E` | `orange` | Signature accent. Links, CTA, details, the thread through the climb. |
-| Paper  | `#F4EFE6` | `paper`  | Background of light bands (ground/day). Warm, tailored.              |
-| Night  | `#14161D` | `night`  | Background of dark bands (cruise/night). Blue-black, not brown.      |
-| Olive  | `#5E6B4F` | `olive`  | Natural accent, used rarely (outdoor sport, nature).                 |
-| Ink    | `#2A2722` | `ink`    | Body text on Paper.                                                  |
-| Cream  | `#FBF8F2` | `cream`  | Text on Night + light surfaces.                                      |
+| Token  | Hex       | Tailwind | Role                                                                      |
+| ------ | --------- | -------- | ------------------------------------------------------------------------- |
+| Orange | `#E9622E` | `orange` | Signature accent. Links, CTA, details, the thread through the climb.      |
+| Paper  | `#F4EFE6` | `paper`  | Background of light bands (ground/day). Warm, tailored.                   |
+| Night  | `#14161D` | `night`  | Background of dark bands (cruise/night). Blue-black, not brown.           |
+| Olive  | `#5E6B4F` | `olive`  | Natural accent, used rarely (outdoor sport, nature).                      |
+| Ink    | `#000000` | `ink`    | Body text on Paper. Full black: deepens the crossfade floor (ADR-0012).   |
+| Cream  | `#FFFDF6` | `cream`  | Text on Night + light surfaces. Slightly brighter than before (ADR-0012). |
 
 Neutrals for captions/metadata: `#8A8377` (`muted-light`, on light) and `#7B8190`
 (`muted-dark`, on dark).

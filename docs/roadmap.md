@@ -17,14 +17,12 @@ currently at the end of Phase 4 (mosaic + one real case study end-to-end).**
 Phase 2's crossfade (both climb and descent) is implemented and validated
 end-to-end by the Playwright harness (`npm run e2e`) -- it now stands as the
 signature's regression net for any future change to `TonalScene`,
-`useTonalEngine`, `src/lib/tone.ts`, or the scene-tone context (ADR-0011). One
-residual is now _bounded_ rather than open-ended: ADR-0011 flips scene text
-tones at each fade's exact mathematical midpoint (where the two tones are
-equally legible), so the sub-AA stretch is a single instant at the midpoint
-instead of an entire crossfade at the wrong tone. Closing the last instant for
-good means animating each heading's own text colour in sync with the backdrop
-or revisiting the palette -- deferred as real, non-trivial work, not silently
-dropped.
+`useTonalEngine`, `src/lib/tone.ts`, or the scene-tone context (ADR-0012). The
+last known residual is closed: ADR-0012 flips each text family at its own
+per-direction equal-legibility line (computed by bisection over the actual
+blend), so the body family clears 4.5:1 at every instant of both crossfades
+and the muted family's worst case is a documented 1.57:1 floor -- the old
+fade-midpoint residual (muted at 1.03:1, body at 3.57:1) no longer exists.
 
 Since the close of Phase 4, the remaining bands (Who, AI & Physics, Work &
 School, Sky & Sport, Experiences) have been scaffolded as content-driven
