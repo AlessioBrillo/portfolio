@@ -1,0 +1,113 @@
+## Context
+
+The Ascent is this site — the portfolio you are reading, and the artifact this
+case study is about. It is a single-page, scroll-driven website whose scroll
+*is* the design: the page climbs from paper-toned daylight to night, and the
+light/dark shift is the journey, not a toggle. The signature is a tonal
+crossfade driven by GSAP ScrollTrigger — an "ascent" that rises and falls like
+a real flight profile, landing in the dark at the contact section.
+
+The engineering premise is unusual: the repository is part of the portfolio.
+If the site says I care about discipline, tests, and architecture, the commit
+history, the ADR log, and the CI pipeline have to show it. Every architectural
+decision is recorded as an immutable Architecture Decision Record (ADR); the
+design system lives in `@theme` tokens; content is curated data separated from
+presentation. Nothing is improvised, because the code is the showcase.
+
+## Problem
+
+A portfolio has to prove its claims, and the claims here are hard to prove:
+
+1. **A tonal scroll engine must stay legible at every instant.** The backdrop
+   crosses from paper to night and back. Text that sits on the wrong half of
+   the flight fails WCAG contrast; text that flips at the wrong moment is
+   worse than static. The crossfade has to be *engineered* — per family, per
+   direction — not styled by eye.
+2. **Motion must respect the user's body.** `prefers-reduced-motion` is not a
+   courtesy here; it is a second, discrete implementation of the whole
+   signature that must be rendered and asserted, not just coded.
+3. **The single page has to coexist with real routes.** Case studies are
+   shareable `/{domain}/{slug}` URLs (ADR-0005), each with its own document
+   head, code-split MDX body, error boundary, and scroll restoration. Deep
+   links must survive a static-host SPA deployment.
+4. **The repo must survive its own standard.** A 80% coverage floor enforced
+   in CI, typecheck, lint, format checks, and a browser harness that actually
+   renders the crossfade — all of it has to stay green while the content grows.
+
+## Approach
+
+Three decisions carry the whole design:
+
+### Decision 1 — The flight profile is data, not styling
+
+The scroll journey is modelled as a flight: ground, climb, cruise, descent,
+night (`src/lib/altitude.ts`, ADR-0010), and the tonal engine
+(`useTonalEngine` + `TonalScene`) publishes the live backdrop tone through
+React context (ADR-0011). Scene text follows that tone, and each text family
+flips at its own per-direction equal-legibility line, computed by bisection
+over the actual blend so the body family clears 4.5:1 at every instant of both
+crossfades (ADR-0012).
+
+### Decision 2 — The tonal engine is tested by a harness that renders it
+
+Unit tests cover the pure logic (`src/lib/tone.ts`, `useTonalEngine`); the
+Playwright suite (`npm run e2e`) is the only thing that runs GSAP
+ScrollTrigger in a real browser. It asserts both crossfades — climb
+paper->night and descent night->paper — hold under `prefers-reduced-motion`,
+across five viewport projects including a reduced-motion emulation that
+reaches `matchMedia` through the runner's `contextOptions`.
+
+### Decision 3 — Content is data with tests, routes are lazy and contained
+
+Sections read from tested content modules (`src/content/`) that return frozen
+snapshots; the mosaic index is validated against the live page structure. Case
+studies are MDX files resolved through a registry, code-split per study, with
+a route-level error boundary so one broken study never crashes the app
+(ADR-0005). Deep links return to the exact scroll position through the data
+router's `ScrollRestoration`.
+
+## What I built
+
+The artefacts of the project are the parts of the repo that survive the
+"who wrote this?" test:
+
+- **12 immutable ADRs** (`docs/adr/`) — the architecture's `why` is
+  recoverable, including the decisions that were reframed (ADR-0010) and the
+  follow-ups they spawned (ADR-0011, ADR-0012).
+- **A tonal engine with a regression net** — `useTonalEngine`, `TonalScene`,
+  `tone-context`, `src/lib/tone.ts`, each with unit tests, plus the Playwright
+  signature harness that catches what no unit test can.
+- **A quality floor enforced, not promised** — typecheck, ESLint, Prettier,
+  Vitest with an 80% coverage threshold, Husky pre-commit, commitlint
+  Conventional Commits, and a CI pipeline that runs them all; the browser
+  harness runs on every relevant change via path-filtered workflows.
+- **Accessibility as a measured result** — a Lighthouse run on headless
+  Chrome with reduced motion scored 100 on accessibility, 100 on
+  best-practices, zero CLS; small-text contrast is AA-safe on every surface.
+- **Self-hosted typography** — Latin-subset variable fonts (Fraunces / Geist /
+  Geist Mono) committed with their OFL licences (ADR-0007): the typography
+  cannot rot behind a CDN.
+
+## Result / Reflection
+
+The meta-result is the same one the VDS licence taught, mirrored in code:
+
+1. **Decision hygiene beats cleverness.** The best engineering decision in
+   this repo is the *discipline* one: record why, keep the files small, never
+   mutate, and let the CI say no. The scroll engine is the scenographic
+   exception, and it is the exception on purpose (ADR-0004, ADR-0010).
+2. **An invariant you test is real.** Equal legibility through a live blend
+   is not a design opinion once the harness asserts both crossfades in both
+   motion modes — it is a contract the repo can keep.
+3. **The repo is the resume.** The commit history, the ADR log, the coverage
+   floor, and the e2e harness do the talking that a "tech stack" line in a CV
+   cannot.
+
+_(Author slot — personal reflection to complete: what building this site
+changed about how I approach my other work, and where the tonal signature
+should go next.)_
+
+Would I do it differently? The site shipped content-last, which is honest —
+the structure is now waiting on the words, the photos, and the domain. If the
+structure is the discipline, the content is the test: whether it survives
+real images, real copy, and a real deployment is the next check-ride.

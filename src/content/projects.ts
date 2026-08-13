@@ -12,6 +12,7 @@ const PROJECT_ENTRIES: readonly ProjectEntry[] = [
     title: 'The Ascent',
     line: 'This portfolio — a scroll-driven tonal flight in React 19, TypeScript and GSAP.',
     year: '2026',
+    href: '/work/the-ascent',
   },
   {
     id: 'transformer-italian-corpus',

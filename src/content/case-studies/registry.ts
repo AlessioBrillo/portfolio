@@ -36,6 +36,19 @@ export const CASE_STUDIES: Readonly<Record<string, CaseStudyEntry>> = {
     },
     load: () => import('./vds-licence.mdx'),
   },
+  'the-ascent': {
+    meta: {
+      slug: 'the-ascent',
+      domain: 'work',
+      title: 'The Ascent, engineered in the open',
+      role: 'Engineering showcase',
+      year: '2026',
+      stack: ['React 19', 'TypeScript', 'GSAP', 'Vitest', 'Playwright'],
+      summary:
+        'The portfolio as an engineered artifact — a scroll-driven tonal flight, committed in the open.',
+    },
+    load: () => import('./work-the-ascent.mdx'),
+  },
 };
 
 export function getCaseStudy(slug: string): CaseStudyEntry | undefined {
