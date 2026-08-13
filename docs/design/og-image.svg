@@ -1,0 +1,58 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
+  <!--
+    The Ascent — social card source (1200x630, 1.91:1).
+
+    Rasterize to public/og-image.png with Playwright chromium, serving the
+    REPO ROOT (relative font paths resolve) — one-shot procedure:
+
+      node /tmp/opencode/og-card.mjs
+
+    Design tokens mirror src/styles/tokens.css: night #14161d, paper #f4efe6,
+    orange #e9622e, cream #fbf8f2, ink-soft #48453f.
+  -->
+  <defs>
+    <style>
+      @font-face {
+        font-family: 'Fraunces';
+        src: url('../../src/assets/fonts/Fraunces.woff2') format('woff2');
+        font-weight: 100 900;
+      }
+      @font-face {
+        font-family: 'Geist';
+        src: url('../../src/assets/fonts/Geist.woff2') format('woff2');
+        font-weight: 100 900;
+      }
+    </style>
+  </defs>
+
+  <!-- Daylight ground -->
+  <rect width="1200" height="630" fill="#f4efe6" />
+
+  <!-- Night cruise, rising edge (50px over 1200px) -->
+  <path d="M0 352 L1200 302 L1200 0 L0 0 Z" fill="#14161d" />
+
+  <!-- Eyebrow -->
+  <text x="96" y="110" font-family="Geist" font-size="22" font-weight="500"
+        letter-spacing="8" fill="#e9622e">PORTFOLIO — THE ASCENT</text>
+
+  <!-- Title -->
+  <text x="96" y="215" font-family="Fraunces" font-size="88" font-weight="600" fill="#fbf8f2">
+    The Ascent
+  </text>
+
+  <!-- Author -->
+  <text x="96" y="285" font-family="Geist" font-size="28" font-weight="400"
+        letter-spacing="4" fill="#fbf8f2">ALESSIO BRILLO</text>
+
+  <!-- The climb, apex kissing the night edge -->
+  <path d="M140 560 L300 352 L460 560" fill="none" stroke="#e9622e" stroke-width="14"
+        stroke-linecap="round" stroke-linejoin="round" />
+
+  <!-- Tagline -->
+  <text x="540" y="470" font-family="Geist" font-size="26" font-weight="400" fill="#48453f">
+    Student of AI and physics
+  </text>
+  <text x="540" y="515" font-family="Geist" font-size="26" font-weight="400" fill="#48453f">
+    building, flying, learning.
+  </text>
+</svg>
