@@ -30,5 +30,6 @@ the narrative thread of the whole site; close the circle.
 deeper" reveals the chronological archive. Public, but _only what you choose to
 show_.
 
-**07 · Contact.** One clear invitation. "Let's talk." -> email + LinkedIn. (CV
-excluded for now; a hidden footer hook is reserved — see `personalization.md`.)
+**07 · Contact.** One clear invitation. "Let's talk." -> email + LinkedIn. (The
+resume lives as a footer hook, `Resume — on request` via pre-filled email, not
+in Contact — see `personalization.md` and ADR-0014.)

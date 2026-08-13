@@ -24,5 +24,6 @@ flourish per area**, never accumulate.
 - **No dark/light toggle** — a choice, not a gap (see
   [ADR-0004](../adr/0004-no-theme-toggle.md)). At most a single "reduce motion /
   static" override for accessibility.
-- **CV** — excluded for now; a hidden footer hook (`Resume — on request`) can be
-  activated later without rework.
+- **CV** — not published as a file; the footer hook `Resume — on request` (a
+  pre-filled email) is live since ADR-0014. This keeps the resume current by
+  construction; a real PDF can replace the mailto later without rework.

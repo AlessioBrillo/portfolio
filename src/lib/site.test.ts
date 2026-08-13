@@ -10,6 +10,14 @@ describe('site identity', () => {
     expect(SITE.email).toMatch(/^[^@\s]+@[^@\s]+\.[^@\s]+$/);
     expect(SITE.linkedinUrl).toMatch(/^https:\/\/www\.linkedin\.com\//);
   });
+
+  it('links the public repository this site lives in', () => {
+    expect(SITE.githubUrl).toMatch(/^https:\/\/github\.com\//);
+  });
+
+  it('offers the resume-on-request hook as a pre-filled mailto', () => {
+    expect(SITE.resumeUrl).toMatch(/^mailto:alessio@ilcassero\.it\?subject=/);
+  });
 });
 
 describe('canonicalOrigin', () => {
