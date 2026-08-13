@@ -14,8 +14,10 @@
   --color-paper: #f4efe6;
   --color-night: #14161d;
   --color-olive: #5e6b4f;
-  --color-ink: #2a2722;
-  --color-cream: #fbf8f2;
+  /* Full black ink: deepens the equal-legibility crossfade floor (ADR-0012).
+     18.3:1 on paper, 20.6:1 on the cream tile surface. */
+  --color-ink: #000000;
+  --color-cream: #fffdf6;
   --color-muted-light: #8a8377;
   --color-muted-dark: #7b8190;
   /* 85% ink over paper: 8.3:1 on paper, 8.7:1 on the cream tile surface —

@@ -11,7 +11,7 @@ interface WhoProps {
 
 /** 01 — Character. Three adjectives made concrete, not listed. */
 export function Who({ surface = 'solid' }: WhoProps): ReactElement {
-  const { tone } = useSceneTone();
+  const { softTone } = useSceneTone();
   return (
     <Band id="who" ariaLabel="Who I am" tone="paper" surface={surface}>
       <SectionHeader
@@ -27,7 +27,7 @@ export function Who({ surface = 'solid' }: WhoProps): ReactElement {
               <h3 className="font-display text-[length:var(--text-h3)] font-medium">
                 {statement.title}
               </h3>
-              <p className={`max-w-prose leading-relaxed ${SCENE_SOFT_TEXT[tone]}`}>
+              <p className={`max-w-prose leading-relaxed ${SCENE_SOFT_TEXT[softTone]}`}>
                 {statement.line}
               </p>
             </li>

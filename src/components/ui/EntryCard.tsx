@@ -14,9 +14,10 @@ interface EntryCardProps {
   href?: string;
   /**
    * `light` sits on paper-family surfaces, `dark` on night-family ones. When
-   * omitted the card takes its tone from the live scene tone (ADR-0011) so its
-   * meta line and copy stay AA-legible while the backdrop blends; outside a
-   * scene it defaults to `light`. Only fixed-surfaces (Contact) pass it.
+   * omitted the card takes its tone from the live scene's *muted* tone
+   * (ADR-0012, `softTone`) so its meta line and copy stay legible while the
+   * backdrop blends; outside a scene it defaults to `light`. Only
+   * fixed-surface cards (Contact) pass it.
    */
   tone?: CardTone;
 }
@@ -40,7 +41,7 @@ const META_COLOR: Record<CardTone, string> = {
 /** A project or study card in the cruise bands; links when a route exists. */
 export function EntryCard({ title, line, meta, href, tone }: EntryCardProps): ReactElement {
   const sceneTone = useSceneTone();
-  const effectiveTone: CardTone = tone ?? (sceneTone.tone === 'night' ? 'dark' : 'light');
+  const effectiveTone: CardTone = tone ?? (sceneTone.softTone === 'night' ? 'dark' : 'light');
   const classes = cn(
     'flex h-full flex-col justify-between gap-6 rounded-[var(--radius-card)] border p-6',
     'transition-[transform,border-color] duration-[var(--duration-normal)] ease-[var(--ease-out-expo)]',

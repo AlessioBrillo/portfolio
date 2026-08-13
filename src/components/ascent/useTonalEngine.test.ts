@@ -3,7 +3,14 @@ import { useRef } from 'react';
 import type { RefObject } from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { useTonalEngine } from '@/components/ascent/useTonalEngine';
-import { TONAL_TRANSITIONS, TONE, type ToneName } from '@/lib/tone';
+import {
+  flipLineFor,
+  SOFT_TEXT_TONE,
+  TEXT_TONE,
+  TONAL_TRANSITIONS,
+  TONE,
+  type ToneName,
+} from '@/lib/tone';
 
 interface CreateConfig {
   onEnter: () => void;
@@ -58,12 +65,15 @@ afterEach(() => {
   vi.clearAllMocks();
 });
 
-/** Renders the hook against a real backdrop element, with an optional tone listener. */
-function renderEngine(onToneChange?: (tone: ToneName) => void): RefObject<HTMLDivElement | null> {
+/** Renders the hook against a real backdrop element, with optional tone listeners. */
+function renderEngine(
+  onToneChange?: (tone: ToneName) => void,
+  onSoftToneChange?: (tone: ToneName) => void,
+): RefObject<HTMLDivElement | null> {
   const { result } = renderHook(() => {
     const ref = useRef<HTMLDivElement>(null);
     if (!ref.current) ref.current = document.createElement('div');
-    useTonalEngine(ref, onToneChange);
+    useTonalEngine(ref, onToneChange, onSoftToneChange);
     return ref;
   });
   return result.current;
@@ -107,56 +117,75 @@ describe('useTonalEngine', () => {
   });
 
   // ScrollTrigger.create call order is deterministic under the stubbed
-  // matchMedia: the full-motion branch runs first (one fade-midpoint flip per
-  // transition), then the reduced-motion branch (one discrete switch per
-  // transition). Indices below follow that order.
-  const flipIndex = (transitionIndex: number): number => transitionIndex;
+  // matchMedia: the full-motion branch runs first (per transition, the body
+  // flip then the muted flip, each at its own equal-legibility line), then
+  // the reduced-motion branch (one discrete switch per transition, co-located
+  // at the body line). Indices below follow that order.
+  const bodyFlipIndex = (transitionIndex: number): number => transitionIndex * 2;
+  const softFlipIndex = (transitionIndex: number): number => transitionIndex * 2 + 1;
   const discreteIndex = (transitionIndex: number): number => {
-    return TONAL_TRANSITIONS.length + transitionIndex;
+    return TONAL_TRANSITIONS.length * 2 + transitionIndex;
   };
 
-  it('flips the scene text tone at each fade midpoint under full motion', async () => {
+  it('flips body and muted text tones at their own equal-legibility lines under full motion', async () => {
     const onToneChange = vi.fn();
-    renderEngine(onToneChange);
-    await waitFor(() => expect(mocks.create).toHaveBeenCalledTimes(TONAL_TRANSITIONS.length * 2));
+    const onSoftToneChange = vi.fn();
+    renderEngine(onToneChange, onSoftToneChange);
+    await waitFor(() => expect(mocks.create).toHaveBeenCalledTimes(TONAL_TRANSITIONS.length * 3));
 
     const climb = TONAL_TRANSITIONS[0];
     if (!climb) throw new Error('expected a climb transition');
-    const flip = mocks.create.mock.calls[flipIndex(0)]?.[0] as CreateConfig & {
+    const bodyFlip = mocks.create.mock.calls[bodyFlipIndex(0)]?.[0] as CreateConfig & {
+      trigger: Element;
+      start: string;
+    };
+    const softFlip = mocks.create.mock.calls[softFlipIndex(0)]?.[0] as CreateConfig & {
       trigger: Element;
       start: string;
     };
 
-    // Anchored to the trigger heading at a *relative* start: the fade
-    // midpoint (`top bottom` -> `top center`), re-measured on every
-    // ScrollTrigger refresh so layout shifts can never freeze it.
-    expect(flip.trigger).toBe(document.getElementById('ai-physics'));
-    expect(flip.start).toBe('top 75%');
+    // Anchored to the trigger heading at the transition's own *relative*
+    // equal-legibility line (ADR-0012): the climb and the descent run over
+    // the same window in opposite directions, so each uses the line computed
+    // for its own direction. Relative starts are re-measured on every
+    // ScrollTrigger refresh so layout shifts can never freeze them.
+    expect(bodyFlip.trigger).toBe(document.getElementById('ai-physics'));
+    expect(bodyFlip.start).toBe(flipLineFor(TEXT_TONE, climb).position);
+    expect(softFlip.start).toBe(flipLineFor(SOFT_TEXT_TONE, climb).position);
 
-    flip.onEnter();
+    bodyFlip.onEnter();
     expect(onToneChange).toHaveBeenLastCalledWith(climb.to);
-    flip.onLeaveBack();
+    bodyFlip.onLeaveBack();
     expect(onToneChange).toHaveBeenLastCalledWith(climb.from);
+    softFlip.onEnter();
+    expect(onSoftToneChange).toHaveBeenLastCalledWith(climb.to);
+    softFlip.onLeaveBack();
+    expect(onSoftToneChange).toHaveBeenLastCalledWith(climb.from);
   });
 
-  it('switches tone discretely and publishes it under reduced motion', async () => {
+  it('switches tone discretely and publishes both text tones under reduced motion', async () => {
     const onToneChange = vi.fn();
-    const ref = renderEngine(onToneChange);
-    await waitFor(() => expect(mocks.create).toHaveBeenCalledTimes(TONAL_TRANSITIONS.length * 2));
+    const onSoftToneChange = vi.fn();
+    const ref = renderEngine(onToneChange, onSoftToneChange);
+    await waitFor(() => expect(mocks.create).toHaveBeenCalledTimes(TONAL_TRANSITIONS.length * 3));
 
     const descent = TONAL_TRANSITIONS[1];
     if (!descent) throw new Error('expected a descent transition');
     const config = mocks.create.mock.calls[discreteIndex(1)]?.[0] as CreateConfig & {
       start: string;
     };
-    expect(config.start).toBe('top 75%');
+    // Co-located at the *body* equal-legibility line for this direction: the
+    // backdrop is not blending, so both families switch with it.
+    expect(config.start).toBe(flipLineFor(TEXT_TONE, descent).position);
 
     config.onEnter();
     expect(mocks.set).toHaveBeenCalledWith(ref.current, { backgroundColor: TONE[descent.to] });
     expect(onToneChange).toHaveBeenLastCalledWith(descent.to);
+    expect(onSoftToneChange).toHaveBeenLastCalledWith(descent.to);
     config.onLeaveBack();
     expect(mocks.set).toHaveBeenCalledWith(ref.current, { backgroundColor: TONE[descent.from] });
     expect(onToneChange).toHaveBeenLastCalledWith(descent.from);
+    expect(onSoftToneChange).toHaveBeenLastCalledWith(descent.from);
   });
 
   it('does nothing when the backdrop ref is empty', async () => {

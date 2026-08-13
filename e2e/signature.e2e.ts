@@ -2,16 +2,27 @@ import { expect, test, type Page } from '@playwright/test';
 import { contrastRatio, parseRgb } from './contrast';
 
 /**
- * Validates the tonal signature (ADR-0003, ADR-0010, ADR-0011, roadmap Phase 2):
- * the hero loads, the `TonalScene` backdrop actually crossfades paper<->night as
- * you scroll, scene text follows the live backdrop tone (no ink-family text on
- * the night half of the flight), and section text stays WCAG-legible against
- * the backdrop at every point along the fade -- including under
- * `prefers-reduced-motion`, where the fade collapses to a discrete switch.
+ * Validates the tonal signature (ADR-0003, ADR-0010, ADR-0011, ADR-0012,
+ * roadmap Phase 2): the hero loads, the `TonalScene` backdrop actually
+ * crossfades paper<->night as you scroll, scene text follows the live
+ * backdrop tone (no ink-family text on the night half of the flight), and
+ * section text stays WCAG-legible against the backdrop at every point along
+ * the fade -- including under `prefers-reduced-motion`, where the fade
+ * collapses to a discrete switch.
  *
- * Two contrast thresholds apply (WCAG 2.1 SC 1.4.3): 3:1 for "large" text
- * (headings here are >=36px, well past the >=24px/>=18.66px-bold cutoff) and
- * 4.5:1 for everything else (the section intro paragraph, ~17-19px).
+ * Two contrast thresholds apply (WCAG 2.1 SC 1.4.3): 4.5:1 for the body
+ * family (headings and body copy) and 1.5:1 as the documented bounded floor
+ * for the muted family (ADR-0012: the muted pair is luminance-close by
+ * design, so AA is unreachable without collapsing the hierarchy -- the
+ * equal-legibility flip line places its worst case at 1.57:1).
+ *
+ * ADR-0012 removed the old "known residual": the midpoint no longer flips
+ * text tone, and the body palette is tuned so the flip line itself clears
+ * AA. Instead of diagnosing one sample, this suite *sweeps* every crossfade
+ * at dense blend fractions (plus both flip lines, +/- 0.03) and gates the
+ * results. The flip-line constants below mirror `BODY_FLIP_LINE` and
+ * `SOFT_FLIP_LINE` in `src/lib/tone.ts`, which computes them by bisection
+ * over the actual GSAP-blended backdrop colours.
  *
  * Pixel-diff visual regression is deliberately not asserted here: golden
  * screenshots need a rendering environment matched to CI (fonts, subpixel
@@ -19,35 +30,41 @@ import { contrastRatio, parseRgb } from './contrast';
  * not set up yet. Screenshots are still captured as non-gating artifacts
  * (see the HTML report) for human review at each breakpoint.
  * ponytail: pixel-diff baselines, add once a matched-environment (Docker) runner exists.
- *
- * Known residual (bounded by ADR-0011, tracked -- not fixed here): exactly at
- * a crossfade's mathematical midpoint, the backdrop is a 50/50 blend of the
- * two ADR-0008 tones and *both* text tones measure near their WCAG floor
- * against it. ADR-0011 flips scene text at that midpoint (the point where the
- * incoming tone becomes strictly more legible), bounding each tone's sub-AA
- * stretch to a single instant rather than an entire crossfade -- but the
- * instant itself remains. This isn't a timing bug: no retiming of the
- * trigger's scroll window changes the *colour* at a given blend fraction,
- * only where along the scroll it falls, and the exact fraction sampled at a
- * fixed pixel step shifts with viewport height -- so any single hard
- * threshold there would be whack-a-mole across breakpoints, not real
- * regression protection. The checks below are diagnostic (`console.info`),
- * not gates, for that sample: they log every measurement so the gap stays
- * visible without perpetually failing CI over an accepted, documented
- * limitation. The real regression gates are the other tests, which verify
- * the fixes (heading-anchored trigger, midpoint-anchored reduced-motion
- * switch, and the text-tone flip) actually hold at the committed ends of
- * every crossfade.
- * ponytail: per-heading text-colour animation (or a palette revisit) closes the
- * midpoint instant for good.
  */
 
 const AA_LARGE_TEXT = 3;
 const AA_NORMAL_TEXT = 4.5;
+/** Bounded floor for the muted family at its own flip line (ADR-0012). */
+const MUTED_FLOOR = 1.5;
 /** Climb triggers on ai-physics, descent on sky-sport -- see src/lib/tone.ts. */
 const TRANSITION_TRIGGERS = ['ai-physics', 'sky-sport'];
-/** Fractions along each transition's `start` ('top bottom') -> `end` ('top center'). */
-const TRANSITION_PROGRESS_SAMPLES = [0.15, 0.5, 0.85];
+/**
+ * Blend fractions where the scene flips text tones (ADR-0012) -- mirrors
+ * `flipLineFor` in `src/lib/tone.ts` (bisection over the GSAP-blended
+ * backdrop colours). The lines are per transition: the climb and the descent
+ * run over the same scroll window in opposite directions, so at any shared
+ * geometry the backdrop has blended *different* amounts and each direction
+ * uses its own equal-legibility line (the descent's is the climb's mirror).
+ * The e2e harness intentionally mirrors the constants: the unit suite locks
+ * the exact values, and this sweep verifies the *rendered* contract around
+ * them.
+ */
+const FLIP_PROGRESS: Record<string, { body: number; soft: number }> = {
+  'ai-physics': { body: 0.5645, soft: 0.6521 },
+  'sky-sport': { body: 0.4355, soft: 0.3479 },
+};
+/** Density of the blend-fraction sweep (0.05 .. 0.95, step 0.1, plus both flip lines +/- 0.03). */
+const SWEEP_STEP = 0.1;
+
+/**
+ * Waits for the display fonts to finish swapping in. `useTonalEngine`
+ * re-measures its ScrollTrigger positions when `document.fonts.ready`
+ * resolves, so the geometry this harness samples with must be the settled
+ * one -- otherwise the flip gates chase a stale layout.
+ */
+async function settleFonts(page: Page): Promise<void> {
+  await page.evaluate(() => document.fonts.ready);
+}
 
 async function backdropColor(page: Page): Promise<string> {
   return page.getByTestId('tonal-backdrop').evaluate((el) => getComputedStyle(el).backgroundColor);
@@ -65,9 +82,7 @@ async function settleToneState(page: Page): Promise<void> {
   await page.evaluate(
     () =>
       new Promise<void>((resolve) => {
-        const bg = document.querySelector<HTMLElement>(
-          'div[data-testid="tonal-backdrop"]',
-        );
+        const bg = document.querySelector<HTMLElement>('div[data-testid="tonal-backdrop"]');
         if (!bg) return resolve();
         const center = window.innerHeight / 2;
         let lastBg = getComputedStyle(bg).backgroundColor;
@@ -170,6 +185,22 @@ async function currentVisibleTextColor(page: Page, selector: string): Promise<st
 }
 
 /**
+ * The computed text colour of a trigger section's eyebrow (the muted family,
+ * ADR-0012) when it is on screen. The eyebrow is the single `span` directly
+ * inside the section header, so the selector is unambiguous per trigger.
+ */
+async function currentVisibleMutedColor(page: Page, triggerId: string): Promise<string | null> {
+  return page.evaluate((triggerId) => {
+    const section = document.getElementById(triggerId);
+    const eyebrow = section?.querySelector('header > span');
+    if (!eyebrow) return null;
+    const rect = eyebrow.getBoundingClientRect();
+    if (rect.bottom < 0 || rect.top > window.innerHeight) return null;
+    return getComputedStyle(eyebrow).color;
+  }, triggerId);
+}
+
+/**
  * The dominant colour of a top-left background strip taken from the element's
  * own composited box (Playwright scrolls it into view, then the screenshot ->
  * canvas readback gives the painted truth). Computed styles cannot express
@@ -222,9 +253,7 @@ async function elementClipDominant(
 
 /** Whether a sampled colour matches the ADR-0008 night tone, within AA-noise tolerance. */
 function isNightTone(color: { r: number; g: number; b: number }): boolean {
-  return (
-    Math.abs(color.r - 20) <= 6 && Math.abs(color.g - 22) <= 6 && Math.abs(color.b - 29) <= 6
-  );
+  return Math.abs(color.r - 20) <= 6 && Math.abs(color.g - 22) <= 6 && Math.abs(color.b - 29) <= 6;
 }
 
 test.describe('tonal signature', () => {
@@ -238,6 +267,7 @@ test.describe('tonal signature', () => {
     page,
   }, testInfo) => {
     await page.goto('/');
+    await settleFonts(page);
     const ground = parseRgb(await backdropColor(page));
 
     // Cruise: heading top parked at viewport centre = the climb fade window's
@@ -259,36 +289,141 @@ test.describe('tonal signature', () => {
     await page.screenshot({ path: testInfo.outputPath('signature-ground.png') });
   });
 
-  test('records text contrast through each backdrop transition (diagnostic, see module doc)', async ({
+  test('every visible heading keeps AA contrast through each crossfade (ADR-0012)', async ({
     page,
   }) => {
+    test.setTimeout(120_000);
     await page.goto('/');
+    await settleFonts(page);
+
+    // Sweep both crossfades at dense blend fractions, plus each direction's
+    // own flip lines (+/- 0.03). The backdrop is uniform at every sample,
+    // so any visible heading is measured against the live blended colour:
+    // ADR-0012 guarantees >= 4.5:1 for the body family at *every* instant.
+    const samples = new Set<number>();
+    for (let progress = 0.05; progress < 1; progress += SWEEP_STEP) {
+      samples.add(Math.round(progress * 100) / 100);
+    }
 
     for (const trigger of TRANSITION_TRIGGERS) {
-      for (const progress of TRANSITION_PROGRESS_SAMPLES) {
+      const lines = FLIP_PROGRESS[trigger];
+      if (!lines) throw new Error(`no flip lines for trigger ${trigger}`);
+      const triggerSamples = new Set(samples);
+      for (const progress of [lines.body, lines.soft]) {
+        triggerSamples.add(progress - 0.03);
+        triggerSamples.add(progress + 0.03);
+      }
+
+      for (const progress of [...triggerSamples].sort((a, b) => a - b)) {
         await scrollToTransitionProgress(page, trigger, progress);
         const bg = parseRgb(await backdropColor(page));
-        const label = `${trigger} @ ${progress}`;
-
         const heading = await currentVisibleTextColor(page, 'h1, h2');
-        if (heading) {
-          const ratio = contrastRatio(parseRgb(heading), bg);
-          if (ratio < AA_LARGE_TEXT) {
-            console.info(
-              `[known residual] heading contrast at ${label} was ${ratio.toFixed(2)}:1 (needs 3:1)`,
-            );
-          }
-        }
+        expect(heading, `${trigger} heading missing at ${progress}`).not.toBeNull();
+        if (!heading) continue;
+        const ratio = contrastRatio(parseRgb(heading), bg);
+        expect(
+          ratio,
+          `${trigger} heading at blend ${progress} was ${ratio.toFixed(2)}:1 (needs ${AA_NORMAL_TEXT}:1)`,
+        ).toBeGreaterThanOrEqual(AA_NORMAL_TEXT);
+      }
+    }
+  });
 
-        const intro = await currentVisibleTextColor(page, 'p');
-        if (intro) {
-          const ratio = contrastRatio(parseRgb(intro), bg);
-          if (ratio < AA_NORMAL_TEXT) {
-            console.info(
-              `[known residual] intro contrast at ${label} was ${ratio.toFixed(2)}:1 (needs 4.5:1)`,
-            );
-          }
-        }
+  test('scene text flips exactly at the equal-legibility lines (ADR-0012)', async ({ page }) => {
+    await page.goto('/');
+    await settleFonts(page);
+
+    // Immediately before each direction's body flip line the heading must
+    // still hold the outgoing tone; immediately after, the incoming one. The
+    // exact computed colours prove the *mechanism* (the sweep above proves
+    // the contrast outcome). Holds under both motion preferences: reduced
+    // motion switches at the same per-direction line.
+    const INK = 'rgb(0, 0, 0)';
+    const CREAM = 'rgb(255, 253, 246)';
+    // Climb leaves paper and lands on night; the descent is the mirror.
+    const EXPECTED_HEADING: Record<string, { before: string; after: string }> = {
+      'ai-physics': { before: INK, after: CREAM },
+      'sky-sport': { before: CREAM, after: INK },
+    };
+    for (const trigger of TRANSITION_TRIGGERS) {
+      const lines = FLIP_PROGRESS[trigger];
+      const expected = EXPECTED_HEADING[trigger];
+      if (!lines || !expected) throw new Error(`no expectations for trigger ${trigger}`);
+
+      await scrollToTransitionProgress(page, trigger, lines.body - 0.03);
+      const before = await currentVisibleTextColor(page, 'h1, h2');
+      expect(before, `${trigger} heading missing before the body flip`).not.toBeNull();
+      if (before) {
+        expect(before, `${trigger} heading should hold the outgoing tone until the body line`).toBe(
+          expected.before,
+        );
+      }
+
+      await scrollToTransitionProgress(page, trigger, lines.body + 0.03);
+      const after = await currentVisibleTextColor(page, 'h1, h2');
+      expect(after, `${trigger} heading missing after the body flip`).not.toBeNull();
+      if (after) {
+        expect(after, `${trigger} heading should hold the incoming tone past the body line`).toBe(
+          expected.after,
+        );
+      }
+    }
+  });
+
+  test('muted text follows its own equal-legibility line (ADR-0012)', async ({
+    page,
+  }, testInfo) => {
+    await page.goto('/');
+    await settleFonts(page);
+    const reduced = testInfo.project.name === 'reduced-motion';
+    const INK_SOFT = 'rgb(72, 69, 63)';
+    const MUTED_DARK = 'rgb(123, 129, 144)';
+
+    // The expected eyebrow tone is direction-dependent: before its line the
+    // muted family still holds the *outgoing* tone (ink-soft on the climb,
+    // muted-dark on the descent), and after it the incoming one. Reduced
+    // motion adds one override: on the climb the discrete switch fires at the
+    // body line (0.5645), before the muted sample at 0.6221, so the eyebrow
+    // already reads muted-dark; on the descent the body line (0.4355) sits
+    // *past* the muted sample at 0.3179, so the eyebrow still holds
+    // muted-dark there too.
+    const MUTED_BEFORE: Record<string, string> = {
+      'ai-physics': reduced ? MUTED_DARK : INK_SOFT,
+      'sky-sport': MUTED_DARK,
+    };
+    const MUTED_AFTER: Record<string, string> = {
+      'ai-physics': MUTED_DARK,
+      'sky-sport': reduced ? MUTED_DARK : INK_SOFT,
+    };
+
+    for (const trigger of TRANSITION_TRIGGERS) {
+      const lines = FLIP_PROGRESS[trigger];
+      if (!lines) throw new Error(`no flip lines for trigger ${trigger}`);
+
+      // Just before the muted line: the muted family holds its outgoing tone
+      // (full motion flips it later than the body; reduced motion switched
+      // both together at the body line where that line fires first -- see
+      // MUTED_BEFORE).
+      await scrollToTransitionProgress(page, trigger, lines.soft - 0.03);
+      const before = await currentVisibleMutedColor(page, trigger);
+      expect(before, `${trigger} eyebrow missing before the muted flip`).not.toBeNull();
+      if (before) {
+        expect(before, `${trigger} eyebrow tone before the muted flip`).toBe(MUTED_BEFORE[trigger]);
+      }
+
+      // Past the muted line both motion preferences have committed to the
+      // incoming muted tone, and the eyebrow clears the documented floor.
+      await scrollToTransitionProgress(page, trigger, lines.soft + 0.03);
+      const after = await currentVisibleMutedColor(page, trigger);
+      expect(after, `${trigger} eyebrow missing after the muted flip`).not.toBeNull();
+      if (after) {
+        expect(after, `${trigger} eyebrow tone after the muted flip`).toBe(MUTED_AFTER[trigger]);
+        const bg = parseRgb(await backdropColor(page));
+        const ratio = contrastRatio(parseRgb(after), bg);
+        expect(
+          ratio,
+          `${trigger} eyebrow at blend ${lines.soft + 0.03} was ${ratio.toFixed(2)}:1 (floor ${MUTED_FLOOR}:1)`,
+        ).toBeGreaterThanOrEqual(MUTED_FLOOR);
       }
     }
   });
@@ -297,6 +432,7 @@ test.describe('tonal signature', () => {
     page,
   }) => {
     await page.goto('/');
+    await settleFonts(page);
 
     // ADR-0011: near the start of each fade window the backdrop is still the
     // outgoing tone and text must still be in that tone's ink/cream family;
@@ -343,18 +479,27 @@ test.describe('tonal signature', () => {
     // backdrop is night. The band's padding must sample that night, proving
     // the backdrop paints through scene bands.
     const cruise = await elementClipDominant(page, '#ai-physics', strip);
-    expect(isNightTone(cruise), `cruise backdrop should paint through the scene band, got rgb(${cruise.r},${cruise.g},${cruise.b})`).toBe(true);
+    expect(
+      isNightTone(cruise),
+      `cruise backdrop should paint through the scene band, got rgb(${cruise.r},${cruise.g},${cruise.b})`,
+    ).toBe(true);
 
     // Night landing: Contact's own solid night must cover the backdrop -- the
     // composited pixels are the truth here (a `z-0` fixed backdrop paints
     // above static siblings, silently rendering the landing as paper; the
     // `-z-10` contract in TonalScene gates this).
     const landing = await elementClipDominant(page, '#contact', strip);
-    expect(isNightTone(landing), `contact must paint its own night, got rgb(${landing.r},${landing.g},${landing.b})`).toBe(true);
+    expect(
+      isNightTone(landing),
+      `contact must paint its own night, got rgb(${landing.r},${landing.g},${landing.b})`,
+    ).toBe(true);
 
     // The footer is a static night sibling as well -- same contract.
     const foot = await elementClipDominant(page, 'footer', strip);
-    expect(isNightTone(foot), `footer must paint its own night, got rgb(${foot.r},${foot.g},${foot.b})`).toBe(true);
+    expect(
+      isNightTone(foot),
+      `footer must paint its own night, got rgb(${foot.r},${foot.g},${foot.b})`,
+    ).toBe(true);
   });
 
   test('reduced motion switches the tone discretely, not blended', async ({ page }, testInfo) => {
