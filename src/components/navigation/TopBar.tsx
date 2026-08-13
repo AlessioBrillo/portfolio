@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import type { ReactElement } from 'react';
+import { useSceneTone } from '@/components/ascent/tone-context';
 import { useCurrentSection } from '@/hooks/useCurrentSection';
 import { useReducedMotion } from '@/hooks/useReducedMotion';
 import { isNightSection } from '@/lib/section-tone';
@@ -11,9 +12,12 @@ const DIRECTION_THRESHOLD_PX = 8;
 /**
  * Minimal top bar with tone-aware background and text colour.
  *
- * Uses `useCurrentSection` (IntersectionObserver) to detect the active
- * section and switch between light/dark styling. The `bg-paper/70` fallback
- * provides ~5.4:1 contrast even against night, so text is always AA-legible.
+ * The bar's dark/light mode follows the *live* scene tone (ADR-0011) so the
+ * chrome stays on the correct tone during the tonal blends, with explicit
+ * solid-night sections (Contact) forcing night even when the scene reads
+ * paper — `isNightSection` covers those, the scene tone covers everything
+ * else. Outside a `TonalScene` the context defaults to paper, so the bar
+ * degrades to the ground tone on static pages.
  *
  * Hides on scroll-down and reveals on scroll-up to preserve immersion
  * (ADR-0006); under reduced motion it stays permanently visible (ADR-0009).
@@ -22,6 +26,7 @@ const DIRECTION_THRESHOLD_PX = 8;
 export function TopBar(): ReactElement {
   const currentSection = useCurrentSection();
   const prefersReducedMotion = useReducedMotion();
+  const { tone: sceneTone } = useSceneTone();
   const [hidden, setHidden] = useState(false);
   const lastScrollY = useRef(window.scrollY);
 
@@ -44,7 +49,7 @@ export function TopBar(): ReactElement {
     };
   }, []);
 
-  const inDark = isNightSection(currentSection);
+  const inDark = isNightSection(currentSection) || sceneTone === 'night';
   const visible = prefersReducedMotion || !hidden;
 
   return (
