@@ -18,6 +18,14 @@ describe('getCaseStudy', () => {
     expect(entry?.load).toBeInstanceOf(Function);
   });
 
+  it('returns the work-domain entry for The Ascent study', () => {
+    const entry = getCaseStudy('the-ascent');
+    expect(entry).toBeDefined();
+    expect(entry?.meta.slug).toBe('the-ascent');
+    expect(entry?.meta.domain).toBe('work');
+    expect(entry?.load).toBeInstanceOf(Function);
+  });
+
   it('returns undefined for an unknown slug', () => {
     expect(getCaseStudy('non-existent')).toBeUndefined();
   });

@@ -29,6 +29,17 @@ test.describe('case study routes', () => {
     await expect(page.getByRole('heading', { level: 2, name: 'Problem' })).toBeVisible();
   });
 
+  test('deep link renders the work-domain study with its meta head', async ({ page }) => {
+    await page.goto('/work/the-ascent');
+
+    await expect(page.getByRole('heading', { level: 1 })).toContainText(
+      'The Ascent, engineered in the open',
+    );
+    await expect(page).toHaveTitle(/The Ascent, engineered in the open/);
+    await expect(page.getByRole('link', { name: /Back to the ascent/ })).toBeVisible();
+    await expect(page.getByRole('heading', { level: 2, name: 'Context' })).toBeVisible();
+  });
+
   test('unknown slug lands on the 404 in voice', async ({ page }) => {
     await page.goto('/ai/does-not-exist');
 
