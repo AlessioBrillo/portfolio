@@ -21,6 +21,7 @@ trade-offs without re-running the original arguments.
 | [0012](0012-equal-legibility-flip-lines.md)     | Equal-legibility flip lines for scene text tone                | 2026-08-13 | Accepted |
 | [0013](0013-analytics.md)                       | Privacy-first analytics, env-gated (Plausible)                 | 2026-08-13 | Accepted |
 | [0014](0014-identity-surface.md)                | Identity surface — public repo link and resume on request      | 2026-08-13 | Accepted |
+| [0015](0015-studies-navigation-order.md)        | Cross-study navigation in a curated reading order              | 2026-08-13 | Accepted |
 
 ## Conventions
 
@@ -54,3 +55,6 @@ ADR-0012 tunes the flip placement of ADR-0011 to each text family's
 equal-legibility line. ADR-0013 and ADR-0014 open the finishing phase: the
 first gates privacy-first analytics behind deploy-time environment variables,
 the second activates the reserved resume hook and links the public repository.
+ADR-0015 completes the case-study reading surface (ADR-0005): prev/next
+navigation in the same curated order that drives the sitemap, with focus
+management on hop.

@@ -1,11 +1,13 @@
-import { Suspense, lazy, useMemo, type ReactElement } from 'react';
+import { Suspense, lazy, useEffect, useMemo, useRef, type ReactElement } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { CaseStudyErrorBoundary } from '@/components/CaseStudyErrorBoundary';
-import { getCaseStudy } from '@/content/case-studies/registry';
+import { getCaseStudy, getPublishedCaseStudies } from '@/content/case-studies/registry';
 import { useDocumentMeta } from '@/hooks/useDocumentMeta';
 import { canonicalOrigin } from '@/lib/site';
+import { cn } from '@/lib/utils';
 import { Eyebrow } from '@/components/ui/Eyebrow';
 import { NotFoundPage } from '@/pages/NotFoundPage';
+import type { CaseStudyMeta } from '@/types/domain';
 
 function Skeleton(): ReactElement {
   return (
@@ -19,12 +21,66 @@ function Skeleton(): ReactElement {
   );
 }
 
+interface StudyNav {
+  readonly prev?: CaseStudyMeta;
+  readonly next?: CaseStudyMeta;
+}
+
+/** The neighbours of a study in the curated published order (registry). */
+function studyNavigation(slug: string): StudyNav {
+  const all = getPublishedCaseStudies();
+  const index = all.findIndex((meta) => meta.slug === slug);
+  if (index === -1) return {};
+  return {
+    prev: index > 0 ? all[index - 1] : undefined,
+    next: index < all.length - 1 ? all[index + 1] : undefined,
+  };
+}
+
+function StudyNavLink({
+  label,
+  study,
+  align = 'start',
+}: {
+  label: 'Previous study' | 'Next study';
+  study: CaseStudyMeta;
+  align?: 'start' | 'end';
+}): ReactElement {
+  return (
+    <Link
+      to={`/${study.domain}/${study.slug}`}
+      className={cn(
+        'group flex flex-col gap-2 no-underline',
+        align === 'end' ? 'sm:items-end sm:text-right' : 'sm:items-start',
+      )}
+    >
+      <span className="font-mono text-xs uppercase tracking-widest text-ink-soft">{label}</span>
+      <span className="font-display text-[length:var(--text-h3)] font-medium text-ink transition-colors group-hover:text-orange">
+        {study.title}
+      </span>
+    </Link>
+  );
+}
+
 /** Renders a single case study from its MDX body at `/{domain}/{slug}`. */
 export function CaseStudyPage(): ReactElement {
   const { domain, slug } = useParams();
+  const headingRef = useRef<HTMLHeadingElement>(null);
+  const previousSlug = useRef(slug);
   const entry = slug ? getCaseStudy(slug) : undefined;
   const valid = entry !== undefined && domain === entry.meta.domain;
   const Body = useMemo(() => (entry ? lazy(entry.load) : null), [entry]);
+  const nav = useMemo(() => (valid && slug ? studyNavigation(slug) : {}), [valid, slug]);
+
+  // Prev/next navigation unmounts the link that held focus, dropping it to the
+  // body (WCAG 2.4.3). Move it to the study heading on slug *change* only —
+  // a deep-link load keeps the natural initial focus.
+  useEffect(() => {
+    if (valid && previousSlug.current !== slug) {
+      headingRef.current?.focus();
+    }
+    previousSlug.current = slug;
+  }, [valid, slug]);
 
   useDocumentMeta(
     valid
@@ -57,7 +113,11 @@ export function CaseStudyPage(): ReactElement {
               .filter(Boolean)
               .join(' \u00B7 ')}
           </Eyebrow>
-          <h1 className="font-display text-[length:var(--text-h2)] font-medium leading-tight">
+          <h1
+            ref={headingRef}
+            tabIndex={-1}
+            className="font-display text-[length:var(--text-h2)] font-medium leading-tight"
+          >
             {meta.title}
           </h1>
         </header>
@@ -68,6 +128,15 @@ export function CaseStudyPage(): ReactElement {
             </Suspense>
           </CaseStudyErrorBoundary>
         </article>
+        {nav.prev || nav.next ? (
+          <nav
+            aria-label="More case studies"
+            className="mt-16 grid gap-10 border-t border-black/10 pt-8 sm:grid-cols-2"
+          >
+            {nav.prev ? <StudyNavLink label="Previous study" study={nav.prev} /> : <span />}
+            {nav.next ? <StudyNavLink label="Next study" study={nav.next} align="end" /> : <span />}
+          </nav>
+        ) : null}
       </div>
     </main>
   );
