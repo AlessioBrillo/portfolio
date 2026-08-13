@@ -27,6 +27,8 @@ describe('projects content module', () => {
   it('keeps the published case study referenced', () => {
     const corpus = getProjectEntries().find((e) => e.id === 'transformer-italian-corpus');
     expect(corpus?.href).toBe('/ai/transformer-italian-corpus');
+    const ascent = getProjectEntries().find((e) => e.id === 'the-ascent');
+    expect(ascent?.href).toBe('/work/the-ascent');
   });
 
   it('does not expose a mutable live array to callers', () => {
