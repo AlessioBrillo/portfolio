@@ -39,10 +39,11 @@ interface TonalSceneProps {
 export function TonalScene({ children }: TonalSceneProps): ReactElement {
   const backdropRef = useRef<HTMLDivElement>(null);
   const [tone, setTone] = useState<ToneName>('paper');
-  useTonalEngine(backdropRef, setTone);
+  const [softTone, setSoftTone] = useState<ToneName>('paper');
+  useTonalEngine(backdropRef, setTone, setSoftTone);
 
   return (
-    <SceneToneContext.Provider value={{ tone, setTone }}>
+    <SceneToneContext.Provider value={{ tone, setTone, softTone, setSoftTone }}>
       <div className="relative">
         <div
           ref={backdropRef}

@@ -13,7 +13,7 @@ export function AiPhysics({ surface = 'solid' }: AiPhysicsProps): ReactElement {
   const studies = Object.values(CASE_STUDIES).filter((entry) => entry.meta.domain === 'ai');
 
   return (
-    <Band id="ai-physics" ariaLabel="AI and physics" tone="night" surface={surface}>
+    <Band id="ai-physics" ariaLabel="AI and physics" tone="paper" surface={surface}>
       <SectionHeader
         eyebrow="03 — AI & Physics"
         title="Where the thinking shows"

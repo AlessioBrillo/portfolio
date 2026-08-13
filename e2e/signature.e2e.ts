@@ -40,15 +40,31 @@ const MUTED_FLOOR = 1.5;
 const TRANSITION_TRIGGERS = ['ai-physics', 'sky-sport'];
 /**
  * Blend fractions where the scene flips text tones (ADR-0012) -- mirrors
- * `BODY_FLIP_LINE` / `SOFT_FLIP_LINE` in `src/lib/tone.ts` (bisection over
- * the GSAP-blended backdrop colours). The e2e harness intentionally mirrors
- * the constants: the unit suite locks the exact values, and this sweep
- * verifies the *rendered* contract around them.
+ * `flipLineFor` in `src/lib/tone.ts` (bisection over the GSAP-blended
+ * backdrop colours). The lines are per transition: the climb and the descent
+ * run over the same scroll window in opposite directions, so at any shared
+ * geometry the backdrop has blended *different* amounts and each direction
+ * uses its own equal-legibility line (the descent's is the climb's mirror).
+ * The e2e harness intentionally mirrors the constants: the unit suite locks
+ * the exact values, and this sweep verifies the *rendered* contract around
+ * them.
  */
-const BODY_FLIP_PROGRESS = 0.5645;
-const SOFT_FLIP_PROGRESS = 0.6521;
+const FLIP_PROGRESS: Record<string, { body: number; soft: number }> = {
+  'ai-physics': { body: 0.5645, soft: 0.6521 },
+  'sky-sport': { body: 0.4355, soft: 0.3479 },
+};
 /** Density of the blend-fraction sweep (0.05 .. 0.95, step 0.1, plus both flip lines +/- 0.03). */
 const SWEEP_STEP = 0.1;
+
+/**
+ * Waits for the display fonts to finish swapping in. `useTonalEngine`
+ * re-measures its ScrollTrigger positions when `document.fonts.ready`
+ * resolves, so the geometry this harness samples with must be the settled
+ * one -- otherwise the flip gates chase a stale layout.
+ */
+async function settleFonts(page: Page): Promise<void> {
+  await page.evaluate(() => document.fonts.ready);
+}
 
 async function backdropColor(page: Page): Promise<string> {
   return page.getByTestId('tonal-backdrop').evaluate((el) => getComputedStyle(el).backgroundColor);
@@ -251,6 +267,7 @@ test.describe('tonal signature', () => {
     page,
   }, testInfo) => {
     await page.goto('/');
+    await settleFonts(page);
     const ground = parseRgb(await backdropColor(page));
 
     // Cruise: heading top parked at viewport centre = the climb fade window's
@@ -277,22 +294,27 @@ test.describe('tonal signature', () => {
   }) => {
     test.setTimeout(120_000);
     await page.goto('/');
+    await settleFonts(page);
 
-    // Sweep both crossfades at dense blend fractions, plus the two flip
-    // lines themselves (+/- 0.03). The backdrop is uniform at every sample,
+    // Sweep both crossfades at dense blend fractions, plus each direction's
+    // own flip lines (+/- 0.03). The backdrop is uniform at every sample,
     // so any visible heading is measured against the live blended colour:
     // ADR-0012 guarantees >= 4.5:1 for the body family at *every* instant.
     const samples = new Set<number>();
     for (let progress = 0.05; progress < 1; progress += SWEEP_STEP) {
       samples.add(Math.round(progress * 100) / 100);
     }
-    samples.add(BODY_FLIP_PROGRESS - 0.03);
-    samples.add(BODY_FLIP_PROGRESS + 0.03);
-    samples.add(SOFT_FLIP_PROGRESS - 0.03);
-    samples.add(SOFT_FLIP_PROGRESS + 0.03);
 
     for (const trigger of TRANSITION_TRIGGERS) {
-      for (const progress of [...samples].sort((a, b) => a - b)) {
+      const lines = FLIP_PROGRESS[trigger];
+      if (!lines) throw new Error(`no flip lines for trigger ${trigger}`);
+      const triggerSamples = new Set(samples);
+      for (const progress of [lines.body, lines.soft]) {
+        triggerSamples.add(progress - 0.03);
+        triggerSamples.add(progress + 0.03);
+      }
+
+      for (const progress of [...triggerSamples].sort((a, b) => a - b)) {
         await scrollToTransitionProgress(page, trigger, progress);
         const bg = parseRgb(await backdropColor(page));
         const heading = await currentVisibleTextColor(page, 'h1, h2');
@@ -309,27 +331,41 @@ test.describe('tonal signature', () => {
 
   test('scene text flips exactly at the equal-legibility lines (ADR-0012)', async ({ page }) => {
     await page.goto('/');
+    await settleFonts(page);
 
-    // Immediately before the body flip line the heading must still hold the
-    // outgoing ink; immediately after, the incoming cream. The exact
-    // computed colours prove the *mechanism* (the sweep above proves the
-    // contrast outcome). Holds under both motion preferences: reduced motion
-    // switches at the same line.
+    // Immediately before each direction's body flip line the heading must
+    // still hold the outgoing tone; immediately after, the incoming one. The
+    // exact computed colours prove the *mechanism* (the sweep above proves
+    // the contrast outcome). Holds under both motion preferences: reduced
+    // motion switches at the same per-direction line.
     const INK = 'rgb(0, 0, 0)';
     const CREAM = 'rgb(255, 253, 246)';
+    // Climb leaves paper and lands on night; the descent is the mirror.
+    const EXPECTED_HEADING: Record<string, { before: string; after: string }> = {
+      'ai-physics': { before: INK, after: CREAM },
+      'sky-sport': { before: CREAM, after: INK },
+    };
     for (const trigger of TRANSITION_TRIGGERS) {
-      await scrollToTransitionProgress(page, trigger, BODY_FLIP_PROGRESS - 0.03);
+      const lines = FLIP_PROGRESS[trigger];
+      const expected = EXPECTED_HEADING[trigger];
+      if (!lines || !expected) throw new Error(`no expectations for trigger ${trigger}`);
+
+      await scrollToTransitionProgress(page, trigger, lines.body - 0.03);
       const before = await currentVisibleTextColor(page, 'h1, h2');
       expect(before, `${trigger} heading missing before the body flip`).not.toBeNull();
       if (before) {
-        expect(before, `${trigger} heading should hold ink until the body line`).toBe(INK);
+        expect(before, `${trigger} heading should hold the outgoing tone until the body line`).toBe(
+          expected.before,
+        );
       }
 
-      await scrollToTransitionProgress(page, trigger, BODY_FLIP_PROGRESS + 0.03);
+      await scrollToTransitionProgress(page, trigger, lines.body + 0.03);
       const after = await currentVisibleTextColor(page, 'h1, h2');
       expect(after, `${trigger} heading missing after the body flip`).not.toBeNull();
       if (after) {
-        expect(after, `${trigger} heading should be cream past the body line`).toBe(CREAM);
+        expect(after, `${trigger} heading should hold the incoming tone past the body line`).toBe(
+          expected.after,
+        );
       }
     }
   });
@@ -338,36 +374,55 @@ test.describe('tonal signature', () => {
     page,
   }, testInfo) => {
     await page.goto('/');
+    await settleFonts(page);
     const reduced = testInfo.project.name === 'reduced-motion';
     const INK_SOFT = 'rgb(72, 69, 63)';
     const MUTED_DARK = 'rgb(123, 129, 144)';
 
+    // The expected eyebrow tone is direction-dependent: before its line the
+    // muted family still holds the *outgoing* tone (ink-soft on the climb,
+    // muted-dark on the descent), and after it the incoming one. Reduced
+    // motion adds one override: on the climb the discrete switch fires at the
+    // body line (0.5645), before the muted sample at 0.6221, so the eyebrow
+    // already reads muted-dark; on the descent the body line (0.4355) sits
+    // *past* the muted sample at 0.3179, so the eyebrow still holds
+    // muted-dark there too.
+    const MUTED_BEFORE: Record<string, string> = {
+      'ai-physics': reduced ? MUTED_DARK : INK_SOFT,
+      'sky-sport': MUTED_DARK,
+    };
+    const MUTED_AFTER: Record<string, string> = {
+      'ai-physics': MUTED_DARK,
+      'sky-sport': reduced ? MUTED_DARK : INK_SOFT,
+    };
+
     for (const trigger of TRANSITION_TRIGGERS) {
-      // Just before the muted line: full motion still holds ink-soft (the
-      // muted family flips later than the body); reduced motion already read
-      // muted-dark, because backdrop + both families switch together at the
-      // body line (no blend to equalise against, ADR-0012).
-      await scrollToTransitionProgress(page, trigger, SOFT_FLIP_PROGRESS - 0.03);
+      const lines = FLIP_PROGRESS[trigger];
+      if (!lines) throw new Error(`no flip lines for trigger ${trigger}`);
+
+      // Just before the muted line: the muted family holds its outgoing tone
+      // (full motion flips it later than the body; reduced motion switched
+      // both together at the body line where that line fires first -- see
+      // MUTED_BEFORE).
+      await scrollToTransitionProgress(page, trigger, lines.soft - 0.03);
       const before = await currentVisibleMutedColor(page, trigger);
       expect(before, `${trigger} eyebrow missing before the muted flip`).not.toBeNull();
       if (before) {
-        expect(before, `${trigger} eyebrow tone before the muted flip`).toBe(
-          reduced ? MUTED_DARK : INK_SOFT,
-        );
+        expect(before, `${trigger} eyebrow tone before the muted flip`).toBe(MUTED_BEFORE[trigger]);
       }
 
-      // Past the muted line both motion preferences have committed to
-      // muted-dark, and the eyebrow clears the documented floor.
-      await scrollToTransitionProgress(page, trigger, SOFT_FLIP_PROGRESS + 0.03);
+      // Past the muted line both motion preferences have committed to the
+      // incoming muted tone, and the eyebrow clears the documented floor.
+      await scrollToTransitionProgress(page, trigger, lines.soft + 0.03);
       const after = await currentVisibleMutedColor(page, trigger);
       expect(after, `${trigger} eyebrow missing after the muted flip`).not.toBeNull();
       if (after) {
-        expect(after, `${trigger} eyebrow tone after the muted flip`).toBe(MUTED_DARK);
+        expect(after, `${trigger} eyebrow tone after the muted flip`).toBe(MUTED_AFTER[trigger]);
         const bg = parseRgb(await backdropColor(page));
         const ratio = contrastRatio(parseRgb(after), bg);
         expect(
           ratio,
-          `${trigger} eyebrow at blend ${SOFT_FLIP_PROGRESS + 0.03} was ${ratio.toFixed(2)}:1 (floor ${MUTED_FLOOR}:1)`,
+          `${trigger} eyebrow at blend ${lines.soft + 0.03} was ${ratio.toFixed(2)}:1 (floor ${MUTED_FLOOR}:1)`,
         ).toBeGreaterThanOrEqual(MUTED_FLOOR);
       }
     }
@@ -377,6 +432,7 @@ test.describe('tonal signature', () => {
     page,
   }) => {
     await page.goto('/');
+    await settleFonts(page);
 
     // ADR-0011: near the start of each fade window the backdrop is still the
     // outgoing tone and text must still be in that tone's ink/cream family;

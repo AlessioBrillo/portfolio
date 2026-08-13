@@ -34,9 +34,18 @@ describe('Eyebrow', () => {
     expect(screen.getByText('Cruise')).toHaveClass('text-muted-dark');
   });
 
+  it('follows the muted tone when the scene splits body and soft tones (ADR-0012)', () => {
+    render(
+      <ToneProvider initialTone="night" initialSoftTone="paper">
+        <Eyebrow>Blending</Eyebrow>
+      </ToneProvider>,
+    );
+    expect(screen.getByText('Blending')).toHaveClass('text-ink-soft');
+  });
+
   it('lets an explicit tone override the scene tone', () => {
     render(
-      <ToneProvider initialTone="night">
+      <ToneProvider initialTone="night" initialSoftTone="night">
         <Eyebrow tone="light">Ground</Eyebrow>
       </ToneProvider>,
     );

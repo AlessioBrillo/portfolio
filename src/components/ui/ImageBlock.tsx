@@ -34,7 +34,7 @@ export function ImageBlock({
   caption,
   className,
 }: ImageBlockProps): ReactElement {
-  const { tone } = useSceneTone();
+  const { softTone } = useSceneTone();
   const frameStyle: CSSProperties | undefined =
     width && height ? { aspectRatio: `${width} / ${height}` } : undefined;
   return (
@@ -55,7 +55,7 @@ export function ImageBlock({
         ) : (
           <div className="flex aspect-[4/3] items-center justify-center bg-black/5">
             <span
-              className={`font-mono text-xs uppercase tracking-widest ${SCENE_SOFT_TEXT[tone]}`}
+              className={`font-mono text-xs uppercase tracking-widest ${SCENE_SOFT_TEXT[softTone]}`}
             >
               {alt}
             </span>
@@ -64,7 +64,7 @@ export function ImageBlock({
       </div>
       {caption ? (
         <figcaption
-          className={`font-mono text-xs uppercase tracking-widest ${SCENE_SOFT_TEXT[tone]}`}
+          className={`font-mono text-xs uppercase tracking-widest ${SCENE_SOFT_TEXT[softTone]}`}
         >
           {caption}
         </figcaption>

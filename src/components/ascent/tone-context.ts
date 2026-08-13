@@ -2,22 +2,30 @@ import { createContext, useContext } from 'react';
 import type { ToneName } from '@/lib/tone';
 
 /**
- * The live tone of the `TonalScene` backdrop.
+ * The live tones of the `TonalScene` backdrop.
  *
  * `TonalScene` owns the state and feeds it from the tonal engine; scene bands
  * (ADR-0010) read it so their text colour follows the backdrop instead of
  * being pinned to a static per-band tone. `tone` is the currently legible
- * tone; `setTone` lets the engine publish flips (see `useTonalEngine`).
+ * tone for the *body* text family (flips at the body equal-legibility line,
+ * ADR-0012); `softTone` is the same for the *muted* family (flips at its own
+ * line). The `setTone`/`setSoftTone` setters let the engine publish flips
+ * (see `useTonalEngine`); under reduced motion the engine publishes both
+ * tones together at the body line.
  */
 export interface SceneToneValue {
   tone: ToneName;
   setTone: (tone: ToneName) => void;
+  softTone: ToneName;
+  setSoftTone: (tone: ToneName) => void;
 }
 
 /** Defaults to `paper` so scene bands outside a scene degrade to the ground tone. */
 export const SceneToneContext = createContext<SceneToneValue>({
   tone: 'paper',
   setTone: () => undefined,
+  softTone: 'paper',
+  setSoftTone: () => undefined,
 });
 
 /**
