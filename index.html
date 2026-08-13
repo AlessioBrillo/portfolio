@@ -13,10 +13,28 @@
     -->
     <meta property="og:type" content="website" />
     <meta property="og:title" content="The Ascent — Alessio Brillo" />
-    <meta property="og:description" content="Student of AI and physics — building, flying, learning." />
+    <meta
+      property="og:description"
+      content="Student of AI and physics — building, flying, learning."
+    />
     <meta property="og:image" content="/og-image.png" />
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="theme-color" content="#f4efe6" />
+    <!--
+      Person structured data for search engines. `url` is omitted until the
+      real domain is configured (ADR-0008 / deploy step); `sameAs` mirrors
+      src/lib/site.ts and is the single exception to its data ownership.
+    -->
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "Person",
+        "name": "Alessio Brillo",
+        "jobTitle": "Student of AI and physics",
+        "description": "Student of AI and physics — building, flying, learning.",
+        "sameAs": ["https://www.linkedin.com/in/alessio-brillo", "https://github.com/AlessioBrillo"]
+      }
+    </script>
   </head>
   <body>
     <div id="root"></div>
