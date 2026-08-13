@@ -1,5 +1,6 @@
 import { act, render } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { ToneProvider } from '@/components/ascent/ToneProvider';
 import { TopBar } from '@/components/navigation/TopBar';
 
 const mockUseCurrentSection = vi.fn();
@@ -103,5 +104,29 @@ describe('TopBar', () => {
     const { getByRole } = render(<TopBar />);
     expect(getByRole('link', { name: 'Alessio Brillo' })).toBeInTheDocument();
     expect(getByRole('link', { name: 'Contact' })).toBeInTheDocument();
+  });
+
+  it('follows the live scene tone on a blend section (ADR-0011)', () => {
+    mockUseCurrentSection.mockReturnValue('sky-sport');
+    const { container } = render(
+      <ToneProvider initialTone="night">
+        <TopBar />
+      </ToneProvider>,
+    );
+    const header = container.querySelector('header')!;
+    expect(header.className).toContain('bg-night/70');
+    expect(header.className).toContain('text-cream');
+  });
+
+  it('keeps explicit solid-night sections dark even when the scene reads paper', () => {
+    mockUseCurrentSection.mockReturnValue('contact');
+    const { container } = render(
+      <ToneProvider initialTone="paper">
+        <TopBar />
+      </ToneProvider>,
+    );
+    const header = container.querySelector('header')!;
+    expect(header.className).toContain('bg-night/70');
+    expect(header.className).toContain('text-cream');
   });
 });
