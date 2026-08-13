@@ -22,4 +22,18 @@ describe('Footer', () => {
     render(<Footer />);
     expect(screen.getByRole('contentinfo')).toHaveClass('bg-night', 'text-cream');
   });
+
+  it('links the public repository in a new tab with no referrer', () => {
+    render(<Footer />);
+    const github = screen.getByRole('link', { name: /github/i });
+    expect(github).toHaveAttribute('href', SITE.githubUrl);
+    expect(github).toHaveAttribute('target', '_blank');
+    expect(github).toHaveAttribute('rel', 'noreferrer');
+  });
+
+  it('offers the resume-on-request hook via pre-filled mailto', () => {
+    render(<Footer />);
+    const resume = screen.getByRole('link', { name: /resume/i });
+    expect(resume).toHaveAttribute('href', SITE.resumeUrl);
+  });
 });
