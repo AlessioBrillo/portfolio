@@ -3,16 +3,16 @@
 Incremental construction: each phase is independently verifiable. **This repo is
 currently at the end of Phase 4 (mosaic + one real case study end-to-end).**
 
-| Phase | Goal                                                                                                                              | Status                  |
-| ----- | --------------------------------------------------------------------------------------------------------------------------------- | ----------------------- |
-| 0     | **Content & assets.** Selected photos, 2-3 written case studies, headline, domain. _(The site is only as strong as its content.)_ | Pending (needs inputs)  |
-| 1     | **Foundations.** Vite + Tailwind, color/typography tokens, self-hosted fonts, scale and grid.                                     | **Scaffolded**          |
-| 2     | **The signature.** Hero + first working quota transition. _Validate "the Ascent" before going further._                           | **Validated**           |
-| 3     | **The full ascent.** All tonal bands + altitude gauge + scroll engine (GSAP).                                                     | **Validated**           |
-| 4     | **Mosaic + one real case study** (MDX route end-to-end).                                                                          | **Validated**           |
-| 5     | **Content.** Remaining case studies, archive, experience storytelling.                                                            | Pending                 |
-| 6     | **Finishing & deploy.** A11y, performance, OG card, 404, reduced-motion -> Vercel + domain.                                       | In progress (see below) |
-| 7     | **After.** CV hook, analytics, optional private area.                                                                             | Pending                 |
+| Phase | Goal                                                                                                                              | Status                    |
+| ----- | --------------------------------------------------------------------------------------------------------------------------------- | ------------------------- |
+| 0     | **Content & assets.** Selected photos, 2-3 written case studies, headline, domain. _(The site is only as strong as its content.)_ | Pending (needs inputs)    |
+| 1     | **Foundations.** Vite + Tailwind, color/typography tokens, self-hosted fonts, scale and grid.                                     | **Scaffolded**            |
+| 2     | **The signature.** Hero + first working quota transition. _Validate "the Ascent" before going further._                           | **Validated**             |
+| 3     | **The full ascent.** All tonal bands + altitude gauge + scroll engine (GSAP).                                                     | **Validated**             |
+| 4     | **Mosaic + one real case study** (MDX route end-to-end).                                                                          | **Validated**             |
+| 5     | **Content.** Remaining case studies, archive, experience storytelling.                                                            | Pending                   |
+| 6     | **Finishing & deploy.** A11y, performance, OG card, 404, reduced-motion -> Vercel + domain.                                       | In progress (audit green) |
+| 7     | **After.** CV hook, analytics, optional private area.                                                                             | Pending                   |
 
 Phase 2's crossfade (both climb and descent) is implemented and validated
 end-to-end by the Playwright harness (`npm run e2e`) -- it now stands as the
@@ -46,9 +46,17 @@ card rendered as `public/og-image.png` from `docs/design/og-image.svg`,
 twitter card, theme-color — link previews now work without JS), `robots.txt`
 (allow-all; `Sitemap:` line waits for the domain), and the Vercel SPA fallback
 now excludes the static files (`favicon.svg`, `og-image.png`, `robots.txt`,
-`sitemap.xml`). Deploy itself, the absolute og:image URL, `sitemap.xml` and
-the Lighthouse/CWV verification (ADR-0009) still wait on the domain and the
-audit pass.
+`sitemap.xml`). Deploy itself, the absolute og:image URL and `sitemap.xml`
+still wait on the domain; the audit pass is done.
+
+An automated Lighthouse run on a headless Chrome (viewport 1440x960, reduced
+motion) passed **100 on accessibility** (contrast failures 8 -> 0 after the
+scene-tone and button-ink fixes), best-practices 100 and a zero-CLS score;
+the only SEO loss was the still-uncommitted `robots.txt` (ships with
+deploy-prep). The Playwright tonal harness now really runs both motion paths:
+the reduced-motion project emulates `prefers-reduced-motion` via the
+`contextOptions` TestOption and hits the discrete-tone assertion, and the
+settle-based waits removed the load-dependent flakes.
 
 ## Inputs needed to proceed
 

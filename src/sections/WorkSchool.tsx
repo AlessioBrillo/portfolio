@@ -16,18 +16,11 @@ export function WorkSchool({ surface = 'solid' }: WorkSchoolProps): ReactElement
         eyebrow="04 — Work & School"
         title="Things I have shipped"
         intro="Built end to end, from the first commit to the deploy that proves it."
-        tone="dark"
       />
       <ul className="mt-12 grid list-none grid-cols-1 gap-6 p-0 sm:grid-cols-2">
         {getProjectEntries().map((entry) => (
           <li key={entry.id}>
-            <EntryCard
-              title={entry.title}
-              line={entry.line}
-              meta={entry.year}
-              href={entry.href}
-              tone="dark"
-            />
+            <EntryCard title={entry.title} line={entry.line} meta={entry.year} href={entry.href} />
           </li>
         ))}
       </ul>

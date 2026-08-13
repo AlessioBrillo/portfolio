@@ -30,10 +30,11 @@ describe('Button', () => {
     expect(screen.getByRole('button')).toBeDisabled();
   });
 
-  it('carries the sole orange surface (never diluted)', () => {
+  it('carries the sole orange surface (never diluted) with AA-clean ink', () => {
     render(<Button>Primary</Button>);
-    expect(screen.getByRole('button')).toHaveClass('bg-orange');
-    expect(screen.getByRole('button')).toHaveClass('text-ink');
+    const button = screen.getByRole('button');
+    expect(button).toHaveClass('bg-orange');
+    expect(button).toHaveClass('text-ink-deep');
   });
 
   it('merges a custom className', () => {
