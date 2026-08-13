@@ -1,18 +1,18 @@
 # Build Roadmap
 
-Incremental construction: each phase is independently verifiable. **This repo is
-currently at the end of Phase 4 (mosaic + one real case study end-to-end).**
+Incremental construction: each phase is independently verifiable. **Phase 4 is
+closed; the site is in Phase 5 (content) — all structure is live and validated.**
 
-| Phase | Goal                                                                                                                              | Status                    |
-| ----- | --------------------------------------------------------------------------------------------------------------------------------- | ------------------------- |
-| 0     | **Content & assets.** Selected photos, 2-3 written case studies, headline, domain. _(The site is only as strong as its content.)_ | Pending (needs inputs)    |
-| 1     | **Foundations.** Vite + Tailwind, color/typography tokens, self-hosted fonts, scale and grid.                                     | **Scaffolded**            |
-| 2     | **The signature.** Hero + first working quota transition. _Validate "the Ascent" before going further._                           | **Validated**             |
-| 3     | **The full ascent.** All tonal bands + altitude gauge + scroll engine (GSAP).                                                     | **Validated**             |
-| 4     | **Mosaic + one real case study** (MDX route end-to-end).                                                                          | **Validated**             |
-| 5     | **Content.** Remaining case studies, archive, experience storytelling.                                                            | Pending                   |
-| 6     | **Finishing & deploy.** A11y, performance, OG card, 404, reduced-motion -> Vercel + domain.                                       | In progress (audit green) |
-| 7     | **After.** CV hook, analytics, optional private area.                                                                             | Pending                   |
+| Phase | Goal                                                                                                                              | Status                         |
+| ----- | --------------------------------------------------------------------------------------------------------------------------------- | ------------------------------ |
+| 0     | **Content & assets.** Selected photos, 2-3 written case studies, headline, domain. _(The site is only as strong as its content.)_ | Pending (needs inputs)         |
+| 1     | **Foundations.** Vite + Tailwind, color/typography tokens, self-hosted fonts, scale and grid.                                     | **Scaffolded**                 |
+| 2     | **The signature.** Hero + first working quota transition. _Validate "the Ascent" before going further._                           | **Validated**                  |
+| 3     | **The full ascent.** All tonal bands + altitude gauge + scroll engine (GSAP).                                                     | **Validated**                  |
+| 4     | **Mosaic + one real case study** (MDX route end-to-end).                                                                          | **Validated**                  |
+| 5     | **Content.** Remaining case studies, archive, experience storytelling.                                                            | In progress (structure live)   |
+| 6     | **Finishing & deploy.** A11y, performance, OG card, 404, reduced-motion -> Vercel + domain.                                       | Ready (deploy waits on domain) |
+| 7     | **After.** CV hook, analytics, optional private area.                                                                             | Pending                        |
 
 Phase 2's crossfade (both climb and descent) is implemented and validated
 end-to-end by the Playwright harness (`npm run e2e`) -- it now stands as the
@@ -32,12 +32,13 @@ anchor. Scene bands also now follow the live backdrop tone (ADR-0011): the
 engine publishes each fade's winning tone and band text, eyebrows and muted
 copy flip with it, so every element stays AA-legible at both ends of the
 flight. The SPA fallback for the `/{domain}/{slug}` deep links (a pending
-consequence of ADR-0005) is configured in `vercel.json`. A second real case
-study is now published: the VDS licence (`/sky/vds-licence`) closes the
-narrative circle -- the mosaic Sky tile deep-links into it, and the sky-domain
-route ships with its own code-split MDX body and E2E deep-link coverage.
-Phase 5 still awaits the author's inputs below: real photos, real copy, and
-1-2 more long-form case studies to fill the `/work/` and `/sky/` domains.
+consequence of ADR-0005) is configured in `vercel.json`. Three long-form
+studies are published as real routes: the corpus study
+(`/ai/transformer-italian-corpus`, a professional draft), the ascent study
+(`/work/the-ascent`) and the VDS licence study (`/sky/vds-licence`); each
+domain route ships with its own code-split MDX body and E2E deep-link
+coverage. Phase 5 still awaits the author's inputs below: real photos, real
+copy, and one more long-form AI/physics study.
 
 Phase 6 groundwork that needs no content is live: static social meta (OG
 card rendered as `public/og-image.png` from `docs/design/og-image.svg`,
@@ -50,8 +51,8 @@ still wait on the domain; the audit pass is done.
 An automated Lighthouse run on a headless Chrome (viewport 1440x960, reduced
 motion) passed **100 on accessibility** (contrast failures 8 -> 0 after the
 scene-tone and button-ink fixes), best-practices 100 and a zero-CLS score;
-the only SEO loss was the still-uncommitted `robots.txt` (ships with
-deploy-prep). The Playwright tonal harness now really runs both motion paths:
+`robots.txt` is committed and served (SEO hardening, PR #80). The Playwright
+tonal harness now really runs both motion paths:
 the reduced-motion project emulates `prefers-reduced-motion` via the
 `contextOptions` TestOption and hits the discrete-tone assertion, and the
 settle-based waits removed the load-dependent flakes.
