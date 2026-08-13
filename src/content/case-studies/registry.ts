@@ -54,3 +54,23 @@ export const CASE_STUDIES: Readonly<Record<string, CaseStudyEntry>> = {
 export function getCaseStudy(slug: string): CaseStudyEntry | undefined {
   return CASE_STUDIES[slug];
 }
+
+/**
+ * Curated reading order for the published studies — the source of truth for
+ * cross-study prev/next navigation and the build-time sitemap. The order is
+ * the mosaic's narrative: the serious core first, the engineered showcase
+ * second, the sky closing the flight.
+ */
+const PUBLISHED_ORDER: readonly string[] = [
+  'transformer-italian-corpus',
+  'the-ascent',
+  'vds-licence',
+];
+
+/** The published studies' metadata, in curated order (never the raw map). */
+export function getPublishedCaseStudies(): readonly CaseStudyMeta[] {
+  return PUBLISHED_ORDER.flatMap((slug) => {
+    const entry = CASE_STUDIES[slug];
+    return entry ? [entry.meta] : [];
+  });
+}

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { getCaseStudy } from '@/content/case-studies/registry';
+import { getCaseStudy, getPublishedCaseStudies } from '@/content/case-studies/registry';
 
 describe('getCaseStudy', () => {
   it('returns the entry for a known slug', () => {
@@ -28,5 +28,19 @@ describe('getCaseStudy', () => {
 
   it('returns undefined for an unknown slug', () => {
     expect(getCaseStudy('non-existent')).toBeUndefined();
+  });
+});
+
+describe('getPublishedCaseStudies', () => {
+  it('returns every registered study exactly once, in curated order', () => {
+    const slugs = getPublishedCaseStudies().map((meta) => meta.slug);
+    expect(slugs).toEqual(['transformer-italian-corpus', 'the-ascent', 'vds-licence']);
+  });
+
+  it('exposes the metadata the sitemap and prev/next navigation need', () => {
+    const first = getPublishedCaseStudies()[0];
+    expect(first).toMatchObject({ domain: 'ai', slug: 'transformer-italian-corpus' });
+    expect(first).toHaveProperty('title');
+    expect(first).toHaveProperty('year');
   });
 });
