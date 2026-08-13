@@ -47,6 +47,11 @@ test.describe('case study routes', () => {
     await expect(page).toHaveTitle(/Lost altitude/);
   });
 
+  test('dev server carries no analytics beacon (ADR-0013 env gating)', async ({ page }) => {
+    await page.goto('/');
+    await expect(page.locator('script[data-domain]')).toHaveCount(0);
+  });
+
   test('back navigation returns to the exact scroll position (ADR-0005)', async ({ page }) => {
     await page.goto('/');
 
