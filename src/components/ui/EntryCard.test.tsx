@@ -2,6 +2,7 @@ import { render, type RenderResult, screen } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { describe, expect, it } from 'vitest';
 import { EntryCard } from '@/components/ui/EntryCard';
+import { ToneProvider } from '@/components/ascent/ToneProvider';
 
 function renderWithRouter(element: React.ReactElement): RenderResult {
   return render(<MemoryRouter>{element}</MemoryRouter>);
@@ -39,5 +40,26 @@ describe('EntryCard', () => {
   it('omits the meta line when not provided', () => {
     renderWithRouter(<EntryCard {...base} />);
     expect(screen.queryByText('2026')).not.toBeInTheDocument();
+  });
+
+  it('defaults to the light copy tone outside a night scene', () => {
+    renderWithRouter(<EntryCard {...base} meta="2026" />);
+    expect(screen.getByText(base.line)).toHaveClass('text-ink-soft');
+  });
+
+  it('defaults to the dark copy tone when the scene is on night (ADR-0011)', () => {
+    render(
+      <ToneProvider initialTone="night">
+        <MemoryRouter>
+          <EntryCard {...base} meta="2026" />
+        </MemoryRouter>
+      </ToneProvider>,
+    );
+    expect(screen.getByText(base.line)).toHaveClass('text-muted-dark');
+  });
+
+  it('lets an explicit tone override the scene tone', () => {
+    renderWithRouter(<EntryCard {...base} tone="dark" />);
+    expect(screen.getByText(base.line)).toHaveClass('text-muted-dark');
   });
 });

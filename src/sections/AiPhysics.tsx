@@ -18,7 +18,6 @@ export function AiPhysics({ surface = 'solid' }: AiPhysicsProps): ReactElement {
         eyebrow="03 — AI & Physics"
         title="Where the thinking shows"
         intro="Problem -> approach -> result. Long-form case studies open as their own routes."
-        tone="dark"
       />
       <ul className="mt-12 grid list-none grid-cols-1 gap-6 p-0 sm:grid-cols-2">
         {studies.map((entry) => {
@@ -31,7 +30,6 @@ export function AiPhysics({ surface = 'solid' }: AiPhysicsProps): ReactElement {
                 line={meta.summary}
                 meta={metaLine}
                 href={`/${meta.domain}/${meta.slug}`}
-                tone="dark"
               />
             </li>
           );

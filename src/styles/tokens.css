@@ -21,6 +21,9 @@
   /* 85% ink over paper: 8.3:1 on paper, 8.7:1 on the cream tile surface —
      the muted tone for small text on light backgrounds (AA floor is 4.5:1). */
   --color-ink-soft: #48453f;
+  /* Slightly deeper ink for text on the orange surface: 4.83:1 on orange
+     (the orange itself is never diluted — the darkening goes to the ink). */
+  --color-ink-deep: #221e19;
 
   --font-display: 'Fraunces', ui-serif, Georgia, 'Times New Roman', serif;
   --font-sans: 'Geist Sans', ui-sans-serif, system-ui, -apple-system, sans-serif;

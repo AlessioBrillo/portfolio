@@ -1,5 +1,6 @@
 import type { ReactElement } from 'react';
 import { Link } from 'react-router-dom';
+import { useSceneTone } from '@/components/ascent/tone-context';
 import { cn } from '@/lib/utils';
 
 export type CardTone = 'light' | 'dark';
@@ -11,7 +12,12 @@ interface EntryCardProps {
   meta?: string;
   /** Optional deep link to a case-study route. */
   href?: string;
-  /** Matches the band's tone so borders and tints stay AA-safe. */
+  /**
+   * `light` sits on paper-family surfaces, `dark` on night-family ones. When
+   * omitted the card takes its tone from the live scene tone (ADR-0011) so its
+   * meta line and copy stay AA-legible while the backdrop blends; outside a
+   * scene it defaults to `light`. Only fixed-surfaces (Contact) pass it.
+   */
   tone?: CardTone;
 }
 
@@ -32,18 +38,14 @@ const META_COLOR: Record<CardTone, string> = {
 };
 
 /** A project or study card in the cruise bands; links when a route exists. */
-export function EntryCard({
-  title,
-  line,
-  meta,
-  href,
-  tone = 'light',
-}: EntryCardProps): ReactElement {
+export function EntryCard({ title, line, meta, href, tone }: EntryCardProps): ReactElement {
+  const sceneTone = useSceneTone();
+  const effectiveTone: CardTone = tone ?? (sceneTone.tone === 'night' ? 'dark' : 'light');
   const classes = cn(
     'flex h-full flex-col justify-between gap-6 rounded-[var(--radius-card)] border p-6',
     'transition-[transform,border-color] duration-[var(--duration-normal)] ease-[var(--ease-out-expo)]',
     'hover:-translate-y-1 hover:border-orange',
-    CARD_SURFACE[tone],
+    CARD_SURFACE[effectiveTone],
   );
 
   const content = (
@@ -57,14 +59,14 @@ export function EntryCard({
             <span
               className={cn(
                 'shrink-0 font-mono text-xs uppercase tracking-widest',
-                META_COLOR[tone],
+                META_COLOR[effectiveTone],
               )}
             >
               {meta}
             </span>
           ) : null}
         </div>
-        <p className={cn('text-sm leading-relaxed', META_COLOR[tone])}>{line}</p>
+        <p className={cn('text-sm leading-relaxed', META_COLOR[effectiveTone])}>{line}</p>
       </div>
     </>
   );
