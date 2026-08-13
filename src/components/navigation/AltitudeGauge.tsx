@@ -1,5 +1,6 @@
 import type { ReactElement } from 'react';
 import { ALTITUDE_STOPS, SECTION_ORDER } from '@/lib/altitude';
+import { useSceneTone } from '@/components/ascent/tone-context';
 import { useCurrentSection } from '@/hooks/useCurrentSection';
 import { useReducedMotion } from '@/hooks/useReducedMotion';
 import { useAltitudeProfile } from '@/hooks/useAltitudeProfile';
@@ -42,8 +43,11 @@ export function AltitudeGauge(): ReactElement {
   const prefersReducedMotion = useReducedMotion();
   const altitude = useAltitudeProfile();
   const progress = useScrollProgress();
+  const { tone: sceneTone } = useSceneTone();
   const activeIndex = activeGaugeIndex(currentSection);
-  const inDark = isNightSection(currentSection);
+  // Labels follow the live scene tone (ADR-0011) so they stay legible through
+  // the blends; explicit solid-night sections still force dark chrome.
+  const inDark = isNightSection(currentSection) || sceneTone === 'night';
 
   const goTo = (sectionId: string): void => {
     // CSS `scroll-behavior: auto` overrides only declarative scrolling, not

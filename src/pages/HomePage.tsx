@@ -19,14 +19,18 @@ import { Contact } from '@/sections/Contact';
  * paper -> night into cruise and descends night -> paper through Sky & Sport.
  * Every section over it renders `surface="scene"` so the backdrop shows
  * through; Contact lands on its own solid night outside the scene.
+ *
+ * The chrome (TopBar, AltitudeGauge) lives *inside* the scene so it can read
+ * the live tone published by `TonalScene` (ADR-0011) and follow the blends
+ * instead of a static per-section tone.
  */
 export function HomePage(): ReactElement {
   return (
     <>
-      <TopBar />
-      <AltitudeGauge />
       <main>
         <TonalScene>
+          <TopBar />
+          <AltitudeGauge />
           <Hero surface="scene" />
           <Who surface="scene" />
           <Mosaic surface="scene" />

@@ -116,12 +116,6 @@ async function settleToneState(page: Page): Promise<void> {
   );
 }
 
-/** Scroll a section into view and wait until the tone state settles. */
-async function scrollTo(page: Page, selector: string): Promise<void> {
-  await page.locator(selector).scrollIntoViewIfNeeded();
-  await settleToneState(page);
-}
-
 /**
  * Scroll to a fractional `progress` between a ScrollTrigger's `top bottom`
  * (trigger's top at viewport bottom) and `top center` (trigger's top at

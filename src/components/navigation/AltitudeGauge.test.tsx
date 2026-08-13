@@ -1,5 +1,6 @@
 import { fireEvent, render, screen } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { ToneProvider } from '@/components/ascent/ToneProvider';
 import { AltitudeGauge } from '@/components/navigation/AltitudeGauge';
 
 const mockUseCurrentSection = vi.fn();
@@ -151,5 +152,28 @@ describe('AltitudeGauge', () => {
     mockUseScrollProgress.mockReturnValue(0.25);
     render(<AltitudeGauge />);
     expect(screen.getByTestId('gauge-progress-fill')).toHaveStyle({ width: '25%' });
+  });
+
+  it('follows the live scene tone for label colour on a blend section (ADR-0011)', () => {
+    mockUseCurrentSection.mockReturnValue('sky-sport');
+    render(
+      <ToneProvider initialTone="night">
+        <AltitudeGauge />
+      </ToneProvider>,
+    );
+    const buttons = screen.getAllByRole('button');
+    expect(buttons[0]).toHaveClass('text-muted-dark');
+    expect(buttons[0]).not.toHaveClass('text-ink-soft');
+  });
+
+  it('keeps night label chrome at contact even when the scene reads paper', () => {
+    mockUseCurrentSection.mockReturnValue('contact');
+    render(
+      <ToneProvider initialTone="paper">
+        <AltitudeGauge />
+      </ToneProvider>,
+    );
+    const buttons = screen.getAllByRole('button');
+    expect(buttons[0]).toHaveClass('text-muted-dark');
   });
 });
