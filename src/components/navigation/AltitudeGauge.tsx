@@ -83,7 +83,7 @@ export function AltitudeGauge(): ReactElement {
               onClick={() => goTo(stop.target)}
               aria-current={index === activeIndex ? 'step' : undefined}
               className={cn(
-                'font-mono text-[0.6875rem] uppercase tracking-[0.18em] transition-colors',
+                'font-mono text-[length:var(--text-eyebrow)] uppercase tracking-[0.18em] transition-colors',
                 index === activeIndex
                   ? 'text-orange'
                   : inDark
