@@ -13,6 +13,13 @@ export const SITE = {
   email: 'alessio@ilcassero.it',
   /** Public profile for the ghost link in Contact. */
   linkedinUrl: 'https://www.linkedin.com/in/alessio-brillo',
+  /** The public repository this site lives in (ADR-0014: repo is part of the portfolio). */
+  githubUrl: 'https://github.com/AlessioBrillo',
+  /**
+   * The resume-on-request hook (ADR-0014): a pre-filled email instead of a
+   * published file, so the resume can never go stale in public.
+   */
+  resumeUrl: 'mailto:alessio@ilcassero.it?subject=Resume%20request',
   /**
    * Canonical origin for case-study links. Leave empty until the real domain
    * is configured; `canonicalOrigin()` then falls back to the deployed origin.
