@@ -47,9 +47,21 @@ test.describe('case study routes', () => {
     await expect(page).toHaveTitle(/Lost altitude/);
   });
 
-  test('dev server carries no analytics beacon (ADR-0013 env gating)', async ({ page }) => {
+test('dev server carries no analytics beacon (ADR-0013 env gating)', async ({ page }) => {
     await page.goto('/');
     await expect(page.locator('script[data-domain]')).toHaveCount(0);
+  });
+
+  test('prev/next navigation moves between studies in curated order', async ({ page }, testInfo) => {
+    test.skip(
+      testInfo.project.name !== 'desktop-1440',
+      'Viewport-independent DOM assertion; a single project suffices.',
+    );
+    await page.goto('/ai/transformer-italian-corpus');
+    await page.getByRole('link', { name: /Next study/ }).click();
+    await expect(page).toHaveURL(/\/work\/the-ascent$/);
+    await page.getByRole('link', { name: /Previous study/ }).click();
+    await expect(page).toHaveURL(/\/ai\/transformer-italian-corpus$/);
   });
 
   test('back navigation returns to the exact scroll position (ADR-0005)', async ({ page }) => {
