@@ -2,21 +2,37 @@ import { render, screen } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { describe, expect, it } from 'vitest';
 import { AiPhysics } from '@/sections/AiPhysics';
-import { CASE_STUDIES } from '@/content/case-studies/registry';
+import { getPublishedCaseStudies } from '@/content/case-studies/registry';
+import type { CaseStudyMeta } from '@/types/domain';
 
 describe('AiPhysics', () => {
-  it('renders one case-study card per AI entry in the registry', () => {
+  const aiStudies = (): readonly CaseStudyMeta[] =>
+    getPublishedCaseStudies().filter((meta) => meta.domain === 'ai');
+
+  it('renders one case-study card per published AI study', () => {
     render(
       <MemoryRouter>
         <AiPhysics />
       </MemoryRouter>,
     );
-    const studies = Object.values(CASE_STUDIES).filter((entry) => entry.meta.domain === 'ai');
+    const studies = aiStudies();
     expect(studies.length).toBeGreaterThan(0);
-    for (const entry of studies) {
-      expect(screen.getByRole('heading', { name: entry.meta.title })).toBeInTheDocument();
-      expect(screen.getByText(entry.meta.summary)).toBeInTheDocument();
+    for (const meta of studies) {
+      expect(screen.getByRole('heading', { name: meta.title })).toBeInTheDocument();
+      expect(screen.getByText(meta.summary)).toBeInTheDocument();
     }
+  });
+
+  it('renders the studies in the curated published order', () => {
+    render(
+      <MemoryRouter>
+        <AiPhysics />
+      </MemoryRouter>,
+    );
+    const headings = screen
+      .getAllByRole('heading', { level: 3 })
+      .map((heading) => heading.textContent);
+    expect(headings).toEqual(aiStudies().map((meta) => meta.title));
   });
 
   it('links every card to its shareable case-study route', () => {
@@ -25,10 +41,9 @@ describe('AiPhysics', () => {
         <AiPhysics />
       </MemoryRouter>,
     );
-    const studies = Object.values(CASE_STUDIES).filter((entry) => entry.meta.domain === 'ai');
-    for (const entry of studies) {
-      const link = screen.getByRole('link', { name: new RegExp(entry.meta.title, 'i') });
-      expect(link).toHaveAttribute('href', `/${entry.meta.domain}/${entry.meta.slug}`);
+    for (const meta of aiStudies()) {
+      const link = screen.getByRole('link', { name: new RegExp(meta.title, 'i') });
+      expect(link).toHaveAttribute('href', `/${meta.domain}/${meta.slug}`);
     }
   });
 });

@@ -53,6 +53,37 @@ export interface MosaicEntry {
   readonly href?: string;
 }
 
+/**
+ * A responsive photo asset: the image itself, its intrinsic dimensions and the
+ * delivery hints. `src` is optional — while absent, components render a
+ * labelled placeholder so the layout stays honest before real photos land
+ * (roadmap Phase 5). `sources` lists typed variants (AVIF/WebP) for `<picture>`
+ * delivery; `srcSet`/`sizes` pass through to the fallback `<img>`.
+ *
+ * `width`/`height` are the *intrinsic* pixel dimensions of `src` — they let
+ * the browser reserve the true ratio before bytes arrive (CLS ~0, ADR-0009).
+ * The optimization script (`scripts/optimize-images.mjs`) prints these values
+ * together with the srcSet lines, so content modules never invent numbers.
+ */
+export interface ImageAsset {
+  /** Fallback/primary URL, relative to the site root (`/photos/...`). */
+  readonly src?: string;
+  /** Typed responsive variants, rendered as `<picture>` sources. */
+  readonly sources?: ReadonlyArray<{ readonly type: string; readonly srcSet: string }>;
+  /** Flat srcSet for the fallback `<img>` (used when no `sources` are given). */
+  readonly srcSet?: string;
+  /** The `sizes` hint describing how wide the image renders. */
+  readonly sizes?: string;
+  /** Intrinsic width of the primary image in px. */
+  readonly width?: number;
+  /** Intrinsic height of the primary image in px. */
+  readonly height?: number;
+  /** Accessible name; written for the intended photo (ADR-0009). */
+  readonly alt: string;
+  /** Optional mono caption under the image. */
+  readonly caption?: string;
+}
+
 /** A project in the work & school band (04). */
 export interface ProjectEntry {
   readonly id: string;
@@ -71,11 +102,8 @@ export interface SportEntry {
   readonly title: string;
   /** One-line teaser shown under the title. */
   readonly line: string;
-  /** Photo slot; the alt text is written for the intended photo (ADR-0009). */
-  readonly image: {
-    readonly alt: string;
-    readonly caption?: string;
-  };
+  /** The discipline's photo slot — a full responsive asset (ADR-0009). */
+  readonly image: ImageAsset;
 }
 
 /** A curated story in the experiences band (06). */

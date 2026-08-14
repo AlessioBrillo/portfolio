@@ -33,3 +33,7 @@ show_.
 **07 · Contact.** One clear invitation. "Let's talk." -> email + LinkedIn. (The
 resume lives as a footer hook, `Resume — on request` via pre-filled email, not
 in Contact — see `personalization.md` and ADR-0014.)
+
+> **Photos.** The Who portrait and every Sky & Sport image ship through the
+> `ImageAsset` contract. Full pipeline (raw sources, optimization script,
+> paste-ready blocks): see `photos.md`.

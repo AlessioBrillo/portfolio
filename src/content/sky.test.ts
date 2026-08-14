@@ -16,6 +16,9 @@ describe('sky content module', () => {
       expect(entry.title).not.toBe('');
       expect(entry.line).not.toBe('');
       expect(entry.image.alt).not.toBe('');
+      expect(entry.image.width).toBeTypeOf('number');
+      expect(entry.image.height).toBeTypeOf('number');
+      expect(entry.image.sizes).not.toBe('');
     }
   });
 

@@ -36,3 +36,6 @@ playwright/.cache/
 # --- Design papers (source of truth lives outside the repo, never publish) ---
 *.paper.md
 portfolio-design-plan.md
+
+# --- Raw photos (optimized derivatives live in public/photos; raws stay private) ---
+photos-src/

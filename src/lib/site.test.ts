@@ -12,7 +12,11 @@ describe('site identity', () => {
   });
 
   it('links the public repository this site lives in', () => {
-    expect(SITE.githubUrl).toMatch(/^https:\/\/github\.com\//);
+    expect(SITE.githubUrl).toMatch(/^https:\/\/github\.com\/[^/]+\/[^/]+$/);
+  });
+
+  it('defaults to an empty canonical origin while VITE_SITE_URL is unset', () => {
+    expect(SITE.siteUrl).toBe('');
   });
 
   it('offers the resume-on-request hook as a pre-filled mailto', () => {

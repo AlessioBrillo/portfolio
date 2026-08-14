@@ -1,4 +1,4 @@
-import type { WhoStatement } from '@/types/domain';
+import type { ImageAsset, WhoStatement } from '@/types/domain';
 
 /**
  * The who band (01). Three adjectives made concrete, not listed — each line
@@ -23,8 +23,18 @@ const WHO_STATEMENTS: readonly WhoStatement[] = [
   },
 ];
 
-const PORTRAIT = {
+/**
+ * The portrait slot: a full responsive asset (ADR-0009). `src` stays empty
+ * until a real photo lands — the intrinsic 4:5 ratio and `sizes` are already
+ * in place, so the browser reserves the true layout the day the photo ships
+ * (no CLS). The optimization script prints the exact `sources`/`srcSet` lines
+ * to paste here.
+ */
+const PORTRAIT: ImageAsset = {
   alt: 'A sober portrait of Alessio Brillo',
+  width: 1200,
+  height: 1500,
+  sizes: '(min-width: 1024px) 40vw, 100vw',
 } as const;
 
 /** The three character statements, as an immutable snapshot. */
@@ -32,7 +42,7 @@ export function getWhoStatements(): readonly WhoStatement[] {
   return WHO_STATEMENTS.map((statement) => Object.freeze({ ...statement }));
 }
 
-/** The portrait slot: alt text is written for the intended photo (ADR-0009). */
-export function getWhoPortrait(): Readonly<{ alt: string }> {
-  return PORTRAIT;
+/** The portrait slot: a photo-ready asset, absent src until the photo lands. */
+export function getWhoPortrait(): ImageAsset {
+  return Object.freeze({ ...PORTRAIT });
 }

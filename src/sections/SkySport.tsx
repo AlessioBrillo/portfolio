@@ -23,7 +23,7 @@ export function SkySport({ surface = 'solid' }: SkySportProps): ReactElement {
         {getSportEntries().map((entry) => (
           <li key={entry.id}>
             <article className="flex h-full flex-col gap-4">
-              <ImageBlock alt={entry.image.alt} caption={entry.image.caption} />
+              <ImageBlock {...entry.image} />
               <h3 className="font-display text-[length:var(--text-h3)] font-medium">
                 {entry.title}
               </h3>
