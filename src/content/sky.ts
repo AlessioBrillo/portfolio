@@ -14,6 +14,9 @@ const SPORT_ENTRIES: readonly SportEntry[] = [
     image: {
       alt: 'An ultralight aircraft on the ramp before a flight',
       caption: 'VDS · northern Italy',
+      width: 1200,
+      height: 900,
+      sizes: '(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw',
     },
   },
   {
@@ -22,6 +25,9 @@ const SPORT_ENTRIES: readonly SportEntry[] = [
     line: 'Discipline on the court.',
     image: {
       alt: 'A tennis court at evening practice',
+      width: 1200,
+      height: 900,
+      sizes: '(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw',
     },
   },
   {
@@ -30,6 +36,9 @@ const SPORT_ENTRIES: readonly SportEntry[] = [
     line: 'Lines down the mountain.',
     image: {
       alt: 'A mountain bike trail winding downhill',
+      width: 1200,
+      height: 900,
+      sizes: '(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw',
     },
   },
 ];
