@@ -20,7 +20,7 @@ export function Who({ surface = 'solid' }: WhoProps): ReactElement {
         intro="Three statements that show, rather than claim."
       />
       <div className="mt-12 grid gap-10 lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)]">
-        <ImageBlock alt={getWhoPortrait().alt} className="lg:sticky lg:top-24" />
+        <ImageBlock {...getWhoPortrait()} className="lg:sticky lg:top-24" />
         <ul className="flex list-none flex-col gap-8 p-0">
           {getWhoStatements().map((statement) => (
             <li key={statement.id} className="flex flex-col gap-2 border-t border-black/10 pt-4">

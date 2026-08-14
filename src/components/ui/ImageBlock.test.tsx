@@ -43,8 +43,35 @@ describe('ImageBlock', () => {
   });
 
   it('keeps the placeholder frame when src is absent even with intrinsic dimensions', () => {
-    render(<ImageBlock alt="Photo" width={1200} height={750} />);
+    const { container } = render(<ImageBlock alt="Photo" width={1200} height={1500} />);
     expect(screen.getByText('Photo')).toBeInTheDocument();
+    expect(container.querySelector('figure > div')).not.toHaveStyle('aspect-ratio: 1200 / 1500');
+  });
+
+  it('renders typed picture sources before the fallback img when given', () => {
+    const { container } = render(
+      <ImageBlock
+        alt="Photo"
+        src="/photo-1600.jpg"
+        sources={[
+          {
+            type: 'image/avif',
+            srcSet: '/photo-480.avif 480w, /photo-960.avif 960w, /photo-1600.avif 1600w',
+          },
+          {
+            type: 'image/webp',
+            srcSet: '/photo-480.webp 480w, /photo-960.webp 960w, /photo-1600.webp 1600w',
+          },
+        ]}
+        sizes="(min-width: 1024px) 40vw, 100vw"
+      />,
+    );
+    const sources = container.querySelectorAll('picture source');
+    expect(sources).toHaveLength(2);
+    expect(sources[0]).toHaveAttribute('type', 'image/avif');
+    expect(sources[1]).toHaveAttribute('type', 'image/webp');
+    expect(screen.getByRole('img')).toHaveAttribute('src', '/photo-1600.jpg');
+    expect(screen.getByRole('img')).toHaveAttribute('sizes', '(min-width: 1024px) 40vw, 100vw');
   });
 
   it('renders caption when provided', () => {
