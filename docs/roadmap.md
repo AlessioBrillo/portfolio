@@ -48,6 +48,17 @@ now excludes the static files (`favicon.svg`, `og-image.png`, `robots.txt`,
 `sitemap.xml`). Deploy itself, the absolute og:image URL and `sitemap.xml`
 still wait on the domain; the audit pass is done.
 
+The photo pipeline is ready for input 1: content modules carry a full
+responsive `ImageAsset` contract (intrinsic dimensions, typed AVIF/WebP
+sources) rendered through `ImageBlock`'s `<picture>`, and
+`npm run images -- --src <raw-dir>` converts raws into the optimized set and
+prints the paste-ready asset blocks (`docs/content/photos.md`). The day real
+photos land, they reserve their true layout with zero CLS — no structural
+change needed. Two consistency fixes rode along: the GitHub footer link now
+points at the repository itself (ADR-0014's claim is verifiable), and
+`SITE.siteUrl` is driven by the same `VITE_SITE_URL` env contract as the
+sitemap, so the canonical origin has a single source of truth.
+
 An automated Lighthouse run on a headless Chrome (viewport 1440x960, reduced
 motion) passed **100 on accessibility** (contrast failures 8 -> 0 after the
 scene-tone and button-ink fixes), best-practices 100 and a zero-CLS score;

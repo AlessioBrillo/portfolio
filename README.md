@@ -48,6 +48,7 @@ npm run dev      # start the dev server at http://localhost:5173
 | `npm run format` / `format:check` | Prettier write / check                      |
 | `npm test`                        | Vitest (run once)                           |
 | `npm run test:coverage`           | Vitest with coverage                        |
+| `npm run images`                  | Optimize raw photos into `public/photos/`   |
 
 ## Project structure
 
