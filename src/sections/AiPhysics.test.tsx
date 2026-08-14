@@ -3,9 +3,11 @@ import { MemoryRouter } from 'react-router-dom';
 import { describe, expect, it } from 'vitest';
 import { AiPhysics } from '@/sections/AiPhysics';
 import { getPublishedCaseStudies } from '@/content/case-studies/registry';
+import type { CaseStudyMeta } from '@/types/domain';
 
 describe('AiPhysics', () => {
-  const aiStudies = () => getPublishedCaseStudies().filter((meta) => meta.domain === 'ai');
+  const aiStudies = (): readonly CaseStudyMeta[] =>
+    getPublishedCaseStudies().filter((meta) => meta.domain === 'ai');
 
   it('renders one case-study card per published AI study', () => {
     render(
