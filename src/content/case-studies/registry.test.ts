@@ -1,5 +1,12 @@
 import { describe, expect, it } from 'vitest';
-import { getCaseStudy, getPublishedCaseStudies } from '@/content/case-studies/registry';
+import {
+  CASE_STUDIES,
+  getCaseStudy,
+  getPublishedCaseStudies,
+} from '@/content/case-studies/registry';
+import type { CaseStudyDomain } from '@/types/domain';
+
+const VALID_DOMAINS: readonly CaseStudyDomain[] = ['ai', 'work', 'sky'];
 
 describe('getCaseStudy', () => {
   it('returns the entry for a known slug', () => {
@@ -28,6 +35,32 @@ describe('getCaseStudy', () => {
 
   it('returns undefined for an unknown slug', () => {
     expect(getCaseStudy('non-existent')).toBeUndefined();
+  });
+
+  it('resolves the draft AI study: registered, complete, and unpublished', () => {
+    const entry = getCaseStudy('next-ai-physics');
+    expect(entry).toBeDefined();
+    expect(entry?.meta.domain).toBe('ai');
+    expect(entry?.meta.slug).toBe('next-ai-physics');
+    expect(entry?.load).toBeInstanceOf(Function);
+    const publishedSlugs = getPublishedCaseStudies().map((meta) => meta.slug);
+    expect(publishedSlugs).not.toContain('next-ai-physics');
+  });
+});
+
+describe('registry content contract', () => {
+  it('every registered study — published or draft — carries complete metadata', () => {
+    for (const [key, entry] of Object.entries(CASE_STUDIES)) {
+      const { meta } = entry;
+      expect(meta.slug, key).toBe(key);
+      expect(VALID_DOMAINS, key).toContain(meta.domain);
+      expect(meta.title.trim().length, key).toBeGreaterThan(0);
+      expect(meta.role.trim().length, key).toBeGreaterThan(0);
+      expect(meta.year.trim().length, key).toBeGreaterThan(0);
+      expect(meta.summary.trim().length, key).toBeGreaterThan(0);
+      expect(meta.stack.length, key).toBeGreaterThan(0);
+      expect(entry.load, key).toBeInstanceOf(Function);
+    }
   });
 });
 

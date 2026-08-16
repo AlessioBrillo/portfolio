@@ -8,8 +8,12 @@ interface CaseStudyEntry {
 }
 
 /**
- * The single source of truth for published case studies. Add an entry here and
- * drop a sibling `.mdx` file; the `/{domain}/{slug}` route renders it (ADR-0005).
+ * The single source of truth for case studies. Add an entry here and drop a
+ * sibling `.mdx` file; the `/{domain}/{slug}` route renders it (ADR-0005).
+ *
+ * Drafting: an entry in `CASE_STUDIES` that is not in `PUBLISHED_ORDER` is a
+ * draft — its route is resolvable for review, but it stays out of the mosaic,
+ * the sitemap, and the prev/next navigation until it is added to the order.
  */
 export const CASE_STUDIES: Readonly<Record<string, CaseStudyEntry>> = {
   'transformer-italian-corpus': {
@@ -48,6 +52,19 @@ export const CASE_STUDIES: Readonly<Record<string, CaseStudyEntry>> = {
         'The portfolio as an engineered artifact — a scroll-driven tonal flight, committed in the open.',
     },
     load: () => import('./work-the-ascent.mdx'),
+  },
+  'next-ai-physics': {
+    meta: {
+      slug: 'next-ai-physics',
+      domain: 'ai',
+      title: 'Next study — placeholder draft',
+      role: 'TBD',
+      year: '2026',
+      stack: ['TBD'],
+      summary:
+        "Draft study awaiting the author's material. Registered but unpublished: reachable by direct URL only, absent from the mosaic, sitemap, and prev/next navigation.",
+    },
+    load: () => import('./next-ai-physics.mdx'),
   },
 };
 
