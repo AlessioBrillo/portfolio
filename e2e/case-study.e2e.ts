@@ -1,44 +1,31 @@
 import { expect, test } from '@playwright/test';
+import { getCaseStudy, getPublishedCaseStudies } from '../src/content/case-studies/registry';
+
+function escapeRegExp(value: string): string {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+const PUBLISHED = getPublishedCaseStudies();
 
 /**
  * Exercises the case-study surface that unit tests cannot reach in a browser
  * (ADR-0005): deep links resolve to the study with its route head, unknown
  * slugs fall to the 404 in voice, and — the pipeline's promise — the back
- * button returns to the exact scroll position on the single page.
+ * button returns to the exact scroll position on the single page. The deep
+ * link and prev/next tests are driven by the registry, so a study added to
+ * `PUBLISHED_ORDER` is covered without editing this file.
  */
 test.describe('case study routes', () => {
-  test('deep link renders the study with its meta head', async ({ page }) => {
-    await page.goto('/ai/transformer-italian-corpus');
+  for (const study of PUBLISHED) {
+    test(`deep link renders ${study.domain}/${study.slug} with its meta head`, async ({ page }) => {
+      await page.goto(`/${study.domain}/${study.slug}`);
 
-    await expect(page.getByRole('heading', { level: 1 })).toContainText(
-      'A transformer on an Italian-language corpus',
-    );
-    await expect(page).toHaveTitle(/A transformer on an Italian-language corpus/);
-    await expect(page.getByRole('link', { name: /Back to the ascent/ })).toBeVisible();
-    await expect(page.getByRole('heading', { level: 2, name: 'Problem' })).toBeVisible();
-  });
-
-  test('deep link renders the sky-domain study with its meta head', async ({ page }) => {
-    await page.goto('/sky/vds-licence');
-
-    await expect(page.getByRole('heading', { level: 1 })).toContainText(
-      'The VDS licence, on purpose',
-    );
-    await expect(page).toHaveTitle(/The VDS licence, on purpose/);
-    await expect(page.getByRole('link', { name: /Back to the ascent/ })).toBeVisible();
-    await expect(page.getByRole('heading', { level: 2, name: 'Problem' })).toBeVisible();
-  });
-
-  test('deep link renders the work-domain study with its meta head', async ({ page }) => {
-    await page.goto('/work/the-ascent');
-
-    await expect(page.getByRole('heading', { level: 1 })).toContainText(
-      'The Ascent, engineered in the open',
-    );
-    await expect(page).toHaveTitle(/The Ascent, engineered in the open/);
-    await expect(page.getByRole('link', { name: /Back to the ascent/ })).toBeVisible();
-    await expect(page.getByRole('heading', { level: 2, name: 'Context' })).toBeVisible();
-  });
+      await expect(page.getByRole('heading', { level: 1 })).toContainText(study.title);
+      await expect(page).toHaveTitle(new RegExp(escapeRegExp(study.title)));
+      await expect(page.getByRole('link', { name: /Back to the ascent/ })).toBeVisible();
+      await expect(page.getByRole('heading', { level: 2 }).first()).toBeVisible();
+    });
+  }
 
   test('unknown slug lands on the 404 in voice', async ({ page }) => {
     await page.goto('/ai/does-not-exist');
@@ -47,21 +34,51 @@ test.describe('case study routes', () => {
     await expect(page).toHaveTitle(/Lost altitude/);
   });
 
-test('dev server carries no analytics beacon (ADR-0013 env gating)', async ({ page }) => {
+  test('draft study renders by direct URL but stays out of published surfaces', async ({
+    page,
+  }) => {
+    const draft = getCaseStudy('next-ai-physics');
+    expect(draft).toBeDefined();
+
+    await page.goto(`/${draft?.meta.domain}/${draft?.meta.slug}`);
+    await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
+    await expect(page.getByRole('link', { name: /Back to the ascent/ })).toBeVisible();
+
+    await page.goto('/');
+    await expect(
+      page.locator(`a[href="/${draft?.meta.domain}/${draft?.meta.slug}"]`),
+    ).toHaveCount(0);
+  });
+
+  test('dev server carries no analytics beacon (ADR-0013 env gating)', async ({ page }) => {
     await page.goto('/');
     await expect(page.locator('script[data-domain]')).toHaveCount(0);
   });
 
-  test('prev/next navigation moves between studies in curated order', async ({ page }, testInfo) => {
+  test('prev/next navigation walks the curated order end to end', async ({ page }, testInfo) => {
     test.skip(
       testInfo.project.name !== 'desktop-1440',
       'Viewport-independent DOM assertion; a single project suffices.',
     );
-    await page.goto('/ai/transformer-italian-corpus');
-    await page.getByRole('link', { name: /Next study/ }).click();
-    await expect(page).toHaveURL(/\/work\/the-ascent$/);
-    await page.getByRole('link', { name: /Previous study/ }).click();
-    await expect(page).toHaveURL(/\/ai\/transformer-italian-corpus$/);
+    const first = PUBLISHED[0];
+    const last = PUBLISHED[PUBLISHED.length - 1];
+    expect(first).toBeDefined();
+    expect(last).toBeDefined();
+
+    await page.goto(`/${first?.domain}/${first?.slug}`);
+    for (const study of PUBLISHED.slice(1)) {
+      await page.getByRole('link', { name: /Next study/ }).click();
+      await expect(page).toHaveURL(
+        new RegExp(`/${study.domain}/${escapeRegExp(study.slug)}$`),
+      );
+    }
+
+    for (const study of [...PUBLISHED].reverse().slice(1)) {
+      await page.getByRole('link', { name: /Previous study/ }).click();
+      await expect(page).toHaveURL(
+        new RegExp(`/${study.domain}/${escapeRegExp(study.slug)}$`),
+      );
+    }
   });
 
   test('back navigation returns to the exact scroll position (ADR-0005)', async ({ page }) => {
