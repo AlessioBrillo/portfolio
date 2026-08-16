@@ -22,6 +22,7 @@ trade-offs without re-running the original arguments.
 | [0013](0013-analytics.md)                       | Privacy-first analytics, env-gated (Plausible)                 | 2026-08-13 | Accepted |
 | [0014](0014-identity-surface.md)                | Identity surface — public repo link and resume on request      | 2026-08-13 | Accepted |
 | [0015](0015-studies-navigation-order.md)        | Cross-study navigation in a curated reading order              | 2026-08-13 | Accepted |
+| [0016](0016-photo-asset-caching.md)             | Content-hashed photo assets with immutable caching             | 2026-08-16 | Accepted |
 
 ## Conventions
 
@@ -58,3 +59,7 @@ the second activates the reserved resume hook and links the public repository.
 ADR-0015 completes the case-study reading surface (ADR-0005): prev/next
 navigation in the same curated order that drives the sitemap, with focus
 management on hop.
+
+ADR-0016 closes the photo pipeline's caching hole (ADR-0009's delivery floor):
+derivative names embed a content hash so replacing a photo changes every URL
+and the immutable `/photos/*` cache headers can never serve stale bytes.
