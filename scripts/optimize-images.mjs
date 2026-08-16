@@ -48,10 +48,9 @@ const WIDTHS = (argValue('--widths') ?? '480,960,1600')
 const SIZES_HINT = argValue('--sizes') ?? '(min-width: 1024px) 40vw, 100vw';
 const PRUNE = args.includes('--prune');
 
-let helpers;
+let pipelineHelpers;
 try {
-  ({ slugify, effectiveWidths, derivativeName, findSlugCollisions, filesToPrune, HASH_LENGTH } =
-    await import('../src/lib/photo-pipeline.ts'));
+  pipelineHelpers = await import('../src/lib/photo-pipeline.ts');
 } catch (error) {
   console.error(
     '[images] Could not load src/lib/photo-pipeline.ts — requires Node >=22.18 (native TypeScript type stripping).',
@@ -59,6 +58,8 @@ try {
   console.error(error?.message ?? error);
   process.exit(1);
 }
+const { slugify, effectiveWidths, derivativeName, findSlugCollisions, filesToPrune, HASH_LENGTH } =
+  pipelineHelpers;
 
 if (!SOURCE_DIR || !existsSync(SOURCE_DIR)) {
   console.error('[images] Missing --src <dir> with the raw photos. See docs/content/photos.md.');
