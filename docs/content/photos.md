@@ -15,21 +15,26 @@ a real pipeline instead of a manual copy-paste ritual. The contract is
    npm run images -- --src photos-src
    # per-layout sizes hint, e.g. for the three-column sport grid:
    npm run images -- --src photos-src --sizes "(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw"
+   # remove stale derivatives from previous runs (incl. legacy unhashed names):
+   npm run images -- --src photos-src --prune
    ```
 
-3. The script writes `public/photos/{subject}-{width}.{avif,webp,jpg}` and
-   prints the exact `ImageAsset` block for each photo. Paste it into the right
-   content module — the author reviews it like any copy:
+   Requires Node >=22.18 (the script imports its helper module through native
+   TypeScript type stripping — see `engines` in `package.json`).
+
+3. The script writes `public/photos/{subject}-{width}-{hash}.{avif,webp,jpg}`
+   and prints the exact `ImageAsset` block for each photo. Paste it into the
+   right content module — the author reviews it like any copy:
 
    ```ts
    // src/content/sky.ts — the vds entry
    image: {
      alt: 'An ultralight aircraft on the ramp before a flight', // keep human-written
      caption: 'VDS · northern Italy',
-     src: '/photos/vds-volo-01-1600.jpg',
+     src: '/photos/vds-volo-01-1600-a1b2c3d4.jpg',
      sources: [
-       { type: 'image/avif', srcSet: '/photos/vds-volo-01-480.avif 480w, /photos/vds-volo-01-960.avif 960w, /photos/vds-volo-01-1600.avif 1600w' },
-       { type: 'image/webp', srcSet: '/photos/vds-volo-01-480.webp 480w, /photos/vds-volo-01-960.webp 960w, /photos/vds-volo-01-1600.webp 1600w' },
+       { type: 'image/avif', srcSet: '/photos/vds-volo-01-480-a1b2c3d4.avif 480w, /photos/vds-volo-01-960-a1b2c3d4.avif 960w, /photos/vds-volo-01-1600-a1b2c3d4.avif 1600w' },
+       { type: 'image/webp', srcSet: '/photos/vds-volo-01-480-a1b2c3d4.webp 480w, /photos/vds-volo-01-960-a1b2c3d4.webp 960w, /photos/vds-volo-01-1600-a1b2c3d4.webp 1600w' },
      ],
      width: 1600,
      height: 1200,
@@ -37,9 +42,12 @@ a real pipeline instead of a manual copy-paste ritual. The contract is
    },
    ```
 
-4. Replace a photo later? Re-run the script over the same `--src` dir; filenames
-   are derived from the source name, so the emitted URLs stay stable and only
-   the bytes change (cache-safe thanks to the immutable asset headers).
+4. Replace a photo later? Swap the raw in `--src`, re-run, paste the new block.
+   The `{hash}` part changes with the bytes (ADR-0016), so the new URLs are
+   different and the immutable cache headers Vercel serves for `/photos/*`
+   can never serve the old photo. Run with `--prune` once to drop the stale
+   set. Filenames are derived from the source name — unchanged raws keep
+   identical names (idempotent re-runs, cache-safe by construction).
 
 ## What the script does
 
@@ -49,6 +57,12 @@ a real pipeline instead of a manual copy-paste ritual. The contract is
   browser gets the best format and ancient ones still see the photo.
 - **Widths**: `480 / 960 / 1600` by default (`--widths` to override). A width
   larger than the source is never produced (no upscaling).
+- **Naming** (ADR-0016): every derivative embeds an 8-hex sha-256 of the raw
+  bytes — replacing a photo changes every URL, so `Cache-Control: immutable`
+  on `/photos/*` stays correct forever.
+- **Safety**: the script fails fast if two raws slugify to the same subject
+  (the derivatives would overwrite each other) and refuses `--out` equal to
+  `--src`.
 - **Ratio**: the printed `width`/`height` are the _delivered_ fallback's
   dimensions; `ImageBlock` reserves that exact ratio on the frame, keeping
   layout shift at zero (ADR-0009).
@@ -59,3 +73,6 @@ a real pipeline instead of a manual copy-paste ritual. The contract is
 - Keep raw sources out of git; the derivatives are the deliverable.
 - After pasting a block, run the local gates (`npm run typecheck && npm test`)
   — the content-module tests assert the asset is complete.
+- The helpers behind the naming are pure and unit-tested
+  (`src/lib/photo-pipeline.ts`); the script itself is the only thing that
+  touches disk.
