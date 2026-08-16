@@ -14,6 +14,8 @@ describe('ImageBlock', () => {
     const img = screen.getByRole('img');
     expect(img).toHaveAttribute('src', '/photo.jpg');
     expect(img).toHaveAttribute('alt', 'Photo');
+    expect(img).toHaveAttribute('loading', 'lazy');
+    expect(img).toHaveAttribute('decoding', 'async');
   });
 
   it('passes srcSet and sizes through to the img', () => {
