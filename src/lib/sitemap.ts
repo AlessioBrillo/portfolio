@@ -19,8 +19,9 @@ function escapeXml(value: string): string {
 
 /**
  * Builds a sitemap.xml document from an origin and a list of entries. Pure and
- * side-effect free so the exact output is unit-tested; the Vite plugin in
- * `vite.config.ts` wires it to the build (only when a domain is configured).
+ * side-effect free so the exact output is unit-tested; the `postbuild` script
+ * (`scripts/generate-sitemap.mjs`) wires it to the build (only when a domain
+ * is configured via `VITE_SITE_URL`).
  */
 export function buildSitemapXml(origin: string, entries: readonly SitemapEntry[]): string {
   const base = origin.replace(/\/+$/, '');
