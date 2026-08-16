@@ -23,3 +23,22 @@ Benefits: **shareable** (send a recruiter a link to _one_ project), indexable, a
 the back button returns to the exact scroll position on the home page.
 
 A starter file exists: `src/content/case-studies/transformer-italian-corpus.mdx`.
+
+## Publishing vs drafting
+
+Every entry in `CASE_STUDIES` (`src/content/case-studies/registry.ts`) is a
+resolvable `/{domain}/{slug}` route, but only the slugs listed in
+`PUBLISHED_ORDER` are published:
+
+- **Published** — in `PUBLISHED_ORDER`: rendered as a mosaic tile, listed in
+  the sitemap, reachable through prev/next navigation, and covered by the
+  registry-driven deep-link E2E tests (`e2e/case-study.e2e.ts`).
+- **Draft** — registered in `CASE_STUDIES` only: the route renders for review
+  by direct URL, but the study stays out of the mosaic, the sitemap, and the
+  navigation until it joins the order.
+
+To start a new study, copy the placeholder draft
+(`src/content/case-studies/next-ai-physics.mdx`, registered as a draft) or the
+template structure above, then move the slug into `PUBLISHED_ORDER` when the
+copy is ready. The registry content-contract test and the E2E harness follow
+automatically.
