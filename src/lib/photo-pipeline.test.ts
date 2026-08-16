@@ -73,7 +73,10 @@ describe('photo pipeline helpers', () => {
 
     it('removes hashed derivatives not produced by the current run', () => {
       const existing = ['vds-1600-a1b2c3d4.avif', 'vds-960-0fedcba9.webp', 'vds-960-0fedcba9.jpg'];
-      expect(filesToPrune(existing, produced)).toEqual(['vds-960-0fedcba9.webp', 'vds-960-0fedcba9.jpg']);
+      expect(filesToPrune(existing, produced)).toEqual([
+        'vds-960-0fedcba9.webp',
+        'vds-960-0fedcba9.jpg',
+      ]);
     });
 
     it('removes legacy unhashed derivatives left by the old pipeline', () => {
@@ -82,7 +85,12 @@ describe('photo pipeline helpers', () => {
     });
 
     it('keeps non-derivative files and the produced set', () => {
-      const existing = ['vds-1600-a1b2c3d4.avif', 'README.md', 'manual-banner.jpg', 'vds-1600-a1b2c3d4.jpg'];
+      const existing = [
+        'vds-1600-a1b2c3d4.avif',
+        'README.md',
+        'manual-banner.jpg',
+        'vds-1600-a1b2c3d4.jpg',
+      ];
       expect(filesToPrune(existing, produced)).toEqual([]);
     });
 

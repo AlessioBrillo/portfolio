@@ -50,14 +50,8 @@ const PRUNE = args.includes('--prune');
 
 let helpers;
 try {
-  ({
-    slugify,
-    effectiveWidths,
-    derivativeName,
-    findSlugCollisions,
-    filesToPrune,
-    HASH_LENGTH,
-  } = await import('../src/lib/photo-pipeline.ts'));
+  ({ slugify, effectiveWidths, derivativeName, findSlugCollisions, filesToPrune, HASH_LENGTH } =
+    await import('../src/lib/photo-pipeline.ts'));
 } catch (error) {
   console.error(
     '[images] Could not load src/lib/photo-pipeline.ts — requires Node >=22.18 (native TypeScript type stripping).',
@@ -136,11 +130,7 @@ async function optimizeImage(fileName, produced) {
       .rotate()
       .avif({ quality: 55, effort: 4 })
       .toFile(path.join(OUT_DIR, avifFile));
-    await pipeline
-      .clone()
-      .rotate()
-      .webp({ quality: 78 })
-      .toFile(path.join(OUT_DIR, webpFile));
+    await pipeline.clone().rotate().webp({ quality: 78 }).toFile(path.join(OUT_DIR, webpFile));
     produced.push(avifFile, webpFile);
   }
   const jpegFile = name(largest, 'jpg');
@@ -177,7 +167,9 @@ if (files.length === 0) {
 
 const collisions = findSlugCollisions(files);
 if (collisions.length > 0) {
-  console.error('[images] Raw filenames collide after slugging — the derivatives would overwrite each other:');
+  console.error(
+    '[images] Raw filenames collide after slugging — the derivatives would overwrite each other:',
+  );
   for (const { subject, count } of collisions) {
     console.error(`  ${subject} (${count} files)`);
   }
