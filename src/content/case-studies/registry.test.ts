@@ -122,9 +122,24 @@ interface MarkerDebt {
  * match below keeps this list honest — any marker not listed here fails the
  * contract (nothing new slips in), and a listed marker that disappears fails
  * too (the debt entry must be deleted the moment the real content lands).
- * The debt is author input, never code.
+ * The debt is author input, never code: each entry names the line that must
+ * be filled with real data before the entry is removed.
  */
-const KNOWN_DEBT: readonly MarkerDebt[] = [];
+const KNOWN_DEBT: readonly MarkerDebt[] = [
+  {
+    slug: 'transformer-italian-corpus',
+    markers: {
+      'fill in': [40, 64, 87],
+      '**—**': [42, 89, 90, 91],
+    },
+  },
+  {
+    slug: 'the-ascent',
+    markers: {
+      'Author slot': [106],
+    },
+  },
+];
 
 const PUBLISHED_BODIES: Readonly<Record<string, string>> = {
   'transformer-italian-corpus': corpusBody,
