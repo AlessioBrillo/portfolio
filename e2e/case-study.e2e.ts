@@ -24,6 +24,7 @@ test.describe('case study routes', () => {
       await expect(page).toHaveTitle(new RegExp(escapeRegExp(study.title)));
       await expect(page.getByRole('link', { name: /Back to the ascent/ })).toBeVisible();
       await expect(page.getByRole('heading', { level: 2 }).first()).toBeVisible();
+      await expect(page.locator('meta[name="robots"][content="noindex"]')).toHaveCount(0);
     });
   }
 
@@ -43,6 +44,7 @@ test.describe('case study routes', () => {
     await page.goto(`/${draft?.meta.domain}/${draft?.meta.slug}`);
     await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
     await expect(page.getByRole('link', { name: /Back to the ascent/ })).toBeVisible();
+    await expect(page.locator('meta[name="robots"][content="noindex"]')).toHaveCount(1);
 
     await page.goto('/');
     await expect(
