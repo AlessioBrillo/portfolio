@@ -35,6 +35,21 @@ const STUDIES = [
 
 vi.mock('@/content/case-studies/registry', () => ({
   getCaseStudy: vi.fn((slug: string) => {
+    if (slug === 'draft-study') {
+      return {
+        meta: {
+          slug: 'draft-study',
+          domain: 'ai',
+          title: 'Draft Study',
+          role: 'TBD',
+          year: '2026',
+          stack: ['TBD'],
+          summary: 'A registered but unpublished study',
+        },
+        load: () =>
+          Promise.resolve({ default: () => <div data-testid="body">Draft content</div> }),
+      };
+    }
     const found = STUDIES.find((study) => study.slug === slug);
     return found
       ? {
@@ -45,6 +60,7 @@ vi.mock('@/content/case-studies/registry', () => ({
       : undefined;
   }),
   getPublishedCaseStudies: vi.fn(() => [...STUDIES]),
+  isPublishedStudy: vi.fn((slug: string) => slug !== 'draft-study'),
 }));
 
 function renderAt(path: string): ReturnType<typeof render> {
@@ -114,5 +130,20 @@ describe('CaseStudyPage', () => {
     renderAt('/ai/test-study');
     await screen.findByTestId('body');
     expect(screen.getByRole('heading', { level: 1, name: 'Test Study' })).not.toHaveFocus();
+  });
+
+  it('marks unpublished draft routes as noindex (ADR-0017)', async () => {
+    const { unmount } = renderAt('/ai/draft-study');
+    await screen.findByTestId('body');
+    expect(document.querySelector('meta[name="robots"]')).toHaveAttribute('content', 'noindex');
+
+    unmount();
+    expect(document.querySelector('meta[name="robots"]')).not.toBeInTheDocument();
+  });
+
+  it('leaves published routes indexable — no robots meta', async () => {
+    renderAt('/ai/test-study');
+    await screen.findByTestId('body');
+    expect(document.querySelector('meta[name="robots"]')).not.toBeInTheDocument();
   });
 });

@@ -3,6 +3,7 @@ import {
   CASE_STUDIES,
   getCaseStudy,
   getPublishedCaseStudies,
+  isPublishedStudy,
 } from '@/content/case-studies/registry';
 import type { CaseStudyDomain } from '@/types/domain';
 
@@ -75,5 +76,21 @@ describe('getPublishedCaseStudies', () => {
     expect(first).toMatchObject({ domain: 'ai', slug: 'transformer-italian-corpus' });
     expect(first).toHaveProperty('title');
     expect(first).toHaveProperty('year');
+  });
+});
+
+describe('isPublishedStudy', () => {
+  it('returns true for every study in the curated order', () => {
+    for (const meta of getPublishedCaseStudies()) {
+      expect(isPublishedStudy(meta.slug)).toBe(true);
+    }
+  });
+
+  it('returns false for the registered draft study', () => {
+    expect(isPublishedStudy('next-ai-physics')).toBe(false);
+  });
+
+  it('returns false for an unknown slug', () => {
+    expect(isPublishedStudy('non-existent')).toBe(false);
   });
 });

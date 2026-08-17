@@ -4,13 +4,16 @@ import { useDocumentMeta } from '@/hooks/useDocumentMeta';
 
 /**
  * Case-study routes must be shareable and indexable (ADR-0005): the document
- * head (title, description, OG tags, canonical) follows the route. These tests
+ * head (title, description, OG tags, canonical) follows the route. Draft
+ * routes, by contrast, ask search engines to stay away (ADR-0017). These tests
  * pin what the hook writes and that it restores the previous head on unmount.
  */
 describe('useDocumentMeta', () => {
   beforeEach(() => {
     document.head
-      .querySelectorAll('meta[name="description"], meta[property^="og:"], link[rel="canonical"]')
+      .querySelectorAll(
+        'meta[name="description"], meta[name="robots"], meta[property^="og:"], link[rel="canonical"]',
+      )
       .forEach((node) => node.remove());
     document.title = '';
   });
@@ -46,6 +49,42 @@ describe('useDocumentMeta', () => {
     expect(document.querySelector('link[rel="canonical"]')).toHaveAttribute(
       'href',
       'https://example.test/ai/study',
+    );
+  });
+
+  it('sets robots noindex when the route is not indexable', () => {
+    renderHook(() => useDocumentMeta({ title: 'Draft study', robots: 'noindex' }));
+    expect(document.querySelector('meta[name="robots"]')).toHaveAttribute('content', 'noindex');
+  });
+
+  it('removes the robots meta it created on unmount', () => {
+    const { unmount } = renderHook(() =>
+      useDocumentMeta({ title: 'Draft study', robots: 'noindex' }),
+    );
+    expect(document.querySelector('meta[name="robots"]')).toHaveAttribute('content', 'noindex');
+
+    unmount();
+
+    expect(document.querySelector('meta[name="robots"]')).not.toBeInTheDocument();
+  });
+
+  it('leaves a pre-existing robots directive untouched and restored', () => {
+    document.head.insertAdjacentHTML(
+      'beforeend',
+      '<meta name="robots" content="noindex, nofollow">',
+    );
+
+    const { unmount } = renderHook(() => useDocumentMeta({ title: 'Study' }));
+    expect(document.querySelector('meta[name="robots"]')).toHaveAttribute(
+      'content',
+      'noindex, nofollow',
+    );
+
+    unmount();
+
+    expect(document.querySelector('meta[name="robots"]')).toHaveAttribute(
+      'content',
+      'noindex, nofollow',
     );
   });
 
