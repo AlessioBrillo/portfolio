@@ -41,7 +41,9 @@ coverage. The scaffold for that next study is registered as a draft route
 (`/ai/next-ai-physics`, in `CASE_STUDIES` but not in `PUBLISHED_ORDER`): it
 renders by direct URL for review, stays out of the mosaic, sitemap and
 prev/next navigation, and the deep-link and prev/next E2E tests are now driven
-by the registry — a new published study is covered without editing the harness.
+by the registry — a new published study is covered without editing the harness. The
+draft route also carries `robots: noindex` (ADR-0017), so its placeholder can
+never surface in search while it is unpublished.
 Phase 5 still awaits the author's inputs below: real photos, real copy, and
 one more long-form AI/physics study.
 
