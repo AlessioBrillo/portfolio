@@ -77,4 +77,34 @@ describe('useCurrentSection', () => {
     const { result } = renderHook(() => useCurrentSection());
     expect(result.current).toBeNull();
   });
+
+  it('ignores entries whose target is outside the section order', () => {
+    const { result } = renderHook(() => useCurrentSection());
+    const foreign = document.createElement('section');
+    foreign.id = 'advert';
+    document.body.appendChild(foreign);
+
+    act(() => {
+      triggerObserver([{ target: foreign, intersectionRatio: 1 }]);
+    });
+    act(() => {
+      vi.advanceTimersByTime(16);
+    });
+
+    expect(result.current).toBeNull();
+  });
+
+  it('coalesces a burst of callbacks into a single frame update', () => {
+    const { result } = renderHook(() => useCurrentSection());
+
+    act(() => {
+      triggerObserver([{ target: document.getElementById('hero')!, intersectionRatio: 0.2 }]);
+      triggerObserver([{ target: document.getElementById('who')!, intersectionRatio: 0.9 }]);
+    });
+    act(() => {
+      vi.advanceTimersByTime(16);
+    });
+
+    expect(result.current).toBe('who');
+  });
 });

@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { canonicalOrigin, SITE } from '@/lib/site';
 
 describe('site identity', () => {
@@ -36,5 +36,11 @@ describe('canonicalOrigin', () => {
 
   it('treats an explicit empty domain like the default fallback', () => {
     expect(canonicalOrigin('')).toBe(window.location.origin);
+  });
+
+  it('returns an empty canonical origin when no window exists (SSR)', () => {
+    vi.stubGlobal('window', undefined);
+    expect(canonicalOrigin()).toBe('');
+    vi.unstubAllGlobals();
   });
 });

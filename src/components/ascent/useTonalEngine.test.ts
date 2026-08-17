@@ -32,6 +32,7 @@ const mocks = vi.hoisted(() => {
     fromTo: vi.fn(),
     set: vi.fn(),
     create: vi.fn(),
+    refresh: vi.fn(),
   };
 });
 
@@ -46,7 +47,7 @@ vi.mock('gsap', () => ({
 }));
 
 vi.mock('gsap/ScrollTrigger', () => ({
-  ScrollTrigger: { create: mocks.create },
+  ScrollTrigger: { create: mocks.create, refresh: mocks.refresh },
 }));
 
 beforeEach(() => {
@@ -62,6 +63,7 @@ afterEach(() => {
   for (const transition of TONAL_TRANSITIONS) {
     document.getElementById(transition.trigger)?.remove();
   }
+  delete (document as Omit<Document, 'fonts'> & { fonts?: unknown }).fonts;
   vi.clearAllMocks();
 });
 
@@ -226,5 +228,53 @@ describe('useTonalEngine', () => {
     expect(descent.scrollTrigger.trigger).toBe(section);
 
     h3.remove();
+  });
+
+  it('skips transitions whose trigger section is missing from the DOM', async () => {
+    for (const transition of TONAL_TRANSITIONS) {
+      document.getElementById(transition.trigger)?.remove();
+    }
+
+    renderEngine();
+    await waitFor(() => expect(mocks.matchMedia).toHaveBeenCalled());
+    expect(mocks.fromTo).not.toHaveBeenCalled();
+    expect(mocks.create).not.toHaveBeenCalled();
+  });
+
+  it('re-measures trigger geometry once the display fonts settle', async () => {
+    Object.defineProperty(document, 'fonts', {
+      configurable: true,
+      value: { ready: Promise.resolve() },
+    });
+
+    renderEngine();
+    await waitFor(() => expect(mocks.refresh).toHaveBeenCalledTimes(1));
+  });
+
+  it('skips the refresh when the engine is torn down before fonts settle', async () => {
+    let releaseReady: (() => void) | undefined;
+    const ready = new Promise<void>((resolve) => {
+      releaseReady = resolve;
+    });
+    Object.defineProperty(document, 'fonts', {
+      configurable: true,
+      value: { ready },
+    });
+
+    const { unmount } = renderHook(() => {
+      const ref = useRef<HTMLDivElement>(null);
+      if (!ref.current) ref.current = document.createElement('div');
+      useTonalEngine(ref);
+      return ref;
+    });
+
+    // Tear the engine down only once it has registered the fonts re-measure,
+    // so `cancelled` flips while the fonts promise is still pending.
+    await waitFor(() => expect(mocks.registerPlugin).toHaveBeenCalled());
+    unmount();
+    releaseReady?.();
+    await Promise.resolve();
+    await Promise.resolve();
+    expect(mocks.refresh).not.toHaveBeenCalled();
   });
 });

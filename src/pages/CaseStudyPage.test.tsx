@@ -1,6 +1,6 @@
 import { fireEvent, render, screen } from '@testing-library/react';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
-import { describe, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { CaseStudyPage } from '@/pages/CaseStudyPage';
 
 const STUDIES = [
@@ -33,34 +33,13 @@ const STUDIES = [
   },
 ] as const;
 
-vi.mock('@/content/case-studies/registry', () => ({
-  getCaseStudy: vi.fn((slug: string) => {
-    if (slug === 'draft-study') {
-      return {
-        meta: {
-          slug: 'draft-study',
-          domain: 'ai',
-          title: 'Draft Study',
-          role: 'TBD',
-          year: '2026',
-          stack: ['TBD'],
-          summary: 'A registered but unpublished study',
-        },
-        load: () => Promise.resolve({ default: () => <div data-testid="body">Draft content</div> }),
-      };
-    }
-    const found = STUDIES.find((study) => study.slug === slug);
-    return found
-      ? {
-          meta: found,
-          load: () =>
-            Promise.resolve({ default: () => <div data-testid="body">Study content</div> }),
-        }
-      : undefined;
-  }),
+const mocks = vi.hoisted(() => ({
+  getCaseStudy: vi.fn(),
   getPublishedCaseStudies: vi.fn(() => [...STUDIES]),
   isPublishedStudy: vi.fn((slug: string) => slug !== 'draft-study'),
 }));
+
+vi.mock('@/content/case-studies/registry', () => mocks);
 
 function renderAt(path: string): ReturnType<typeof render> {
   return render(
@@ -74,6 +53,66 @@ function renderAt(path: string): ReturnType<typeof render> {
 }
 
 describe('CaseStudyPage', () => {
+  beforeEach(() => {
+    mocks.getCaseStudy.mockImplementation((slug: string) => {
+      if (slug === 'draft-study') {
+        return {
+          meta: {
+            slug: 'draft-study',
+            domain: 'ai',
+            title: 'Draft Study',
+            role: 'TBD',
+            year: '2026',
+            stack: ['TBD'],
+            summary: 'A registered but unpublished study',
+          },
+          load: () =>
+            Promise.resolve({ default: () => <div data-testid="body">Draft content</div> }),
+        };
+      }
+      const found = STUDIES.find((study) => study.slug === slug);
+      return found
+        ? {
+            meta: found,
+            load: () =>
+              Promise.resolve({ default: () => <div data-testid="body">Study content</div> }),
+          }
+        : undefined;
+    });
+  });
+
+  it('renders NotFoundPage when the route carries no slug', () => {
+    render(
+      <MemoryRouter initialEntries={['/']}>
+        <Routes>
+          <Route path="/" element={<CaseStudyPage />} />
+        </Routes>
+      </MemoryRouter>,
+    );
+    expect(screen.getByText('Lost altitude.')).toBeInTheDocument();
+  });
+
+  it('renders a study with an empty stack without a dangling separator', async () => {
+    mocks.getCaseStudy.mockReturnValueOnce({
+      meta: {
+        slug: 'no-stack',
+        domain: 'work',
+        title: 'No Stack Study',
+        role: 'Builder',
+        year: '2026',
+        stack: [],
+        summary: 'A study with no stack',
+      },
+      load: () => Promise.resolve({ default: () => <div data-testid="body">Body</div> }),
+    });
+
+    renderAt('/work/no-stack');
+    await screen.findByTestId('body');
+    const eyebrow = screen.getByText(/Builder/);
+    expect(eyebrow).toHaveTextContent('Builder · 2026');
+    expect(eyebrow.textContent?.endsWith('·')).toBe(false);
+  });
+
   it('shows NotFoundPage for unknown slug', () => {
     renderAt('/ai/unknown');
     expect(screen.getByText('Lost altitude.')).toBeInTheDocument();

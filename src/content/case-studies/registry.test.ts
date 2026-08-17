@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import {
   CASE_STUDIES,
   getCaseStudy,
@@ -8,6 +8,19 @@ import {
 import type { CaseStudyDomain } from '@/types/domain';
 
 const VALID_DOMAINS: readonly CaseStudyDomain[] = ['ai', 'work', 'sky'];
+
+vi.mock('@/content/case-studies/transformer-italian-corpus.mdx', () => ({
+  default: () => null,
+}));
+vi.mock('@/content/case-studies/vds-licence.mdx', () => ({
+  default: () => null,
+}));
+vi.mock('@/content/case-studies/work-the-ascent.mdx', () => ({
+  default: () => null,
+}));
+vi.mock('@/content/case-studies/next-ai-physics.mdx', () => ({
+  default: () => null,
+}));
 
 describe('getCaseStudy', () => {
   it('returns the entry for a known slug', () => {
@@ -46,6 +59,12 @@ describe('getCaseStudy', () => {
     expect(entry?.load).toBeInstanceOf(Function);
     const publishedSlugs = getPublishedCaseStudies().map((meta) => meta.slug);
     expect(publishedSlugs).not.toContain('next-ai-physics');
+  });
+  it('resolves every registered study loader, draft included', async () => {
+    for (const entry of Object.values(CASE_STUDIES)) {
+      const mod = await entry.load();
+      expect(mod.default, entry.meta.slug).toBeTypeOf('function');
+    }
   });
 });
 
