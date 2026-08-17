@@ -6,6 +6,11 @@ export interface DocumentMeta {
   readonly title: string;
   readonly description?: string;
   readonly canonical?: string;
+  /**
+   * Ask search engines to keep the route out of their index — set for
+   * unpublished draft studies (ADR-0017), absent on every published surface.
+   */
+  readonly robots?: 'noindex';
 }
 
 function titled(title: string): string {
@@ -22,47 +27,57 @@ function linkNode(selector: string): HTMLLinkElement | null {
 
 /**
  * Keeps the document head honest for each route (ADR-0005: case studies are
- * shareable, indexable URLs): sets title, meta description, Open Graph tags
- * and canonical, then restores whatever the previous route had on unmount —
- * removing nodes it created if there was nothing to restore.
+ * shareable, indexable URLs): sets title, meta description, Open Graph tags,
+ * canonical and — for drafts (ADR-0017) — robots noindex, then restores
+ * whatever the previous route had on unmount — removing nodes it created if
+ * there was nothing to restore.
  */
 export function useDocumentMeta(meta: DocumentMeta): void {
   useEffect(() => {
     const previousTitle = document.title;
-    const description = metaNode('meta[name="description"]');
-    const previousDescription = description?.getAttribute('content') ?? null;
-    const ogTitle = metaNode('meta[property="og:title"]');
-    const previousOgTitle = ogTitle?.getAttribute('content') ?? null;
-    const ogDescription = metaNode('meta[property="og:description"]');
-    const previousOgDescription = ogDescription?.getAttribute('content') ?? null;
-    const canonical = linkNode('link[rel="canonical"]');
-    const previousCanonical = canonical?.getAttribute('href') ?? null;
+
+    const existingDescription = metaNode('meta[name="description"]');
+    const previousDescription = existingDescription?.getAttribute('content') ?? null;
+    const existingOgTitle = metaNode('meta[property="og:title"]');
+    const previousOgTitle = existingOgTitle?.getAttribute('content') ?? null;
+    const existingOgDescription = metaNode('meta[property="og:description"]');
+    const previousOgDescription = existingOgDescription?.getAttribute('content') ?? null;
+    const existingCanonical = linkNode('link[rel="canonical"]');
+    const previousCanonical = existingCanonical?.getAttribute('href') ?? null;
+    const existingRobots = metaNode('meta[name="robots"]');
+    const previousRobots = existingRobots?.getAttribute('content') ?? null;
+
+    // The nodes this effect actually writes — the queried node when one was
+    // already there, otherwise a fresh one the cleanup will remove. Previous
+    // values are captured above, before anything is written.
+    const descriptionNode = meta.description
+      ? (existingDescription ?? createMeta('name', 'description'))
+      : null;
+    const ogTitleNode = existingOgTitle ?? createMeta('property', 'og:title');
+    const ogDescriptionNode = meta.description
+      ? (existingOgDescription ?? createMeta('property', 'og:description'))
+      : null;
+    const canonicalNode = meta.canonical ? (existingCanonical ?? createCanonical()) : null;
+    const robotsNode = meta.robots ? (existingRobots ?? createMeta('name', 'robots')) : null;
 
     document.title = titled(meta.title);
-
-    const titleNode = ogTitle ?? createMeta('property', 'og:title');
-    titleNode.setAttribute('content', titled(meta.title));
-
-    if (meta.description) {
-      const descriptionNode = description ?? createMeta('name', 'description');
+    ogTitleNode.setAttribute('content', titled(meta.title));
+    if (descriptionNode && meta.description)
       descriptionNode.setAttribute('content', meta.description);
-      const ogDescriptionNode = ogDescription ?? createMeta('property', 'og:description');
+    if (ogDescriptionNode && meta.description)
       ogDescriptionNode.setAttribute('content', meta.description);
-    }
-
-    if (meta.canonical) {
-      const canonicalNode = canonical ?? createCanonical();
-      canonicalNode.setAttribute('href', meta.canonical);
-    }
+    if (canonicalNode && meta.canonical) canonicalNode.setAttribute('href', meta.canonical);
+    if (robotsNode && meta.robots) robotsNode.setAttribute('content', meta.robots);
 
     return () => {
       document.title = previousTitle;
-      restoreOrRemove(description, previousDescription, 'content');
-      restoreOrRemove(ogTitle, previousOgTitle, 'content');
-      restoreOrRemove(ogDescription, previousOgDescription, 'content');
-      restoreOrRemove(canonical, previousCanonical, 'href');
+      restoreOrRemove(descriptionNode, previousDescription, 'content');
+      restoreOrRemove(ogTitleNode, previousOgTitle, 'content');
+      restoreOrRemove(ogDescriptionNode, previousOgDescription, 'content');
+      restoreOrRemove(canonicalNode, previousCanonical, 'href');
+      restoreOrRemove(robotsNode, previousRobots, 'content');
     };
-  }, [meta.title, meta.description, meta.canonical]);
+  }, [meta.title, meta.description, meta.canonical, meta.robots]);
 }
 
 function createMeta(attr: 'name' | 'property', value: string): HTMLMetaElement {

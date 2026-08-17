@@ -1,7 +1,11 @@
 import { Suspense, lazy, useEffect, useMemo, useRef, type ReactElement } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { CaseStudyErrorBoundary } from '@/components/CaseStudyErrorBoundary';
-import { getCaseStudy, getPublishedCaseStudies } from '@/content/case-studies/registry';
+import {
+  getCaseStudy,
+  getPublishedCaseStudies,
+  isPublishedStudy,
+} from '@/content/case-studies/registry';
 import { useDocumentMeta } from '@/hooks/useDocumentMeta';
 import { canonicalOrigin } from '@/lib/site';
 import { cn } from '@/lib/utils';
@@ -88,6 +92,7 @@ export function CaseStudyPage(): ReactElement {
           title: entry.meta.title,
           description: entry.meta.summary,
           canonical: `${canonicalOrigin()}/${entry.meta.domain}/${entry.meta.slug}`,
+          robots: isPublishedStudy(entry.meta.slug) ? undefined : 'noindex',
         }
       : { title: 'Lost altitude' },
   );
