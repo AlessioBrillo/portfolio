@@ -47,6 +47,24 @@ never surface in search while it is unpublished.
 Phase 5 still awaits the author's inputs below: real photos, real copy, and
 one more long-form AI/physics study.
 
+To make those inputs turnkey, the study pipeline now carries a publishing
+safety net (`docs/content/case-study-guide.md`): the draft template carries
+a definition-of-done checklist, and the registry contract tests enforce that
+no published body contains author-slot markers — exact match against a
+`KNOWN_DEBT` ledger that currently records the corpus study's run-log
+numbers (`**—**` at lines 42/89/90/91, `fill in` at 40/64/87) and the ascent
+study's unfinished reflection (line 106). The ledger is self-expiring: the
+day the author fills those lines, deleting the debt entry is verified by the
+same test. Publishing a future study is now impossible while it still
+carries placeholders.
+
+CSP note (deliberate tradeoffs in `vercel.json`): `style-src 'unsafe-inline'`
+is required by the Framer Motion / GSAP inline style attributes that drive
+the tonal signature, and `img-src https:` admits the optimized photo
+derivatives from any future CDN origin. Both are scoped allowances inside
+an otherwise strict policy (ADR-0009); they are not loosened further for
+third-party scripts, whose addition would require their own ADR.
+
 Phase 6 groundwork that needs no content is live: static social meta (OG
 card rendered as `public/og-image.png` from `docs/design/og-image.svg`,
 twitter card, theme-color — link previews now work without JS), `robots.txt`
