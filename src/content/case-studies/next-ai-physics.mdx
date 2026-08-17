@@ -1,25 +1,78 @@
+{/*
+  NEXT STUDY — AUTHORING TEMPLATE (draft, ADR-0017)
+
+  Fill every slot below, then move the slug into PUBLISHED_ORDER in
+  `src/content/case-studies/registry.ts` and update its meta there (title,
+  role, year, stack, summary). The E2E harness and the sitemap follow the
+  registry automatically — no other file changes.
+
+  Definition of done — the published body contract (`registry.test.ts`)
+  fails on any leftover marker, so each line below is a real gate:
+
+  - [ ] Every `_(fill in: ...)_` slot replaced with real content
+  - [ ] Run log table carries real numbers (no `**—**` placeholders)
+  - [ ] Registry meta updated: real title, role, year, stack, summary
+  - [ ] Body written in the author's voice, in English
+  - [ ] Read it once aloud: would a recruiter understand the problem
+        without prior context?
+
+  Note: the study body is typography-only (`mdx-components.tsx`). Diagrams
+  and tables render as markdown; photos live in the home-page sections, not
+  in the study body.
+*/}
+
 ## Context
 
-_(Author slot — 2-3 sentences: where you were, why this problem existed. This
-draft is registered but unpublished: it is not in the mosaic, the sitemap, or
-the prev/next navigation. It is reachable only by direct URL until it is added
-to `PUBLISHED_ORDER` in `src/content/case-studies/registry.ts`.)_
+_(fill in: 2-3 sentences — where you were, why this problem existed. The
+corpus study opened with the language gap; the ascent study with the
+portfolio itself. Find the equivalent hook: the question that made you start.)_
 
 ## Problem
 
-_(Author slot — the real, specific knot. One problem, stated precisely.)_
+_(fill in: the real, specific knot. One problem, stated precisely. If it
+subdivides into three sub-knots the way the corpus study did, say so — the
+numbered structure reads well.)_
 
 ## Approach
 
-_(Author slot — how you thought: the decisions, the trade-offs, the dead ends.
-Show the brain, not just the result.)_
+_(fill in: how you thought — the decisions, the trade-offs, the dead ends.
+Show the brain, not just the result. Split into stages with `###` headings
+when the pipeline is genuinely staged; keep it linear when it is not.)_
+
+### Stage 1 — _(fill in)_
+
+_(fill in: what you did, and the check that gated it.)_
+
+### Stage 2 — _(fill in)_
+
+_(fill in: the interesting decision and why you made it.)_
 
 ## What I built
 
-_(Author slot — technical detail: stack, architecture, the interesting parts.
-Real images, optional snippets or diagrams.)_
+_(fill in: technical detail — stack, architecture, the parts you are proud
+of. Verifiable artifacts beat adjectives: every stage that ends in a
+concrete output (file, checkpoint, report) deserves its own line.)_
+
+```
+_(fill in: a real snippet or diagram worth showing, or delete this block.)_
+```
 
 ## Result / Reflection
 
-_(Author slot — outcome, and what the work changed about how you approach the
-next one. The "growing" part.)_
+Run log (fill in from the actual run — these numbers are the recruiters-facing
+proof; a bold em-dash here is a published debt, not a placeholder):
+
+| Signal | Value |
+| --- | --- |
+| Corpus size (tokens) | _(fill in)_ |
+| Vocabulary | _(fill in)_ |
+| Model config (layers / heads / dim / context) | _(fill in)_ |
+| Optimizer / schedule | _(fill in)_ |
+| Dedupe threshold | _(fill in)_ |
+| Held-out perplexity | _(fill in)_ |
+| Compression ratio | _(fill in)_ |
+| Parameter count | _(fill in)_ |
+
+_(fill in: outcome, and what the work changed about how you approach the
+next one. End on the "growing" beat — the reflection is the part a reader
+remembers.)_

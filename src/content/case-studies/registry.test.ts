@@ -6,6 +6,9 @@ import {
   isPublishedStudy,
 } from '@/content/case-studies/registry';
 import type { CaseStudyDomain } from '@/types/domain';
+import corpusBody from '@/content/case-studies/transformer-italian-corpus.mdx?raw';
+import ascentBody from '@/content/case-studies/work-the-ascent.mdx?raw';
+import vdsBody from '@/content/case-studies/vds-licence.mdx?raw';
 
 const VALID_DOMAINS: readonly CaseStudyDomain[] = ['ai', 'work', 'sky'];
 
@@ -80,6 +83,98 @@ describe('registry content contract', () => {
       expect(meta.summary.trim().length, key).toBeGreaterThan(0);
       expect(meta.stack.length, key).toBeGreaterThan(0);
       expect(entry.load, key).toBeInstanceOf(Function);
+    }
+  });
+});
+
+/**
+ * Author-slot markers: the placeholders a study template leaves behind until
+ * the author fills real content. A published study must never carry one —
+ * drafts may (they are templates by definition), so this contract checks only
+ * the published bodies.
+ */
+const AUTHOR_SLOT_MARKERS: readonly string[] = ['Author slot', 'fill in', 'TBD', '**—**'];
+
+/** Maps each marker to the 1-based lines where it occurs in a body. */
+function collectMarkerLines(body: string): Readonly<Record<string, readonly number[]>> {
+  const lines = body.split('\n');
+  const found: Record<string, readonly number[]> = {};
+  for (const marker of AUTHOR_SLOT_MARKERS) {
+    const lineNumbers: number[] = [];
+    lines.forEach((line, index) => {
+      if (line.includes(marker)) lineNumbers.push(index + 1);
+    });
+    if (lineNumbers.length > 0) {
+      found[marker] = Object.freeze(lineNumbers);
+    }
+  }
+  return Object.freeze(found);
+}
+
+/** A per-study record of markers that must still be cleared by the author. */
+interface MarkerDebt {
+  readonly slug: string;
+  readonly markers: Readonly<Record<string, readonly number[]>>;
+}
+
+/**
+ * Known content debt: markers still present in *published* bodies. The exact
+ * match below keeps this list honest — any marker not listed here fails the
+ * contract (nothing new slips in), and a listed marker that disappears fails
+ * too (the debt entry must be deleted the moment the real content lands).
+ * The debt is author input, never code: each entry names the line that must
+ * be filled with real data before the entry is removed.
+ */
+const KNOWN_DEBT: readonly MarkerDebt[] = [
+  {
+    slug: 'transformer-italian-corpus',
+    markers: {
+      'fill in': [40, 64, 87],
+      '**—**': [42, 89, 90, 91],
+    },
+  },
+  {
+    slug: 'the-ascent',
+    markers: {
+      'Author slot': [106],
+    },
+  },
+];
+
+const PUBLISHED_BODIES: Readonly<Record<string, string>> = {
+  'transformer-italian-corpus': corpusBody,
+  'the-ascent': ascentBody,
+  'vds-licence': vdsBody,
+};
+
+describe('published body contract', () => {
+  for (const meta of getPublishedCaseStudies()) {
+    it(`${meta.slug} body is free of author-slot markers, exact match with KNOWN_DEBT`, () => {
+      const body = PUBLISHED_BODIES[meta.slug];
+      expect(body, `published body missing for ${meta.slug}`).toBeDefined();
+      const actual = collectMarkerLines(body ?? '');
+      const expected =
+        KNOWN_DEBT.find((debt) => debt.slug === meta.slug)?.markers ?? Object.freeze({});
+      expect(actual).toEqual(expected);
+    });
+  }
+
+  it('every KNOWN_DEBT entry belongs to a published study', () => {
+    const publishedSlugs = getPublishedCaseStudies().map((meta) => meta.slug);
+    for (const debt of KNOWN_DEBT) {
+      expect(publishedSlugs, `debt on non-published slug ${debt.slug}`).toContain(debt.slug);
+    }
+  });
+});
+
+describe('published metadata contract', () => {
+  it('published metadata is production-ready: no placeholder role, title, or stub fields', () => {
+    for (const meta of getPublishedCaseStudies()) {
+      expect(meta.role, meta.slug).not.toMatch(/tbd/i);
+      expect(meta.title, meta.slug).not.toMatch(/placeholder/i);
+      expect(meta.year, meta.slug).toMatch(/^\d{4}$/);
+      expect(meta.stack.length, meta.slug).toBeGreaterThan(0);
+      expect(meta.summary.trim().length, meta.slug).toBeGreaterThanOrEqual(40);
     }
   });
 });
