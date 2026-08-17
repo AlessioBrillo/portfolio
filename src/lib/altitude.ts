@@ -46,8 +46,34 @@ export interface FlightAnchors {
 export function flightPositionAt(progress: number, anchors: FlightAnchors): number {
   const { ground, cruise, night } = anchors;
   if (progress <= ground || progress >= night) return 0;
-  if (progress <= cruise) {
-    return cruise > ground ? (progress - ground) / (cruise - ground) : 0;
+  // The clamp above guarantees ground < progress < night. While progress is
+  // at or below cruise the climb ramp is valid; beyond it the descent ramp is
+  // valid. Out-of-order anchors (e.g. cruise below ground) can only produce
+  // flat or mirrored ramps, never a division by a non-positive distance.
+  if (progress <= cruise) return (progress - ground) / (cruise - ground);
+  return 1 - (progress - cruise) / (night - cruise);
+}
+
+/**
+ * Maps the section currently observed by `useCurrentSection` to the altitude
+ * stop the gauge should light: the direct stop when the section is one, else
+ * the nearest previous stop walking backward through the section order. Pure
+ * over injected arrays so the degenerate cases are unit-testable; the gauge
+ * supplies its own targets/order.
+ */
+export function resolveGaugeStop(
+  currentSection: SectionId | null,
+  targets: readonly SectionId[],
+  order: readonly SectionId[],
+): number {
+  if (!currentSection) return 0;
+  const direct = targets.indexOf(currentSection);
+  if (direct !== -1) return direct;
+  const idx = order.indexOf(currentSection);
+  if (idx <= 0) return 0;
+  for (let i = idx; i >= 0; i--) {
+    const t = targets.indexOf(order[i]!);
+    if (t !== -1) return t;
   }
-  return night > cruise ? 1 - (progress - cruise) / (night - cruise) : 0;
+  return 0;
 }

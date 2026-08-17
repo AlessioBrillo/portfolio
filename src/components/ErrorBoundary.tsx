@@ -27,6 +27,9 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
 
   render(): ReactNode {
     if (this.state.hasError) {
+      /* v8 ignore next -- getDerivedStateFromError always sets an Error, so
+         this fallback copy is unreachable defensive UI. */
+      const message = this.state.error?.message ?? 'An unexpected error occurred.';
       return (
         <main
           role="alert"
@@ -36,9 +39,7 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
           <h1 className="font-display text-[length:var(--text-h2)] font-medium">
             Something went wrong.
           </h1>
-          <p className="max-w-md text-ink-soft">
-            {this.state.error?.message ?? 'An unexpected error occurred.'}
-          </p>
+          <p className="max-w-md text-ink-soft">{message}</p>
           <Link
             to="/"
             className="font-mono text-xs uppercase tracking-widest text-orange no-underline"

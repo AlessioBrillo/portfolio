@@ -15,6 +15,7 @@ describe('initAnalytics', () => {
 
   afterEach(() => {
     vi.unstubAllEnvs();
+    vi.unstubAllGlobals();
   });
 
   it('is a no-op without the analytics env pair (dev and tests)', () => {
@@ -47,6 +48,15 @@ describe('initAnalytics', () => {
     vi.stubEnv('VITE_PLAUSIBLE_API', '/api/event');
     initAnalytics();
     expect(beacons()[0]?.dataset.api).toBe('/api/event');
+  });
+
+  it('is a no-op when the document is unavailable (SSR guard)', () => {
+    vi.stubEnv('VITE_PLAUSIBLE_SRC', SRC);
+    vi.stubEnv('VITE_PLAUSIBLE_DOMAIN', DOMAIN);
+    vi.stubGlobal('document', undefined);
+    initAnalytics();
+    vi.unstubAllGlobals();
+    expect(beacons()).toHaveLength(0);
   });
 
   it('applies SRI with crossOrigin when an integrity hash is configured', () => {

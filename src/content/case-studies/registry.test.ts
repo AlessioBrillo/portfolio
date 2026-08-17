@@ -1,12 +1,26 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import {
   CASE_STUDIES,
   getCaseStudy,
   getPublishedCaseStudies,
+  isPublishedStudy,
 } from '@/content/case-studies/registry';
 import type { CaseStudyDomain } from '@/types/domain';
 
 const VALID_DOMAINS: readonly CaseStudyDomain[] = ['ai', 'work', 'sky'];
+
+vi.mock('@/content/case-studies/transformer-italian-corpus.mdx', () => ({
+  default: () => null,
+}));
+vi.mock('@/content/case-studies/vds-licence.mdx', () => ({
+  default: () => null,
+}));
+vi.mock('@/content/case-studies/work-the-ascent.mdx', () => ({
+  default: () => null,
+}));
+vi.mock('@/content/case-studies/next-ai-physics.mdx', () => ({
+  default: () => null,
+}));
 
 describe('getCaseStudy', () => {
   it('returns the entry for a known slug', () => {
@@ -46,6 +60,12 @@ describe('getCaseStudy', () => {
     const publishedSlugs = getPublishedCaseStudies().map((meta) => meta.slug);
     expect(publishedSlugs).not.toContain('next-ai-physics');
   });
+  it('resolves every registered study loader, draft included', async () => {
+    for (const entry of Object.values(CASE_STUDIES)) {
+      const mod = await entry.load();
+      expect(mod.default, entry.meta.slug).toBeTypeOf('function');
+    }
+  });
 });
 
 describe('registry content contract', () => {
@@ -75,5 +95,21 @@ describe('getPublishedCaseStudies', () => {
     expect(first).toMatchObject({ domain: 'ai', slug: 'transformer-italian-corpus' });
     expect(first).toHaveProperty('title');
     expect(first).toHaveProperty('year');
+  });
+});
+
+describe('isPublishedStudy', () => {
+  it('returns true for every study in the curated order', () => {
+    for (const meta of getPublishedCaseStudies()) {
+      expect(isPublishedStudy(meta.slug)).toBe(true);
+    }
+  });
+
+  it('returns false for the registered draft study', () => {
+    expect(isPublishedStudy('next-ai-physics')).toBe(false);
+  });
+
+  it('returns false for an unknown slug', () => {
+    expect(isPublishedStudy('non-existent')).toBe(false);
   });
 });

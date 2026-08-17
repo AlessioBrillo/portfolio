@@ -86,4 +86,38 @@ describe('mdxComponents', () => {
     render(<Hr />);
     expect(document.querySelector('hr')).toHaveClass('border-t', 'border-ink/10');
   });
+
+  it('renders paragraphs with relaxed leading and balanced text', () => {
+    const P = mdxComponents.p!;
+    render(<P>Body copy</P>);
+    expect(screen.getByText('Body copy')).toHaveClass('leading-relaxed', 'text-pretty');
+  });
+
+  it('styles ordered lists with decimal markers', () => {
+    const Ol = mdxComponents.ol!;
+    render(
+      <Ol>
+        <li>step</li>
+      </Ol>,
+    );
+    expect(screen.getByRole('list')).toHaveClass('list-decimal');
+  });
+
+  it('renders list items with relaxed leading', () => {
+    const Li = mdxComponents.li!;
+    render(<Li>entry</Li>);
+    expect(screen.getByText('entry')).toHaveClass('leading-relaxed');
+  });
+
+  it('renders strong emphasis in the semibold face', () => {
+    const Strong = mdxComponents.strong!;
+    render(<Strong>key</Strong>);
+    expect(screen.getByText('key')).toHaveClass('font-semibold');
+  });
+
+  it('renders emphasis in the italic face', () => {
+    const Em = mdxComponents.em!;
+    render(<Em>hint</Em>);
+    expect(screen.getByText('hint')).toHaveClass('italic');
+  });
 });

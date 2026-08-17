@@ -99,6 +99,37 @@ describe('TopBar', () => {
     expect(header.className).toContain('translate-y-0');
   });
 
+  it('coalesces rapid scroll events into a single animation frame', () => {
+    const { container } = render(<TopBar />);
+    const header = container.querySelector('header')!;
+
+    setScrollY(600);
+    act(() => {
+      window.dispatchEvent(new Event('scroll', { cancelable: true }));
+    });
+    act(() => {
+      window.dispatchEvent(new Event('scroll', { cancelable: true }));
+    });
+    act(() => {
+      vi.advanceTimersByTime(16);
+    });
+
+    expect(header.className).toContain('-translate-y-full');
+  });
+
+  it('cancels the pending frame when the bar unmounts mid-scroll', () => {
+    const cancelSpy = vi.spyOn(window, 'cancelAnimationFrame');
+    const { unmount } = render(<TopBar />);
+
+    act(() => {
+      window.dispatchEvent(new Event('scroll', { cancelable: true }));
+    });
+    unmount();
+
+    expect(cancelSpy).toHaveBeenCalled();
+    cancelSpy.mockRestore();
+  });
+
   it('renders the name and contact link', () => {
     mockUseCurrentSection.mockReturnValue(null);
     const { getByRole } = render(<TopBar />);

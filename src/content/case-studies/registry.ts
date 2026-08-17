@@ -74,9 +74,10 @@ export function getCaseStudy(slug: string): CaseStudyEntry | undefined {
 
 /**
  * Curated reading order for the published studies — the source of truth for
- * cross-study prev/next navigation and the build-time sitemap. The order is
- * the mosaic's narrative: the serious core first, the engineered showcase
- * second, the sky closing the flight.
+ * cross-study prev/next navigation, the build-time sitemap, and the
+ * publish/draft boundary (ADR-0015, ADR-0017). The order is the mosaic's
+ * narrative: the serious core first, the engineered showcase second, the sky
+ * closing the flight.
  */
 const PUBLISHED_ORDER: readonly string[] = [
   'transformer-italian-corpus',
@@ -84,10 +85,18 @@ const PUBLISHED_ORDER: readonly string[] = [
   'vds-licence',
 ];
 
+/**
+ * True when the study is published — in `PUBLISHED_ORDER`. Unpublished
+ * registrations are drafts (ADR-0017): their routes stay resolvable for
+ * review but render `noindex` so search engines never surface them.
+ */
+export function isPublishedStudy(slug: string): boolean {
+  return PUBLISHED_ORDER.includes(slug);
+}
+
 /** The published studies' metadata, in curated order (never the raw map). */
 export function getPublishedCaseStudies(): readonly CaseStudyMeta[] {
-  return PUBLISHED_ORDER.flatMap((slug) => {
-    const entry = CASE_STUDIES[slug];
-    return entry ? [entry.meta] : [];
-  });
+  // The registry content contract test pins every PUBLISHED_ORDER slug to a
+  // registered entry, so the lookup below can never miss (ADR-0017).
+  return PUBLISHED_ORDER.map((slug) => CASE_STUDIES[slug]!.meta);
 }
