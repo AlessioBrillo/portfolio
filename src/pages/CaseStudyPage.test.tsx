@@ -46,8 +46,7 @@ vi.mock('@/content/case-studies/registry', () => ({
           stack: ['TBD'],
           summary: 'A registered but unpublished study',
         },
-        load: () =>
-          Promise.resolve({ default: () => <div data-testid="body">Draft content</div> }),
+        load: () => Promise.resolve({ default: () => <div data-testid="body">Draft content</div> }),
       };
     }
     const found = STUDIES.find((study) => study.slug === slug);
