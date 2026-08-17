@@ -1,5 +1,5 @@
 import type { ReactElement } from 'react';
-import { ALTITUDE_STOPS, SECTION_ORDER } from '@/lib/altitude';
+import { ALTITUDE_STOPS, resolveGaugeStop, SECTION_ORDER } from '@/lib/altitude';
 import { useSceneTone } from '@/components/ascent/tone-context';
 import { useCurrentSection } from '@/hooks/useCurrentSection';
 import { useReducedMotion } from '@/hooks/useReducedMotion';
@@ -23,20 +23,7 @@ import type { SectionId } from '@/types/domain';
  * On mobile the gauge collapses into a thin top journey-progress bar
  * (`useScrollProgress`).
  */
-const TARGETS = ALTITUDE_STOPS.map((s) => s.target);
-
-function activeGaugeIndex(currentSection: SectionId | null): number {
-  if (!currentSection) return 0;
-  const direct = TARGETS.indexOf(currentSection);
-  if (direct !== -1) return direct;
-  const idx = SECTION_ORDER.indexOf(currentSection);
-  if (idx <= 0) return 0;
-  for (let i = idx; i >= 0; i--) {
-    const t = TARGETS.indexOf(SECTION_ORDER[i]!);
-    if (t !== -1) return t;
-  }
-  return 0;
-}
+const TARGETS: readonly SectionId[] = ALTITUDE_STOPS.map((s) => s.target);
 
 export function AltitudeGauge(): ReactElement {
   const currentSection = useCurrentSection();
@@ -44,7 +31,7 @@ export function AltitudeGauge(): ReactElement {
   const altitude = useAltitudeProfile();
   const progress = useScrollProgress();
   const { tone: sceneTone } = useSceneTone();
-  const activeIndex = activeGaugeIndex(currentSection);
+  const activeIndex = resolveGaugeStop(currentSection, TARGETS, SECTION_ORDER);
   // Labels follow the live scene tone (ADR-0011) so they stay legible through
   // the blends; explicit solid-night sections still force dark chrome.
   const inDark = isNightSection(currentSection) || sceneTone === 'night';

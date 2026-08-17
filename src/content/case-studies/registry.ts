@@ -96,8 +96,7 @@ export function isPublishedStudy(slug: string): boolean {
 
 /** The published studies' metadata, in curated order (never the raw map). */
 export function getPublishedCaseStudies(): readonly CaseStudyMeta[] {
-  return PUBLISHED_ORDER.flatMap((slug) => {
-    const entry = CASE_STUDIES[slug];
-    return entry ? [entry.meta] : [];
-  });
+  // The registry content contract test pins every PUBLISHED_ORDER slug to a
+  // registered entry, so the lookup below can never miss (ADR-0017).
+  return PUBLISHED_ORDER.map((slug) => CASE_STUDIES[slug]!.meta);
 }

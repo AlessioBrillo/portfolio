@@ -14,6 +14,7 @@ const XML_ESCAPES: Readonly<Record<string, string>> = {
 };
 
 function escapeXml(value: string): string {
+  /* v8 ignore next -- the replacement regex covers exactly the mapped escapes. */
   return value.replace(/[&<>"']/g, (char) => XML_ESCAPES[char] ?? char);
 }
 

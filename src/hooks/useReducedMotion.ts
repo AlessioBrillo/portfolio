@@ -7,8 +7,11 @@ const QUERY = '(prefers-reduced-motion: reduce)';
  * Motion-heavy effects (reveals, quota transitions) must opt out when true.
  */
 export function useReducedMotion(): boolean {
-  const [prefersReduced, setPrefersReduced] = useState<boolean>(() =>
-    typeof window !== 'undefined' ? window.matchMedia(QUERY).matches : false,
+  const [prefersReduced, setPrefersReduced] = useState<boolean>(
+    () =>
+      /* v8 ignore start -- SSR-only branch: this SPA always renders in a browser. */
+      typeof window !== 'undefined' ? window.matchMedia(QUERY).matches : false,
+    /* v8 ignore stop */
   );
 
   useEffect(() => {
