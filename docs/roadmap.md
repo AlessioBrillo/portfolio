@@ -66,6 +66,24 @@ day the author fills those lines, deleting the debt entry is verified by the
 same test. Publishing a future study is now impossible while it still
 carries placeholders.
 
+The first real draft is registered: `physics-of-flight`
+(`/ai/physics-of-flight`, ADR-0017) — the physics half of the AI & Physics
+core, companion to the VDS licence study. It renders noindex by direct URL,
+stays out of the mosaic, sitemap and prev/next, and its body carries
+author-slot markers (POH figures, a logbook go/no-go example) under the same
+`KNOWN_DEBT` discipline that guards published bodies. Registering it surfaced
+a latent test-infrastructure gap: `vitest.config.ts` fully replaces
+`vite.config.ts`, and it never mirrored the MDX plugin — so no real `.mdx`
+body had ever been loaded inside a test (the four published bodies were
+`vi.mock`ed, and a real load died in `vite:import-analysis`). The plugin is
+now mirrored (enforce-pre, same `providerImportSource`), and the published-
+body contract reads its raw sources with `node:fs` instead of `?raw` imports,
+which the MDX plugin would intercept. The loader contract now exercises the
+true MDX pipeline on the draft body; the draft-pinning tests become the
+publish gate — the day the study is published, "stays unpublished" fails
+first, forcing the conscious two-step: fill the markers, then add the key to
+`PUBLISHED_ORDER`.
+
 CSP note (deliberate tradeoffs in `vercel.json`): `style-src 'unsafe-inline'`
 is required by the Framer Motion / GSAP inline style attributes that drive
 the tonal signature, and `img-src https:` admits the optimized photo
@@ -147,7 +165,9 @@ is the one thing the gate cannot catch.
    experiences).
 2. ~~**2-3 case studies**~~ — resolved: the grokking study
    (`/ai/grokking-modular-addition`) is published; what remains is the corpus
-   study's run-log numbers (KNOWN_DEBT), not a new study.
+   study's run-log numbers (KNOWN_DEBT) and the physics-of-flight draft's
+   author markers (POH figures, one logbook go/no-go example), not a new
+   study.
 3. The current **LinkedIn headline** (for the hero eyebrow).
 4. A **domain** + how you want to sign (full name? a small personal brand?).
 5. ~~**Font binaries**~~ — resolved: the Latin-subset variable woff2 files
