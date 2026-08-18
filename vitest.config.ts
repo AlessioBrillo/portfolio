@@ -1,5 +1,6 @@
 import { defineConfig } from 'vitest/config';
 import react from '@vitejs/plugin-react';
+import mdx from '@mdx-js/rollup';
 import { resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -11,7 +12,15 @@ export default defineConfig({
       '@': resolve(dirname, 'src'),
     },
   },
-  plugins: [react()],
+  plugins: [
+    // vitest.config.ts fully replaces vite.config.ts, so the MDX pipeline
+    // (enforced pre-react, same as the build) must be mirrored here — without
+    // it a real .mdx body loaded in a test is served as raw JS and dies in
+    // vite:import-analysis. Registry loader tests only revealed this when the
+    // first un-mocked draft body landed.
+    { enforce: 'pre', ...mdx({ providerImportSource: '@mdx-js/react' }) },
+    react(),
+  ],
   test: {
     environment: 'jsdom',
     globals: false,
@@ -22,7 +31,14 @@ export default defineConfig({
       provider: 'v8',
       reporter: ['text', 'lcov'],
       include: ['src/**/*.{ts,tsx}'],
-      exclude: ['src/**/*.test.{ts,tsx}', 'src/test-setup.ts', 'src/vite-env.d.ts', 'src/mdx.d.ts', 'src/main.tsx', 'src/types/**'],
+      exclude: [
+        'src/**/*.test.{ts,tsx}',
+        'src/test-setup.ts',
+        'src/vite-env.d.ts',
+        'src/mdx.d.ts',
+        'src/main.tsx',
+        'src/types/**',
+      ],
       thresholds: {
         statements: 100,
         branches: 100,

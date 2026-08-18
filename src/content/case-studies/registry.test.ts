@@ -1,3 +1,5 @@
+import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
 import { describe, expect, it, vi } from 'vitest';
 import {
   CASE_STUDIES,
@@ -6,10 +8,16 @@ import {
   isPublishedStudy,
 } from '@/content/case-studies/registry';
 import type { CaseStudyDomain } from '@/types/domain';
-import corpusBody from '@/content/case-studies/transformer-italian-corpus.mdx?raw';
-import ascentBody from '@/content/case-studies/work-the-ascent.mdx?raw';
-import vdsBody from '@/content/case-studies/vds-licence.mdx?raw';
-import grokkingBody from '@/content/case-studies/grokking-modular-addition.mdx?raw';
+
+/** Reads a study body as raw source text, off the transform pipeline. */
+function readRawBody(slug: string): string {
+  return readFileSync(join(process.cwd(), 'src', 'content', 'case-studies', `${slug}.mdx`), 'utf8');
+}
+
+const corpusBody = readRawBody('transformer-italian-corpus');
+const ascentBody = readRawBody('work-the-ascent');
+const vdsBody = readRawBody('vds-licence');
+const grokkingBody = readRawBody('grokking-modular-addition');
 
 const VALID_DOMAINS: readonly CaseStudyDomain[] = ['ai', 'work', 'sky'];
 
@@ -226,5 +234,31 @@ describe('isPublishedStudy', () => {
 
   it('returns false for an unknown study', () => {
     expect(isPublishedStudy({ domain: 'ai', slug: 'non-existent' })).toBe(false);
+  });
+});
+
+/**
+ * The physics-of-flight draft (ADR-0017): registered for review, never
+ * published. This is the pipeline's first real draft — these tests pin the
+ * draft boundary (route resolvable, mosaic/sitemap/prev-next excluded) so a
+ * future publish step is a conscious, reviewed decision.
+ */
+describe('physics-of-flight draft (ADR-0017)', () => {
+  it('resolves the draft route with complete metadata', () => {
+    const entry = getCaseStudy('ai', 'physics-of-flight');
+    expect(entry, 'draft must be registered in CASE_STUDIES').toBeDefined();
+    expect(entry?.meta.slug).toBe('physics-of-flight');
+    expect(entry?.meta.domain).toBe('ai');
+    expect(entry?.meta.title.trim().length).toBeGreaterThan(0);
+    expect(entry?.meta.stack.length).toBeGreaterThan(0);
+    expect(entry?.load).toBeInstanceOf(Function);
+  });
+
+  it('stays unpublished: out of the mosaic, sitemap and prev/next', () => {
+    const publishedSlugs = getPublishedCaseStudies().map((meta) => meta.slug);
+    expect(publishedSlugs).not.toContain('physics-of-flight');
+    const entry = getCaseStudy('ai', 'physics-of-flight');
+    expect(entry, 'draft must be registered in CASE_STUDIES').toBeDefined();
+    expect(isPublishedStudy(entry!.meta)).toBe(false);
   });
 });
