@@ -72,6 +72,12 @@ describe('getCaseStudy', () => {
 });
 
 describe('registry content contract', () => {
+  it('keys every entry by its own domain/slug pair — the route identity', () => {
+    for (const [key, entry] of Object.entries(CASE_STUDIES)) {
+      expect(key, `key for ${entry.meta.slug}`).toBe(`${entry.meta.domain}/${entry.meta.slug}`);
+    }
+  });
+
   it('every registered study — published or draft — carries complete metadata', () => {
     for (const [key, entry] of Object.entries(CASE_STUDIES)) {
       const { meta } = entry;
