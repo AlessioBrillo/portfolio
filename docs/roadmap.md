@@ -70,7 +70,12 @@ card rendered as `public/og-image.png` from `docs/design/og-image.svg`,
 twitter card, theme-color — link previews now work without JS), `robots.txt`
 (allow-all; `Sitemap:` line waits for the domain), the Vercel SPA fallback
 now excludes the static files (`favicon.svg`, `og-image.png`, `robots.txt`,
-`sitemap.xml`, `apple-touch-icon.png`, `*.webmanifest`). The icon family is
+`sitemap.xml`, `apple-touch-icon.png`, `*.webmanifest`) and the photo route
+(`photos/`). The exclusion list is pinned by a contract test plus a CI step
+(`npm run deploy:check`) that walks `public/` and fails the pipeline if any
+committed static file would be rewritten to `index.html` — the day a new photo
+or static file lands without an exclusion, the build fails instead of serving
+HTML bytes as an image. The icon family is
 complete — `apple-touch-icon.png` (iOS home screen) and `site.webmanifest`
 (Android/install) derive from the `favicon.svg` glyph, so the SPA-fallback
 exclusions for them are live, not dead entries. The JavaScript payload is
