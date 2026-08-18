@@ -17,6 +17,15 @@ export default defineConfig({
   plugins: [
     { enforce: 'pre', ...mdx({ providerImportSource: '@mdx-js/react' }) },
     react(),
+    // Machine-readable bundle stats, emitted on every build: the input for the
+    // bundle-size gate (ADR-0018, `npm run bundle:check`). Cheap to produce,
+    // and a build without stats cannot be reviewed against the budget.
+    visualizer({
+      filename: 'dist/stats.json',
+      template: 'raw-data',
+      gzipSize: true,
+      brotliSize: true,
+    }),
     ...(process.env.ANALYZE
       ? [
           visualizer({
