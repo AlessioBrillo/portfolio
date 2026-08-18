@@ -75,6 +75,7 @@ export function CaseStudyPage(): ReactElement {
   const valid = entry !== undefined && domain === entry.meta.domain;
   const Body = useMemo(() => (entry ? lazy(entry.load) : null), [entry]);
   const nav = useMemo(() => (valid && slug ? studyNavigation(slug) : {}), [valid, slug]);
+  const origin = canonicalOrigin();
 
   // Prev/next navigation unmounts the link that held focus, dropping it to the
   // body (WCAG 2.4.3). Move it to the study heading on slug *change* only —
@@ -91,7 +92,7 @@ export function CaseStudyPage(): ReactElement {
       ? {
           title: entry.meta.title,
           description: entry.meta.summary,
-          canonical: `${canonicalOrigin()}/${entry.meta.domain}/${entry.meta.slug}`,
+          canonical: origin ? `${origin}/${entry.meta.domain}/${entry.meta.slug}` : undefined,
           robots: isPublishedStudy(entry.meta.slug) ? undefined : 'noindex',
         }
       : { title: 'Lost altitude' },

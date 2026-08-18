@@ -25,6 +25,10 @@ test.describe('case study routes', () => {
       await expect(page.getByRole('link', { name: /Back to the ascent/ })).toBeVisible();
       await expect(page.getByRole('heading', { level: 2 }).first()).toBeVisible();
       await expect(page.locator('meta[name="robots"][content="noindex"]')).toHaveCount(0);
+      // Pre-domain contract (src/lib/site.ts): without a configured origin no
+      // canonical link is emitted — previews must never advertise a throwaway
+      // origin as the authoritative one.
+      await expect(page.locator('link[rel="canonical"]')).toHaveCount(0);
     });
   }
 
