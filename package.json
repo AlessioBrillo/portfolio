@@ -15,6 +15,7 @@
     "bundle:check": "node scripts/check-bundle.mjs",
     "bundle:report": "node scripts/check-bundle.mjs --report",
     "deploy:check": "node scripts/check-deploy-routing.mjs",
+    "photos:check": "node scripts/check-photo-assets.mjs",
     "preview": "vite preview",
     "analyze": "cross-env ANALYZE=true vite build",
     "images": "node scripts/optimize-images.mjs",
