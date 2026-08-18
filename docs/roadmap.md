@@ -83,7 +83,10 @@ under a CI-enforced budget (ADR-0018): every build runs `npm run bundle:check`
 against the committed `bundle-baseline.json` (entry chunk 165 kB, total JS
 225 kB gzip), so a growing bundle fails the pipeline instead of waiting for a
 manual analyzer run. Deploy itself, the absolute og:image URL and
-`sitemap.xml` still wait on the domain; the audit pass is done.
+`sitemap.xml` still wait on the domain; the audit pass is done. Node is pinned
+to 24 everywhere (`.nvmrc` + `engines`): CI reads the file and Vercel resolves
+the same runtime, so the `postbuild` sitemap step can never silently skip on a
+stale runner.
 
 The photo pipeline is ready for input 1: content modules carry a full
 responsive `ImageAsset` contract (intrinsic dimensions, typed AVIF/WebP

@@ -36,7 +36,7 @@ const STUDIES = [
 const mocks = vi.hoisted(() => ({
   getCaseStudy: vi.fn(),
   getPublishedCaseStudies: vi.fn(() => [...STUDIES]),
-  isPublishedStudy: vi.fn((slug: string) => slug !== 'draft-study'),
+  isPublishedStudy: vi.fn((meta: { domain: string; slug: string }) => meta.slug !== 'draft-study'),
 }));
 
 vi.mock('@/content/case-studies/registry', () => mocks);
@@ -54,7 +54,7 @@ function renderAt(path: string): ReturnType<typeof render> {
 
 describe('CaseStudyPage', () => {
   beforeEach(() => {
-    mocks.getCaseStudy.mockImplementation((slug: string) => {
+    mocks.getCaseStudy.mockImplementation((domain: string, slug: string) => {
       if (slug === 'draft-study') {
         return {
           meta: {
@@ -70,7 +70,7 @@ describe('CaseStudyPage', () => {
             Promise.resolve({ default: () => <div data-testid="body">Draft content</div> }),
         };
       }
-      const found = STUDIES.find((study) => study.slug === slug);
+      const found = STUDIES.find((study) => study.slug === slug && study.domain === domain);
       return found
         ? {
             meta: found,

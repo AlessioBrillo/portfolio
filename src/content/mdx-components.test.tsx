@@ -23,6 +23,12 @@ describe('mdxComponents', () => {
       'pre',
       'blockquote',
       'hr',
+      'table',
+      'thead',
+      'tbody',
+      'tr',
+      'th',
+      'td',
     ] as const;
 
     for (const tag of expected) {
@@ -119,5 +125,69 @@ describe('mdxComponents', () => {
     const Em = mdxComponents.em!;
     render(<Em>hint</Em>);
     expect(screen.getByText('hint')).toHaveClass('italic');
+  });
+
+  it('frames run-log tables as a card with horizontal scroll on narrow widths', () => {
+    const Table = mdxComponents.table!;
+    render(
+      <Table>
+        <tbody>
+          <tr>
+            <td>cell</td>
+          </tr>
+        </tbody>
+      </Table>,
+    );
+    expect(document.querySelector('.overflow-x-auto')).toBeTruthy();
+    expect(document.querySelector('table')).toHaveClass('w-full', 'border-collapse', 'text-left');
+  });
+
+  it('passes the table head through untouched', () => {
+    const Thead = mdxComponents.thead!;
+    render(
+      <Thead>
+        <tr>
+          <th>header</th>
+        </tr>
+      </Thead>,
+    );
+    expect(document.querySelector('thead')).toBeTruthy();
+    expect(screen.getByText('header')).toBeInTheDocument();
+  });
+
+  it('passes the table body through untouched', () => {
+    const Tbody = mdxComponents.tbody!;
+    render(
+      <Tbody>
+        <tr>
+          <td>body</td>
+        </tr>
+      </Tbody>,
+    );
+    expect(document.querySelector('tbody')).toBeTruthy();
+    expect(screen.getByText('body')).toBeInTheDocument();
+  });
+
+  it('styles table headers in the mono eyebrow treatment', () => {
+    const Th = mdxComponents.th!;
+    render(<Th scope="col">Signal</Th>);
+    expect(screen.getByRole('columnheader', { name: 'Signal' })).toHaveClass(
+      'font-mono',
+      'uppercase',
+      'tracking-widest',
+      'text-ink-soft',
+    );
+  });
+
+  it('gives table cells breathing room on the paper surface', () => {
+    const Td = mdxComponents.td!;
+    render(<Td>42</Td>);
+    expect(screen.getByRole('cell', { name: '42' })).toHaveClass('px-4', 'py-2.5', 'align-top');
+  });
+
+  it('draws hairline row separators', () => {
+    const Tr = mdxComponents.tr!;
+    render(<Tr />);
+    expect(document.querySelector('tr')).toHaveClass('border-b', 'border-ink/10');
   });
 });
