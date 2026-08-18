@@ -26,9 +26,10 @@ anything is confidential: anonymise ("a client in X") or omit.
 MTB. Very visual — your photos. Olive and orange breathe here. Aviation is also
 the narrative thread of the whole site; close the circle.
 
-**06 · Experiences.** Curated, high-impact storytelling on the surface; a "dig
-deeper" reveals the chronological archive. Public, but _only what you choose to
-show_.
+**06 · Experiences.** Curated, high-impact storytelling on the surface; "dig
+deeper" opens the archive route (`/archive`, ADR-0019) with the chronological
+record — every study, project and story, newest first, projected from the
+content modules. Public, but _only what you choose to show_.
 
 **07 · Contact.** One clear invitation. "Let's talk." -> email + LinkedIn. (The
 resume lives as a footer hook, `Resume — on request` via pre-filled email, not

@@ -31,6 +31,8 @@ try {
 
 const entries = [
   { loc: '/' },
+  // The experiences archive (ADR-0019) — a published surface like the studies.
+  { loc: '/archive' },
   ...getPublishedCaseStudies().map((meta) => ({ loc: `/${meta.domain}/${meta.slug}` })),
 ];
 
