@@ -68,9 +68,7 @@ if (missing.length > 0) {
 }
 if (orphans.length > 0) {
   violations += 1;
-  console.error(
-    '[photos] VIOLATION: committed derivatives that no content module references:',
-  );
+  console.error('[photos] VIOLATION: committed derivatives that no content module references:');
   for (const path of orphans) {
     console.error(`  ${path}`);
   }
