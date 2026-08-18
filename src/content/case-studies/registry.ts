@@ -62,18 +62,18 @@ export const CASE_STUDIES: Readonly<Record<string, CaseStudyEntry>> = {
     },
     load: () => import('./work-the-ascent.mdx'),
   },
-  'ai/next-ai-physics': {
+  'ai/grokking-modular-addition': {
     meta: {
-      slug: 'next-ai-physics',
+      slug: 'grokking-modular-addition',
       domain: 'ai',
-      title: 'Next study — placeholder draft',
-      role: 'TBD',
+      title: 'In search of grokking: a positive-negative on modular addition',
+      role: 'Independent research',
       year: '2026',
-      stack: ['TBD'],
+      stack: ['PyTorch', 'Mechanistic interpretability', 'Python'],
       summary:
-        "Draft study awaiting the author's material. Registered but unpublished: reachable by direct URL only, absent from the mosaic, sitemap, and prev/next navigation.",
+        'Three seeds, five thousand epochs, and an honest negative — the search for the grokking phase transition on modular addition.',
     },
-    load: () => import('./next-ai-physics.mdx'),
+    load: () => import('./grokking-modular-addition.mdx'),
   },
 };
 
@@ -86,11 +86,13 @@ export function getCaseStudy(domain: string, slug: string): CaseStudyEntry | und
  * Curated reading order for the published studies — the source of truth for
  * cross-study prev/next navigation, the build-time sitemap, and the
  * publish/draft boundary (ADR-0015, ADR-0017). The order is the mosaic's
- * narrative: the serious core first, the engineered showcase second, the sky
- * closing the flight.
+ * narrative: the serious core first (both AI studies, the language one then
+ * the grokking one), the engineered showcase next, the sky closing the
+ * flight.
  */
 const PUBLISHED_ORDER: readonly string[] = [
   'ai/transformer-italian-corpus',
+  'ai/grokking-modular-addition',
   'work/the-ascent',
   'sky/vds-licence',
 ];
