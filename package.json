@@ -6,7 +6,7 @@
   "description": "Personal portfolio — The Ascent. A single-page, scroll-driven site.",
   "license": "MIT",
   "engines": {
-    "node": ">=22.18"
+    "node": ">=24.0.0"
   },
   "scripts": {
     "dev": "vite",

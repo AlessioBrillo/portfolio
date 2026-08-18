@@ -23,7 +23,7 @@
  * The script never touches `src/content`: the author reviews and pastes the
  * printed block, so alt text and captions stay human-written.
  *
- * Requires Node >=22.18 (native TypeScript type stripping) to import the
+ * Requires Node >=24 (native TypeScript type stripping) to import the
  * helper module `src/lib/photo-pipeline.ts` (see `engines` in package.json).
  */
 import { createHash } from 'node:crypto';
@@ -53,7 +53,7 @@ try {
   pipelineHelpers = await import('../src/lib/photo-pipeline.ts');
 } catch (error) {
   console.error(
-    '[images] Could not load src/lib/photo-pipeline.ts — requires Node >=22.18 (native TypeScript type stripping).',
+    '[images] Could not load src/lib/photo-pipeline.ts — requires Node >=24 (native TypeScript type stripping).',
   );
   console.error(error?.message ?? error);
   process.exit(1);
