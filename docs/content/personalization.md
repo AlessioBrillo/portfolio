@@ -7,8 +7,11 @@ flourish per area**, never accumulate.
   not the site. Design it: Night background, name in Fraunces, orange thread, one
   line. Highly curated.
 - **Favicon** — a small orange glyph: an abstract wing profile / an ascent arrow.
-  Your minimal mark. (The scaffold ships a placeholder ascent-arrow SVG favicon in
-  `index.html`.)
+  Your minimal mark. (The scaffold ships a placeholder ascent-arrow SVG favicon at
+  `public/favicon.svg`, linked from `index.html`.) The icon family is derived from
+  that single source: `public/apple-touch-icon.png` (180x180, paper background) and
+  `public/site.webmanifest` — regenerate the PNG from the SVG whenever the glyph
+  changes.
 - **Metadata that tells the truth** — dates, VDS coordinates, altitude, stack: no
   decorative labels.
 - **One easter egg**, consistent with the curious character — in the Night band, a
