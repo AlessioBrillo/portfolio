@@ -120,4 +120,11 @@ describe('mdxComponents', () => {
     render(<Em>hint</Em>);
     expect(screen.getByText('hint')).toHaveClass('italic');
   });
+
+  it('maps the run-log table elements a study body can produce', () => {
+    const map = mdxComponents as Readonly<Record<string, unknown>>;
+    for (const tag of ['table', 'thead', 'tbody', 'tr', 'th', 'td']) {
+      expect(typeof map[tag], `missing map for <${tag}>`).toBe('function');
+    }
+  });
 });
