@@ -23,6 +23,12 @@ describe('mdxComponents', () => {
       'pre',
       'blockquote',
       'hr',
+      'table',
+      'thead',
+      'tbody',
+      'tr',
+      'th',
+      'td',
     ] as const;
 
     for (const tag of expected) {
@@ -121,10 +127,41 @@ describe('mdxComponents', () => {
     expect(screen.getByText('hint')).toHaveClass('italic');
   });
 
-  it('maps the run-log table elements a study body can produce', () => {
-    const map = mdxComponents as Readonly<Record<string, unknown>>;
-    for (const tag of ['table', 'thead', 'tbody', 'tr', 'th', 'td']) {
-      expect(typeof map[tag], `missing map for <${tag}>`).toBe('function');
-    }
+  it('frames run-log tables as a card with horizontal scroll on narrow widths', () => {
+    const Table = mdxComponents.table!;
+    render(
+      <Table>
+        <tbody>
+          <tr>
+            <td>cell</td>
+          </tr>
+        </tbody>
+      </Table>,
+    );
+    expect(document.querySelector('.overflow-x-auto')).toBeTruthy();
+    expect(document.querySelector('table')).toHaveClass('w-full', 'border-collapse', 'text-left');
+  });
+
+  it('styles table headers in the mono eyebrow treatment', () => {
+    const Th = mdxComponents.th!;
+    render(<Th scope="col">Signal</Th>);
+    expect(screen.getByRole('columnheader', { name: 'Signal' })).toHaveClass(
+      'font-mono',
+      'uppercase',
+      'tracking-widest',
+      'text-ink-soft',
+    );
+  });
+
+  it('gives table cells breathing room on the paper surface', () => {
+    const Td = mdxComponents.td!;
+    render(<Td>42</Td>);
+    expect(screen.getByRole('cell', { name: '42' })).toHaveClass('px-4', 'py-2.5', 'align-top');
+  });
+
+  it('draws hairline row separators', () => {
+    const Tr = mdxComponents.tr!;
+    render(<Tr />);
+    expect(document.querySelector('tr')).toHaveClass('border-b', 'border-ink/10');
   });
 });

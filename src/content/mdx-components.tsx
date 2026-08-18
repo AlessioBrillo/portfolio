@@ -28,7 +28,13 @@ type MdxBlockTag =
   | 'code'
   | 'pre'
   | 'blockquote'
-  | 'hr';
+  | 'hr'
+  | 'table'
+  | 'thead'
+  | 'tbody'
+  | 'tr'
+  | 'th'
+  | 'td';
 
 export type MdxComponentMap = Readonly<{
   [Tag in MdxBlockTag]: (props: ComponentProps<Tag>) => ReactElement;
@@ -108,6 +114,48 @@ function Hr(props: ComponentProps<'hr'>): ReactElement {
   return <hr className="my-2 border-t border-ink/10" {...props} />;
 }
 
+/**
+ * Run-log tables get a card frame with horizontal scrolling on narrow
+ * viewports — the same figure treatment as the night `pre` blocks, on the
+ * paper surface. Row hairlines live on `tr`/`th` so the grid reads as a
+ * single object even when it scrolls.
+ */
+function Table(props: ComponentProps<'table'>): ReactElement {
+  return (
+    <div className="overflow-x-auto rounded-[var(--radius-card)] border border-ink/10">
+      <table
+        className="w-full border-collapse text-left text-[length:var(--text-body)]"
+        {...props}
+      />
+    </div>
+  );
+}
+
+function TableHead(props: ComponentProps<'thead'>): ReactElement {
+  return <thead {...props} />;
+}
+
+function TableBody(props: ComponentProps<'tbody'>): ReactElement {
+  return <tbody {...props} />;
+}
+
+function TableRow(props: ComponentProps<'tr'>): ReactElement {
+  return <tr className="border-b border-ink/10 last:border-b-0" {...props} />;
+}
+
+function TableHeaderCell(props: ComponentProps<'th'>): ReactElement {
+  return (
+    <th
+      className="border-b border-ink/10 px-4 py-2.5 font-mono text-xs font-medium uppercase tracking-widest text-ink-soft"
+      {...props}
+    />
+  );
+}
+
+function TableCell(props: ComponentProps<'td'>): ReactElement {
+  return <td className="px-4 py-2.5 align-top" {...props} />;
+}
+
 /** The component map consumed by the app-level `MDXProvider`. */
 export const mdxComponents: MdxComponentMap = {
   h2: H2,
@@ -123,4 +171,10 @@ export const mdxComponents: MdxComponentMap = {
   pre: Preformatted,
   blockquote: Blockquote,
   hr: Hr,
+  table: Table,
+  thead: TableHead,
+  tbody: TableBody,
+  tr: TableRow,
+  th: TableHeaderCell,
+  td: TableCell,
 };
