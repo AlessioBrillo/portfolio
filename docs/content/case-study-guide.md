@@ -9,11 +9,13 @@ each new study is authoring. This guide is the author's workflow, end to end.
 
 ## The workflow
 
-1. **Write into the draft.** Start from the registered draft
-   (`src/content/case-studies/next-ai-physics.mdx`) — it is a fill-in template
-   with a definition-of-done checklist in its header comment. The route
-   `/{domain}/{slug}` renders the draft for review by direct URL while it
-   stays out of the mosaic, the sitemap, and the navigation (ADR-0017).
+1. **Write the study.** Start from the authoring template
+   (`docs/content/case-study-template.md`) — its header comment carries the
+   definition-of-done checklist. To review a study before publishing,
+   register it in `CASE_STUDIES` without adding it to `PUBLISHED_ORDER`: the
+   route `/{domain}/{slug}` then renders the draft for review by direct URL
+   while it stays out of the mosaic, the sitemap, and the navigation
+   (ADR-0017).
 2. **Update the registry meta.** In
    `src/content/case-studies/registry.ts`, replace the draft's placeholder
    meta (title, role, year, stack, summary) with the real one. `stack` and

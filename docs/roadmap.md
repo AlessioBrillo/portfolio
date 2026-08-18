@@ -32,26 +32,27 @@ anchor. Scene bands also now follow the live backdrop tone (ADR-0011): the
 engine publishes each fade's winning tone and band text, eyebrows and muted
 copy flip with it, so every element stays AA-legible at both ends of the
 flight. The SPA fallback for the `/{domain}/{slug}` deep links (a pending
-consequence of ADR-0005) is configured in `vercel.json`. Three long-form
+consequence of ADR-0005) is configured in `vercel.json`. Four long-form
 studies are published as real routes: the corpus study
-(`/ai/transformer-italian-corpus`, a professional draft), the ascent study
+(`/ai/transformer-italian-corpus`, a professional draft), the grokking study
+(`/ai/grokking-modular-addition`, a manifest-backed positive-negative on
+modular addition), the ascent study
 (`/work/the-ascent`) and the VDS licence study (`/sky/vds-licence`); each
 domain route ships with its own code-split MDX body and E2E deep-link
-coverage. The scaffold for that next study is registered as a draft route
-(`/ai/next-ai-physics`, in `CASE_STUDIES` but not in `PUBLISHED_ORDER`): it
-renders by direct URL for review, stays out of the mosaic, sitemap and
-prev/next navigation, and the deep-link and prev/next E2E tests are now driven
-by the registry — a new published study is covered without editing the harness. The
-draft route also carries `robots: noindex` (ADR-0017), so its placeholder can
-never surface in search while it is unpublished.
-Phase 5 still awaits the author's inputs below: real photos, real copy, and
-one more long-form AI/physics study.
+coverage. The publishing pipeline (ADR-0017) remains live: registering a
+study in `CASE_STUDIES` without placing it in `PUBLISHED_ORDER` renders it
+as a `noindex` draft by direct URL for review, and the deep-link and
+prev/next E2E tests are registry-driven -- a new published study is covered
+without editing the harness.
+Phase 5 still awaits the author's inputs below: real photos, real copy (the
+corpus study's run-log numbers), and nothing structural.
 
-To make those inputs turnkey, the study pipeline now carries a publishing
-safety net (`docs/content/case-study-guide.md`): the draft template carries
-a definition-of-done checklist, and the registry contract tests enforce that
-no published body contains author-slot markers — exact match against a
-`KNOWN_DEBT` ledger that currently records the corpus study's run-log
+To make those inputs turnkey, the study pipeline carries a publishing
+safety net (`docs/content/case-study-guide.md`): the authoring template
+(`docs/content/case-study-template.md`) carries a definition-of-done
+checklist, and the registry contract tests enforce that no published body
+contains author-slot markers — exact match against a `KNOWN_DEBT` ledger that
+currently records the corpus study's run-log
 numbers (`**—**` at lines 42/89/90/91, `fill in` at 40/64/87) and the ascent
 study's unfinished reflection (line 106). The ledger is self-expiring: the
 day the author fills those lines, deleting the debt entry is verified by the
@@ -134,8 +135,9 @@ is the one thing the gate cannot catch.
 
 1. **5-8 strong photos** (one sober portrait for "Who", the rest sport / flying /
    experiences).
-2. **2-3 case studies** to tell in full (at least one AI/physics for the
-   recruiter).
+2. ~~**2-3 case studies**~~ — resolved: the grokking study
+   (`/ai/grokking-modular-addition`) is published; what remains is the corpus
+   study's run-log numbers (KNOWN_DEBT), not a new study.
 3. The current **LinkedIn headline** (for the hero eyebrow).
 4. A **domain** + how you want to sign (full name? a small personal brand?).
 5. ~~**Font binaries**~~ — resolved: the Latin-subset variable woff2 files
