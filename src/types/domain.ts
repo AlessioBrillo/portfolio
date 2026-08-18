@@ -123,3 +123,16 @@ export interface WhoStatement {
   /** Shows the adjective made concrete, rather than claiming it. */
   readonly line: string;
 }
+
+/** One row of the experiences archive (`/archive`, ADR-0019). */
+export interface ArchiveEntry {
+  /** Where the record comes from: a published study, a project, a story. */
+  readonly kind: 'study' | 'project' | 'experience';
+  readonly title: string;
+  /** One-line record, sourced from the originating content module. */
+  readonly line: string;
+  /** Completion/occurrence year, shown as mono metadata; absent entries sort last. */
+  readonly year?: string;
+  /** Route for study entries (always) and project entries (when one exists). */
+  readonly href?: string;
+}

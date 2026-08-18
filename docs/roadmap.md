@@ -45,7 +45,14 @@ as a `noindex` draft by direct URL for review, and the deep-link and
 prev/next E2E tests are registry-driven -- a new published study is covered
 without editing the harness.
 Phase 5 still awaits the author's inputs below: real photos, real copy (the
-corpus study's run-log numbers), and nothing structural.
+corpus study's run-log numbers), and nothing structural. The last structural
+gap is closed: the experiences archive (ADR-0019) is a real route
+(`/archive`) — a reverse-chronological projection over the published-study
+registry, the projects and the experience stories, with automatic dedupe
+(a project already covered by a published study appears once). The band's
+"Dig deeper" link reaches it through SPA navigation, it carries its own
+document head (canonical only once the domain lands), and the E2E harness
+covers the deep link and the navigation path.
 
 To make those inputs turnkey, the study pipeline carries a publishing
 safety net (`docs/content/case-study-guide.md`): the authoring template
@@ -64,7 +71,10 @@ is required by the Framer Motion / GSAP inline style attributes that drive
 the tonal signature, and `img-src https:` admits the optimized photo
 derivatives from any future CDN origin. Both are scoped allowances inside
 an otherwise strict policy (ADR-0009); they are not loosened further for
-third-party scripts, whose addition would require their own ADR.
+third-party scripts, whose addition would require their own ADR. HSTS
+(`max-age=63072000`) is applied to every deployment, previews included —
+deliberate: Vercel is always TLS, so the interim origin's pin is harmless;
+revisit only if the domain ever moves off HTTPS.
 
 Phase 6 groundwork that needs no content is live: static social meta (OG
 card rendered as `public/og-image.png` from `docs/design/og-image.svg`,
