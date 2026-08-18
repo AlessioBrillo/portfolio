@@ -75,6 +75,26 @@ export const CASE_STUDIES: Readonly<Record<string, CaseStudyEntry>> = {
     },
     load: () => import('./grokking-modular-addition.mdx'),
   },
+  /**
+   * Draft (ADR-0017): registered for review, intentionally absent from
+   * PUBLISHED_ORDER. The physics half of the AI & Physics core — the flight
+   * manual derived from first principles, companion to the VDS licence study.
+   * Its route renders noindex until the author fills the run-log-style
+   * markers and moves it into the curated order.
+   */
+  'ai/physics-of-flight': {
+    meta: {
+      slug: 'physics-of-flight',
+      domain: 'ai',
+      title: 'The physics of flight: owning the numbers in the flight manual',
+      role: 'Independent study',
+      year: '2026',
+      stack: ['Aerodynamics', 'Flight physics', 'VDS licence'],
+      summary:
+        'Deriving the flight manual from first principles — stall speed, glide and ground effect, in the ultralight regime.',
+    },
+    load: () => import('./physics-of-flight.mdx'),
+  },
 };
 
 /** The entry for a route pair, or `undefined` when the route is unknown. */

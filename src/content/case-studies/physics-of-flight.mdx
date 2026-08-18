@@ -1,0 +1,128 @@
+## Context
+
+The VDS licence is the narrative thread of this site — and the companion study
+(`/sky/vds-licence`) tells the discipline side of that story: how the licence
+was earned as an exercise in decision hygiene. This study is the other half of
+the same coin. Every flight manual hands you numbers: stall speed, best glide,
+minimum power. I wanted to stop _quoting_ them and start _deriving_ them — the
+same instinct that made me train a tokenizer instead of borrowing one: no
+conclusion on trust, every number on first principles.
+
+The aircraft regime matters. Ultralight aerodynamics do not follow airliner
+intuition: wing loadings around 30–45 kg/m² against roughly 600 kg/m² for a
+narrow-body jet, Reynolds numbers an order of magnitude lower, and a weather
+vulnerability that turns a 10-knot gust into a margin problem. The physics is
+not harder — it is just different, and the difference is the point.
+
+## Problem
+
+Three knots sit between a pilot and the numbers in the manual:
+
+1. **The manual gives results, not reasons.** `Vy`, `Vx`, best-glide speed and
+   the stall figure are quoted as facts. Quoted facts survive weather and
+   pressure altitude poorly — they are correct _at one configuration and one
+   weight_, and the pilot has to know which direction they move when either
+   changes.
+2. **Low wing loading is a double-edged safety margin.** It buys a low stall
+   speed — the slowest, safest-feeling number in the whole machine — but it
+   also means the aircraft _is_ a wind gauge: gust response scales with
+   wing loading, and the margin that feels like forgiveness is the same margin
+   a gust can eat in a second.
+3. **The landing flare is the most physics-dense second in the flight** and it
+   hides a subtlety: ground effect. Within about one wingspan of the surface,
+   induced drag collapses and the wing "floats". Flare too early and the float
+   eats the runway; flare too late and the sink is yours.
+
+## Approach
+
+Four stages, each ending in a number I can defend in the cockpit.
+
+### Stage 1 — Stall speed from the lift equation
+
+The lift equation `L = ½ρV²SC_L` sets the floor: at the stall, lift just
+balances weight at `C_L,max`, so
+
+```text
+V_stall = sqrt(2W / (ρ S C_L,max))
+```
+
+Everything that matters is visible in that one root: weight scales the stall
+speed as its square root, and wing loading `W/S` is the master dial of the
+whole flight envelope. With the manual's `C_L,max` and my aircraft's wing
+loading (_fill in from the POH: wing area, MTOW, C_L,max_), the book stall
+figure drops out of the equation instead of being looked up. The derivation
+then answers the question the manual cannot: _which way does the stall speed
+move at my actual take-off weight and at altitude?_ — down with a lighter
+aircraft, up with thinner air.
+
+### Stage 2 — The drag polar and the glide that has no engine
+
+Total drag splits into parasite and induced:
+
+`D = D_p + D_i`, with `D_i = W² / (½ρV²πb²e)`
+
+Parasite drag grows with `V²`; induced drag — the price of making lift — falls
+as `1/V²`. Their sum has a minimum, and that minimum _is_ the best glide: at
+`L/D_max` the aircraft travels farthest per metre of altitude, and the glide
+ratio equals the lift-to-drag ratio. Ultralights sit around 8–12:1, an
+airliner around 18:1 — the glide is short, so the engine-out plan is made
+before take-off, not after the silence. (My aircraft's measured figure from
+the POH glide data: fill in.)
+
+### Stage 3 — Ground effect and the flare that floats
+
+Induced drag is the cost of the downwash the wing leaves behind it. Near the
+ground — within roughly one wingspan — the surface blocks that downwash and
+the induced drag drops sharply: the same wing now needs less angle of attack
+for the same lift, and the aircraft _floats_ through the round-out. This is
+why the flare is a sight picture, not a manoeuvre: pull the attitude too early
+and ground effect converts the error into runway eaten at a decreasing rate;
+too late and the touchdown is yours at the sink rate of the last second. The
+physics is the same one that makes a low pass feel "fast" and a flare feel
+"suspended".
+
+### Stage 4 — The decision gate: where physics becomes discipline
+
+The last derivation is the go/no-go. Approach speed carries a gust factor by
+design — the convention is half the gust on top of the base figure — and the
+gust factor is itself a physics statement: a gusty day widens the speed band
+between stall and the margins the pilot actually wants. On an aircraft whose
+stall sits at ultralight speeds, a 15-knot gust front is not an annoyance, it
+is a computed margin reduction. The discipline study tells the story of the
+licence; this study is the spreadsheet behind the weather call. A concrete
+example from my own logbook (_fill in: date, wind, gust, the number that made
+the call_): **—**.
+
+## What I built
+
+Not a system — deliberately. The deliverable is a set of derived numbers: a
+one-page sheet that starts from the lift and drag equations and ends at the
+figures I brief before every flight — stall at today's weight, best glide,
+the gust-adjusted approach speed. The derivations live next to the VDS
+notebook, and the sheet is re-derived whenever the aircraft or the weight
+envelope changes, so it cannot quietly go stale the way a quoted figure can.
+
+## Result / Reflection
+
+The derived numbers, measured against the manual's own figures (_fill in from
+my aircraft's POH: stall, best glide, Vy/Vx — one line per figure_):
+
+- Stall speed at MTOW, derived: **—** (manual: **—**)
+- Best glide speed, derived: **—** (manual: **—**)
+- The gust-adjusted approach band at a typical training-day wind: **—**
+
+The meta-result is the one that generalizes beyond the cockpit:
+
+1. **Derived numbers stick; quoted numbers drift.** The formula gives you the
+   _direction_ of every change before the aircraft gives you the feeling.
+2. **The ultralight regime punishes borrowed intuition.** Airliner instincts —
+   long float, generous margins, room to think — are luxuries of a wing
+   loading ten times higher; the physics explains exactly why.
+3. **The decision gate is where the two studies meet.** The licence study is
+   the discipline; this study is the evidence behind it. Neither is complete
+   without the other, and the site is the only place both are published.
+
+Would I do it differently? The sheet could grow into a small interactive
+glide/performance calculator — but the point was never the tool; it was to
+own the numbers that decide the flight, and to be able to say _why_ in the
+few seconds a weather decision allows.
