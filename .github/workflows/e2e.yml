@@ -39,6 +39,7 @@ jobs:
               - 'src/hooks/useAltitudeProfile.ts'
               - 'src/hooks/useDocumentMeta.ts'
               - 'src/lib/tone.ts'
+              - 'src/lib/section-tone.ts'
               - 'src/lib/altitude.ts'
               - 'e2e/**'
               - 'playwright.config.ts'
