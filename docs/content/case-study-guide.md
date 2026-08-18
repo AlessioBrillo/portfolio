@@ -26,11 +26,15 @@ src/content/case-studies/registry.test.ts` enforces:
      `fill in`, `TBD`, `**—**`) — exact match against `KNOWN_DEBT`;
    - published metadata is production-ready (no `TBD` role, no
      "placeholder" title, 4-digit year, meaningful summary).
-4. **Publish.** Move the slug into `PUBLISHED_ORDER` in the registry. The
+4. **Measure the bundle.** `npm run build && npm run bundle:report` — the
+   ADR-0018 gate trips on a long body by design. Over budget, either shave the
+   study body or re-baseline deliberately (protocol in `docs/roadmap.md`);
+   never merge a study that fails `npm run bundle:check`.
+5. **Publish.** Move the slug into `PUBLISHED_ORDER` in the registry. The
    deep-link, prev/next, and robots E2E tests are registry-driven
    (`e2e/case-study.e2e.ts`): a published study is covered without editing
    the harness. The build-time sitemap picks it up as well.
-5. **Merge.** The usual gates: `npm run typecheck && npm run lint && npm run
+6. **Merge.** The usual gates: `npm run typecheck && npm run lint && npm run
 format:check && npm test && npm run build`, plus `npm run e2e` when the
    tonal surfaces or any study body changed.
 

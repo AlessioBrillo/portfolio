@@ -110,6 +110,23 @@ the reduced-motion project emulates `prefers-reduced-motion` via the
 `contextOptions` TestOption and hits the discrete-tone assertion, and the
 settle-based waits removed the load-dependent flakes.
 
+Two Phase-6 readiness edges are closed ahead of the domain: the CI coverage
+comment now matches the real gate (100% in `vitest.config.ts`, not the old
+"80%" wording), and the canonical policy is explicit — with `VITE_SITE_URL`
+unset no canonical link is emitted anywhere (`src/lib/site.ts`), so a
+public-repo preview or fork can never advertise a throwaway origin as the
+authoritative one. The day the domain lands, set `VITE_SITE_URL` and the
+canonical links appear on every case-study route with no code change.
+
+The bundle gate (ADR-0018) is expected to trip on the next study — that is
+the gate working, not a failure. The re-baseline protocol: write the study,
+`npm run build`, then `npm run bundle:report` to measure. Over budget?
+Either shave the chunk (inline tables and heavy sections are the usual
+suspects) or accept the regression deliberately: update
+`bundle-baseline.json` with the measured numbers and record why in its
+`origin` note. Never raise a budget without that note — an unexplained bump
+is the one thing the gate cannot catch.
+
 ## Inputs needed to proceed
 
 1. **5-8 strong photos** (one sober portrait for "Who", the rest sport / flying /
