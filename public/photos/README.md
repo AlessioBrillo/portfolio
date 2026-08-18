@@ -22,6 +22,9 @@ public/photos/
   the script and re-paste the printed block into the content module. Use
   `--prune` to remove derivatives from previous runs (including legacy
   unhashed names).
+- The asset contract (`npm run photos:check`, CI-enforced) fails on any
+  referenced URL that does not exist here, and on any committed derivative
+  that no content module references.
 
 ## Current set
 

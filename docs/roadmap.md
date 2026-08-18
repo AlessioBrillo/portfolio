@@ -91,10 +91,15 @@ sources) rendered through `ImageBlock`'s `<picture>`, and
 `npm run images -- --src <raw-dir>` converts raws into the optimized set and
 prints the paste-ready asset blocks (`docs/content/photos.md`). The day real
 photos land, they reserve their true layout with zero CLS — no structural
-change needed. Two consistency fixes rode along: the GitHub footer link now
-points at the repository itself (ADR-0014's claim is verifiable), and
-`SITE.siteUrl` is driven by the same `VITE_SITE_URL` env contract as the
-sitemap, so the canonical origin has a single source of truth.
+change needed. The paste workflow is now also contract-gated: every URL a
+content module references must exist in `public/photos/` and every committed
+derivative must be referenced (`npm run photos:check`, CI-enforced, pure
+logic in `src/lib/photo-assets.ts`), so a pasted typo can no longer become a
+permanent 404 under the immutable cache headers. Two consistency fixes rode
+along: the GitHub footer link now points at the repository itself (ADR-0014's
+claim is verifiable), and `SITE.siteUrl` is driven by the same
+`VITE_SITE_URL` env contract as the sitemap, so the canonical origin has a
+single source of truth.
 
 An automated Lighthouse run on a headless Chrome (viewport 1440x960, reduced
 motion) passed **100 on accessibility** (contrast failures 8 -> 0 after the
