@@ -27,7 +27,7 @@ vi.mock('@/content/case-studies/next-ai-physics.mdx', () => ({
 
 describe('getCaseStudy', () => {
   it('returns the entry for a known slug', () => {
-    const entry = getCaseStudy('transformer-italian-corpus');
+    const entry = getCaseStudy('ai', 'transformer-italian-corpus');
     expect(entry).toBeDefined();
     expect(entry?.meta.slug).toBe('transformer-italian-corpus');
     expect(entry?.meta.domain).toBe('ai');
@@ -35,7 +35,7 @@ describe('getCaseStudy', () => {
   });
 
   it('returns the sky-domain entry for the VDS licence study', () => {
-    const entry = getCaseStudy('vds-licence');
+    const entry = getCaseStudy('sky', 'vds-licence');
     expect(entry).toBeDefined();
     expect(entry?.meta.slug).toBe('vds-licence');
     expect(entry?.meta.domain).toBe('sky');
@@ -43,7 +43,7 @@ describe('getCaseStudy', () => {
   });
 
   it('returns the work-domain entry for The Ascent study', () => {
-    const entry = getCaseStudy('the-ascent');
+    const entry = getCaseStudy('work', 'the-ascent');
     expect(entry).toBeDefined();
     expect(entry?.meta.slug).toBe('the-ascent');
     expect(entry?.meta.domain).toBe('work');
@@ -51,11 +51,15 @@ describe('getCaseStudy', () => {
   });
 
   it('returns undefined for an unknown slug', () => {
-    expect(getCaseStudy('non-existent')).toBeUndefined();
+    expect(getCaseStudy('ai', 'non-existent')).toBeUndefined();
+  });
+
+  it('returns undefined when the domain does not match the slug', () => {
+    expect(getCaseStudy('sky', 'transformer-italian-corpus')).toBeUndefined();
   });
 
   it('resolves the draft AI study: registered, complete, and unpublished', () => {
-    const entry = getCaseStudy('next-ai-physics');
+    const entry = getCaseStudy('ai', 'next-ai-physics');
     expect(entry).toBeDefined();
     expect(entry?.meta.domain).toBe('ai');
     expect(entry?.meta.slug).toBe('next-ai-physics');
@@ -78,10 +82,17 @@ describe('registry content contract', () => {
     }
   });
 
+  it('never registers two studies with the same slug across domains', () => {
+    const seen = new Set<string>();
+    for (const entry of Object.values(CASE_STUDIES)) {
+      expect(seen.has(entry.meta.slug), `duplicate slug ${entry.meta.slug}`).toBe(false);
+      seen.add(entry.meta.slug);
+    }
+  });
+
   it('every registered study — published or draft — carries complete metadata', () => {
     for (const [key, entry] of Object.entries(CASE_STUDIES)) {
       const { meta } = entry;
-      expect(meta.slug, key).toBe(key);
       expect(VALID_DOMAINS, key).toContain(meta.domain);
       expect(meta.title.trim().length, key).toBeGreaterThan(0);
       expect(meta.role.trim().length, key).toBeGreaterThan(0);
@@ -202,15 +213,15 @@ describe('getPublishedCaseStudies', () => {
 describe('isPublishedStudy', () => {
   it('returns true for every study in the curated order', () => {
     for (const meta of getPublishedCaseStudies()) {
-      expect(isPublishedStudy(meta.slug)).toBe(true);
+      expect(isPublishedStudy(meta)).toBe(true);
     }
   });
 
   it('returns false for the registered draft study', () => {
-    expect(isPublishedStudy('next-ai-physics')).toBe(false);
+    expect(isPublishedStudy({ domain: 'ai', slug: 'next-ai-physics' })).toBe(false);
   });
 
-  it('returns false for an unknown slug', () => {
-    expect(isPublishedStudy('non-existent')).toBe(false);
+  it('returns false for an unknown study', () => {
+    expect(isPublishedStudy({ domain: 'ai', slug: 'non-existent' })).toBe(false);
   });
 });

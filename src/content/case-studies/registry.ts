@@ -8,6 +8,15 @@ interface CaseStudyEntry {
 }
 
 /**
+ * The registry key is the route identity itself, `{domain}/{slug}` (ADR-0005),
+ * so two studies can never collide on a slug across domains — the map key and
+ * the URL stay in bijection.
+ */
+function studyKey(meta: Pick<CaseStudyMeta, 'domain' | 'slug'>): string {
+  return `${meta.domain}/${meta.slug}`;
+}
+
+/**
  * The single source of truth for case studies. Add an entry here and drop a
  * sibling `.mdx` file; the `/{domain}/{slug}` route renders it (ADR-0005).
  *
@@ -16,7 +25,7 @@ interface CaseStudyEntry {
  * the sitemap, and the prev/next navigation until it is added to the order.
  */
 export const CASE_STUDIES: Readonly<Record<string, CaseStudyEntry>> = {
-  'transformer-italian-corpus': {
+  'ai/transformer-italian-corpus': {
     meta: {
       slug: 'transformer-italian-corpus',
       domain: 'ai',
@@ -28,7 +37,7 @@ export const CASE_STUDIES: Readonly<Record<string, CaseStudyEntry>> = {
     },
     load: () => import('./transformer-italian-corpus.mdx'),
   },
-  'vds-licence': {
+  'sky/vds-licence': {
     meta: {
       slug: 'vds-licence',
       domain: 'sky',
@@ -40,7 +49,7 @@ export const CASE_STUDIES: Readonly<Record<string, CaseStudyEntry>> = {
     },
     load: () => import('./vds-licence.mdx'),
   },
-  'the-ascent': {
+  'work/the-ascent': {
     meta: {
       slug: 'the-ascent',
       domain: 'work',
@@ -53,7 +62,7 @@ export const CASE_STUDIES: Readonly<Record<string, CaseStudyEntry>> = {
     },
     load: () => import('./work-the-ascent.mdx'),
   },
-  'next-ai-physics': {
+  'ai/next-ai-physics': {
     meta: {
       slug: 'next-ai-physics',
       domain: 'ai',
@@ -68,8 +77,9 @@ export const CASE_STUDIES: Readonly<Record<string, CaseStudyEntry>> = {
   },
 };
 
-export function getCaseStudy(slug: string): CaseStudyEntry | undefined {
-  return CASE_STUDIES[slug];
+/** The entry for a route pair, or `undefined` when the route is unknown. */
+export function getCaseStudy(domain: string, slug: string): CaseStudyEntry | undefined {
+  return CASE_STUDIES[`${domain}/${slug}`];
 }
 
 /**
@@ -80,23 +90,24 @@ export function getCaseStudy(slug: string): CaseStudyEntry | undefined {
  * closing the flight.
  */
 const PUBLISHED_ORDER: readonly string[] = [
-  'transformer-italian-corpus',
-  'the-ascent',
-  'vds-licence',
+  'ai/transformer-italian-corpus',
+  'work/the-ascent',
+  'sky/vds-licence',
 ];
 
 /**
- * True when the study is published — in `PUBLISHED_ORDER`. Unpublished
- * registrations are drafts (ADR-0017): their routes stay resolvable for
- * review but render `noindex` so search engines never surface them.
+ * True when the study is published — its `domain/slug` key is in
+ * `PUBLISHED_ORDER`. Unpublished registrations are drafts (ADR-0017): their
+ * routes stay resolvable for review but render `noindex` so search engines
+ * never surface them.
  */
-export function isPublishedStudy(slug: string): boolean {
-  return PUBLISHED_ORDER.includes(slug);
+export function isPublishedStudy(meta: Pick<CaseStudyMeta, 'domain' | 'slug'>): boolean {
+  return PUBLISHED_ORDER.includes(studyKey(meta));
 }
 
 /** The published studies' metadata, in curated order (never the raw map). */
 export function getPublishedCaseStudies(): readonly CaseStudyMeta[] {
-  // The registry content contract test pins every PUBLISHED_ORDER slug to a
+  // The registry content contract test pins every PUBLISHED_ORDER key to a
   // registered entry, so the lookup below can never miss (ADR-0017).
-  return PUBLISHED_ORDER.map((slug) => CASE_STUDIES[slug]!.meta);
+  return PUBLISHED_ORDER.map((key) => CASE_STUDIES[key]!.meta);
 }

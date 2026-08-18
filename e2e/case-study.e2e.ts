@@ -42,7 +42,7 @@ test.describe('case study routes', () => {
   test('draft study renders by direct URL but stays out of published surfaces', async ({
     page,
   }) => {
-    const draft = getCaseStudy('next-ai-physics');
+    const draft = getCaseStudy('ai', 'next-ai-physics');
     expect(draft).toBeDefined();
 
     await page.goto(`/${draft?.meta.domain}/${draft?.meta.slug}`);

@@ -71,8 +71,10 @@ export function CaseStudyPage(): ReactElement {
   const { domain, slug } = useParams();
   const headingRef = useRef<HTMLHeadingElement>(null);
   const previousSlug = useRef(slug);
-  const entry = slug ? getCaseStudy(slug) : undefined;
-  const valid = entry !== undefined && domain === entry.meta.domain;
+  // The registry is keyed by the `{domain}/{slug}` route identity itself, so
+  // a returned entry is by construction the study for this route (ADR-0005).
+  const entry = domain && slug ? getCaseStudy(domain, slug) : undefined;
+  const valid = entry !== undefined;
   const Body = useMemo(() => (entry ? lazy(entry.load) : null), [entry]);
   const nav = useMemo(() => (valid && slug ? studyNavigation(slug) : {}), [valid, slug]);
   const origin = canonicalOrigin();
@@ -93,7 +95,7 @@ export function CaseStudyPage(): ReactElement {
           title: entry.meta.title,
           description: entry.meta.summary,
           canonical: canonicalStudyUrl(origin, entry.meta.domain, entry.meta.slug),
-          robots: isPublishedStudy(entry.meta.slug) ? undefined : 'noindex',
+          robots: isPublishedStudy(entry.meta) ? undefined : 'noindex',
         }
       : { title: 'Lost altitude' },
   );
