@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import { canonicalOrigin, SITE } from '@/lib/site';
+import { canonicalOrigin, canonicalStudyUrl, SITE } from '@/lib/site';
 
 describe('site identity', () => {
   it('names the author', () => {
@@ -42,5 +42,20 @@ describe('canonicalOrigin', () => {
     vi.stubGlobal('window', { location: { origin: 'https://unexpected.test' } });
     expect(canonicalOrigin()).toBe('');
     vi.unstubAllGlobals();
+  });
+});
+
+describe('canonicalStudyUrl', () => {
+  it('builds the case-study canonical from the configured origin', () => {
+    expect(canonicalStudyUrl('https://example.com', 'ai', 'the-study')).toBe(
+      'https://example.com/ai/the-study',
+    );
+    expect(canonicalStudyUrl('https://example.com', 'sky', 'vds-licence')).toBe(
+      'https://example.com/sky/vds-licence',
+    );
+  });
+
+  it('returns undefined without a configured origin (canonical omitted)', () => {
+    expect(canonicalStudyUrl('', 'ai', 'the-study')).toBeUndefined();
   });
 });

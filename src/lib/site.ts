@@ -45,3 +45,17 @@ export function canonicalOrigin(siteUrl: string = SITE.siteUrl): string {
   if (siteUrl) return siteUrl.replace(/\/+$/, '');
   return '';
 }
+
+/**
+ * The canonical URL for a case-study route, or `undefined` while no origin is
+ * configured (pre-domain): callers then omit the link entirely rather than
+ * emit a relative or throwaway canonical.
+ */
+export function canonicalStudyUrl(
+  origin: string,
+  domain: string,
+  slug: string,
+): string | undefined {
+  if (!origin) return undefined;
+  return `${origin}/${domain}/${slug}`;
+}

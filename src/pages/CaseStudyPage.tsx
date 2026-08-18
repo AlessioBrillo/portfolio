@@ -7,7 +7,7 @@ import {
   isPublishedStudy,
 } from '@/content/case-studies/registry';
 import { useDocumentMeta } from '@/hooks/useDocumentMeta';
-import { canonicalOrigin } from '@/lib/site';
+import { canonicalOrigin, canonicalStudyUrl } from '@/lib/site';
 import { cn } from '@/lib/utils';
 import { Eyebrow } from '@/components/ui/Eyebrow';
 import { NotFoundPage } from '@/pages/NotFoundPage';
@@ -92,7 +92,7 @@ export function CaseStudyPage(): ReactElement {
       ? {
           title: entry.meta.title,
           description: entry.meta.summary,
-          canonical: origin ? `${origin}/${entry.meta.domain}/${entry.meta.slug}` : undefined,
+          canonical: canonicalStudyUrl(origin, entry.meta.domain, entry.meta.slug),
           robots: isPublishedStudy(entry.meta.slug) ? undefined : 'noindex',
         }
       : { title: 'Lost altitude' },
