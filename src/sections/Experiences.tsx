@@ -1,4 +1,5 @@
 import type { ReactElement } from 'react';
+import { Link } from 'react-router-dom';
 import { Band, type Surface } from '@/components/ui/Band';
 import { SectionHeader } from '@/components/ui/SectionHeader';
 import { SCENE_SOFT_TEXT, useSceneTone } from '@/components/ascent/tone-context';
@@ -8,7 +9,7 @@ interface ExperiencesProps {
   surface?: Surface;
 }
 
-/** 06 — Curated storytelling; "dig deeper" reveals the chronological archive. */
+/** 06 — Curated storytelling; "dig deeper" opens the chronological archive (ADR-0019). */
 export function Experiences({ surface = 'solid' }: ExperiencesProps): ReactElement {
   const { softTone } = useSceneTone();
   return (
@@ -16,7 +17,7 @@ export function Experiences({ surface = 'solid' }: ExperiencesProps): ReactEleme
       <SectionHeader
         eyebrow="06 — Experiences"
         title="A curated record"
-        intro="What I choose to show, told short — the archive can come later."
+        intro="What I choose to show, told short — the archive holds the full record."
       />
       <ol className="mt-12 flex list-none flex-col divide-y divide-black/10 p-0">
         {getExperienceEntries().map((entry) => (
@@ -37,6 +38,12 @@ export function Experiences({ surface = 'solid' }: ExperiencesProps): ReactEleme
           </li>
         ))}
       </ol>
+      <Link
+        to="/archive"
+        className="group relative mt-10 inline-block font-mono text-xs uppercase tracking-widest text-current no-underline after:absolute after:bottom-0 after:left-0 after:h-px after:w-full after:origin-left after:scale-x-0 after:bg-orange after:transition-transform after:duration-[var(--duration-normal)] after:ease-[var(--ease-out-expo)] hover:after:scale-x-100"
+      >
+        Dig deeper &mdash; the archive &rarr;
+      </Link>
     </Band>
   );
 }

@@ -1,6 +1,7 @@
 import type { ReactElement } from 'react';
 import { createBrowserRouter, Outlet, ScrollRestoration } from 'react-router-dom';
 import { HomePage } from '@/pages/HomePage';
+import { ArchivePage } from '@/pages/ArchivePage';
 import { CaseStudyPage } from '@/pages/CaseStudyPage';
 import { NotFoundPage } from '@/pages/NotFoundPage';
 
@@ -28,6 +29,9 @@ export const router = createBrowserRouter([
     element: <RootLayout />,
     children: [
       { path: '/', element: <HomePage /> },
+      // The experiences archive (ADR-0019): a real route, like the case
+      // studies — shareable and indexable, deep-linkable from the band.
+      { path: '/archive', element: <ArchivePage /> },
       { path: '/:domain/:slug', element: <CaseStudyPage /> },
       { path: '*', element: <NotFoundPage /> },
     ],
