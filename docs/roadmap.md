@@ -70,8 +70,12 @@ card rendered as `public/og-image.png` from `docs/design/og-image.svg`,
 twitter card, theme-color — link previews now work without JS), `robots.txt`
 (allow-all; `Sitemap:` line waits for the domain), and the Vercel SPA fallback
 now excludes the static files (`favicon.svg`, `og-image.png`, `robots.txt`,
-`sitemap.xml`). Deploy itself, the absolute og:image URL and `sitemap.xml`
-still wait on the domain; the audit pass is done.
+`sitemap.xml`, `apple-touch-icon.png`, `*.webmanifest`). The icon family is
+complete — `apple-touch-icon.png` (iOS home screen) and `site.webmanifest`
+(Android/install) derive from the `favicon.svg` glyph, so the SPA-fallback
+exclusions for them are live, not dead entries. Deploy itself, the absolute
+og:image URL and `sitemap.xml` still wait on the domain; the audit pass is
+done.
 
 The photo pipeline is ready for input 1: content modules carry a full
 responsive `ImageAsset` contract (intrinsic dimensions, typed AVIF/WebP
