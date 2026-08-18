@@ -179,9 +179,10 @@ describe('CaseStudyPage', () => {
     expect(document.querySelector('meta[name="robots"]')).not.toBeInTheDocument();
   });
 
-  it('leaves published routes indexable — no robots meta', async () => {
+  it('leaves published routes indexable — no robots meta, no canonical pre-domain', async () => {
     renderAt('/ai/test-study');
     await screen.findByTestId('body');
     expect(document.querySelector('meta[name="robots"]')).not.toBeInTheDocument();
+    expect(document.querySelector('link[rel="canonical"]')).not.toBeInTheDocument();
   });
 });

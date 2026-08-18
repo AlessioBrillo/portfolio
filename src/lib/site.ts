@@ -28,18 +28,34 @@ export const SITE = {
    *
    * Single source of truth shared with `scripts/generate-sitemap.mjs`: the
    * `VITE_SITE_URL` env pair (see `.env.example`). Leave unset until the real
-   * domain is configured; `canonicalOrigin()` then falls back to the deployed
-   * origin, which is exactly correct for the interim vercel.app deployment.
+   * domain is configured; `canonicalOrigin()` then returns an empty string, so
+   * no canonical link is emitted at all — previews and forks never advertise
+   * a throwaway origin as the authoritative one.
    */
   siteUrl: import.meta.env.VITE_SITE_URL ?? '',
 } as const;
 
 /**
- * The origin used for `rel=canonical` links. Prefers the configured domain;
- * while it is empty (pre-deploy) the current window origin is authoritative —
- * which is exactly correct for the live deployment at any given time.
+ * The origin used for `rel=canonical` links. Returns the configured domain
+ * when one exists; while it is unset (pre-domain) the origin is empty and the
+ * caller must omit the canonical link — the interim vercel.app deployment
+ * stays truthful by having no canonical rather than a potentially wrong one.
  */
 export function canonicalOrigin(siteUrl: string = SITE.siteUrl): string {
   if (siteUrl) return siteUrl.replace(/\/+$/, '');
-  return typeof window === 'undefined' ? '' : window.location.origin;
+  return '';
+}
+
+/**
+ * The canonical URL for a case-study route, or `undefined` while no origin is
+ * configured (pre-domain): callers then omit the link entirely rather than
+ * emit a relative or throwaway canonical.
+ */
+export function canonicalStudyUrl(
+  origin: string,
+  domain: string,
+  slug: string,
+): string | undefined {
+  if (!origin) return undefined;
+  return `${origin}/${domain}/${slug}`;
 }

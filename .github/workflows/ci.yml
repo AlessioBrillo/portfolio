@@ -65,7 +65,7 @@ jobs:
       - name: Format check
         run: npm run format:check
 
-      - name: Test (with the 80% coverage floor, enforced pre-merge)
+      - name: Test (with the 100% coverage floor from vitest.config.ts, enforced pre-merge)
         run: npm run test:coverage
 
       - name: Build

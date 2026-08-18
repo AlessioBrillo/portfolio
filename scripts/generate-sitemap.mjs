@@ -7,7 +7,7 @@
  * interim vercel.app deployment never advertises itself to crawlers.
  *
  * The registry and the sitemap builder are TypeScript; this script relies on
- * Node's native type stripping (>=22.18, default in the supported LTS). On
+ * Node's native type stripping (>=24, default in the supported LTS). On
  * older runtimes it degrades to a warning and skips, since sitemap emission
  * only matters once a real domain exists.
  */

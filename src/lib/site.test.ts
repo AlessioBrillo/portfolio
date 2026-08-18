@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import { canonicalOrigin, SITE } from '@/lib/site';
+import { canonicalOrigin, canonicalStudyUrl, SITE } from '@/lib/site';
 
 describe('site identity', () => {
   it('names the author', () => {
@@ -25,8 +25,8 @@ describe('site identity', () => {
 });
 
 describe('canonicalOrigin', () => {
-  it('falls back to the window origin while no domain is configured', () => {
-    expect(canonicalOrigin()).toBe(window.location.origin);
+  it('returns an empty origin while no domain is configured (no canonical emitted)', () => {
+    expect(canonicalOrigin()).toBe('');
   });
 
   it('prefers the configured domain once it exists', () => {
@@ -34,13 +34,28 @@ describe('canonicalOrigin', () => {
     expect(canonicalOrigin('https://example.com/')).toBe('https://example.com');
   });
 
-  it('treats an explicit empty domain like the default fallback', () => {
-    expect(canonicalOrigin('')).toBe(window.location.origin);
+  it('treats an explicit empty domain like an unset one', () => {
+    expect(canonicalOrigin('')).toBe('');
   });
 
-  it('returns an empty canonical origin when no window exists (SSR)', () => {
-    vi.stubGlobal('window', undefined);
+  it('never falls back to the window origin, whatever the environment', () => {
+    vi.stubGlobal('window', { location: { origin: 'https://unexpected.test' } });
     expect(canonicalOrigin()).toBe('');
     vi.unstubAllGlobals();
+  });
+});
+
+describe('canonicalStudyUrl', () => {
+  it('builds the case-study canonical from the configured origin', () => {
+    expect(canonicalStudyUrl('https://example.com', 'ai', 'the-study')).toBe(
+      'https://example.com/ai/the-study',
+    );
+    expect(canonicalStudyUrl('https://example.com', 'sky', 'vds-licence')).toBe(
+      'https://example.com/sky/vds-licence',
+    );
+  });
+
+  it('returns undefined without a configured origin (canonical omitted)', () => {
+    expect(canonicalStudyUrl('', 'ai', 'the-study')).toBeUndefined();
   });
 });

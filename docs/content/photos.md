@@ -19,7 +19,7 @@ a real pipeline instead of a manual copy-paste ritual. The contract is
    npm run images -- --src photos-src --prune
    ```
 
-   Requires Node >=22.18 (the script imports its helper module through native
+   Requires Node >=24 (the script imports its helper module through native
    TypeScript type stripping — see `engines` in `package.json`).
 
 3. The script writes `public/photos/{subject}-{width}-{hash}.{avif,webp,jpg}`
