@@ -76,3 +76,6 @@ jobs:
 
       - name: Enforce the SPA-fallback routing contract (vercel.json vs public/)
         run: npm run deploy:check
+
+      - name: Enforce the photo-asset contract (referenced files exist, no orphans)
+        run: npm run photos:check

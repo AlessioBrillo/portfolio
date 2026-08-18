@@ -10,7 +10,7 @@ discipline and because the repository is part of the showcase.
 3. Ensure the local gates pass (Husky runs typecheck + lint-staged on commit):
 
    ```bash
-   npm run typecheck && npm run lint && npm run format:check && npm test && npm run build
+   npm run typecheck && npm run lint && npm run format:check && npm test && npm run build && npm run photos:check
    ```
 
 4. Open a PR using the template; link any relevant ADR.

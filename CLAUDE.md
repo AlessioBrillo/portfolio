@@ -40,7 +40,7 @@ React Router (case-study routes), Vitest. Package manager: **npm**. Path alias:
 ## Local gates
 
 ```bash
-npm run typecheck && npm run lint && npm run format:check && npm test && npm run build
+npm run typecheck && npm run lint && npm run format:check && npm test && npm run build && npm run photos:check
 ```
 
 Husky runs typecheck + lint-staged on commit; commitlint enforces Conventional

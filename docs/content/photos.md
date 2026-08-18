@@ -48,6 +48,8 @@ a real pipeline instead of a manual copy-paste ritual. The contract is
    can never serve the old photo. Run with `--prune` once to drop the stale
    set. Filenames are derived from the source name — unchanged raws keep
    identical names (idempotent re-runs, cache-safe by construction).
+5. Verify the asset contract: `npm run photos:check` (see below), then the
+   local gates.
 
 ## What the script does
 
@@ -67,12 +69,28 @@ a real pipeline instead of a manual copy-paste ritual. The contract is
   dimensions; `ImageBlock` reserves that exact ratio on the frame, keeping
   layout shift at zero (ADR-0009).
 
+## The asset contract
+
+The naming convention made the pipeline cache-safe; `npm run photos:check`
+(`scripts/check-photo-assets.mjs`, pure logic in `src/lib/photo-assets.ts`)
+closes the paste-workflow hole: it walks `public/photos/`, collects every URL
+the content modules reference through `ImageAsset` blocks (aggregated in
+`src/content/assets.ts`), and enforces both directions — every referenced URL
+must exist on disk (a typo would otherwise 404 silently, made permanent by
+the immutable headers), and every committed derivative must be referenced (no
+dead weight). Exit codes mirror `deploy:check`: 0 holds, 1 violation, 2
+cannot check. The gate runs in CI on every build; with no photos committed it
+holds trivially and starts to mean something the day the first photo lands.
+A new photo slot must be registered in `src/content/assets.ts` or the
+contract cannot see it.
+
 ## Rules
 
 - Alt text stays human-written (ADR-0009) — never auto-generated from the file.
 - Keep raw sources out of git; the derivatives are the deliverable.
-- After pasting a block, run the local gates (`npm run typecheck && npm test`)
-  — the content-module tests assert the asset is complete.
+- After pasting a block, run `npm run photos:check`, then the local gates
+  (`npm run typecheck && npm test`) — the content-module tests assert the
+  asset is complete and the contract proves it exists.
 - The helpers behind the naming are pure and unit-tested
   (`src/lib/photo-pipeline.ts`); the script itself is the only thing that
   touches disk.
