@@ -68,10 +68,14 @@ third-party scripts, whose addition would require their own ADR.
 Phase 6 groundwork that needs no content is live: static social meta (OG
 card rendered as `public/og-image.png` from `docs/design/og-image.svg`,
 twitter card, theme-color — link previews now work without JS), `robots.txt`
-(allow-all; `Sitemap:` line waits for the domain), and the Vercel SPA fallback
+(allow-all; `Sitemap:` line waits for the domain), the Vercel SPA fallback
 now excludes the static files (`favicon.svg`, `og-image.png`, `robots.txt`,
-`sitemap.xml`). Deploy itself, the absolute og:image URL and `sitemap.xml`
-still wait on the domain; the audit pass is done.
+`sitemap.xml`), and the JavaScript payload is under a CI-enforced budget
+(ADR-0018): every build runs `npm run bundle:check` against the committed
+`bundle-baseline.json` (entry chunk 165 kB, total JS 225 kB gzip), so a
+growing bundle fails the pipeline instead of waiting for a manual analyzer
+run. Deploy itself, the absolute og:image URL and `sitemap.xml` still wait
+on the domain; the audit pass is done.
 
 The photo pipeline is ready for input 1: content modules carry a full
 responsive `ImageAsset` contract (intrinsic dimensions, typed AVIF/WebP

@@ -70,3 +70,6 @@ jobs:
 
       - name: Build
         run: npm run build
+
+      - name: Enforce bundle budget (ADR-0018)
+        run: npm run bundle:check

@@ -1,0 +1,5 @@
+{
+  "entryChunkKb": 165,
+  "totalJsKb": 225,
+  "origin": "Measured 2026-08-18 from the production build at commit 3e6e205 with this gate's own method (whole-file zlib gzip of dist/): entry chunk 143.71 kB, total JS 196.95 kB. Budgets are baseline +10%, rounded up. Raise a budget only with a deliberate ADR or an accepted, measured regression."
+}

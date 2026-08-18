@@ -12,6 +12,8 @@
     "dev": "vite",
     "build": "tsc --noEmit && vite build",
     "postbuild": "node scripts/generate-sitemap.mjs",
+    "bundle:check": "node scripts/check-bundle.mjs",
+    "bundle:report": "node scripts/check-bundle.mjs --report",
     "preview": "vite preview",
     "analyze": "cross-env ANALYZE=true vite build",
     "images": "node scripts/optimize-images.mjs",
