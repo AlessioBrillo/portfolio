@@ -142,6 +142,32 @@ describe('mdxComponents', () => {
     expect(document.querySelector('table')).toHaveClass('w-full', 'border-collapse', 'text-left');
   });
 
+  it('passes the table head through untouched', () => {
+    const Thead = mdxComponents.thead!;
+    render(
+      <Thead>
+        <tr>
+          <th>header</th>
+        </tr>
+      </Thead>,
+    );
+    expect(document.querySelector('thead')).toBeTruthy();
+    expect(screen.getByText('header')).toBeInTheDocument();
+  });
+
+  it('passes the table body through untouched', () => {
+    const Tbody = mdxComponents.tbody!;
+    render(
+      <Tbody>
+        <tr>
+          <td>body</td>
+        </tr>
+      </Tbody>,
+    );
+    expect(document.querySelector('tbody')).toBeTruthy();
+    expect(screen.getByText('body')).toBeInTheDocument();
+  });
+
   it('styles table headers in the mono eyebrow treatment', () => {
     const Th = mdxComponents.th!;
     render(<Th scope="col">Signal</Th>);
