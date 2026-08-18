@@ -1,8 +1,13 @@
 import { describe, expect, it } from 'vitest';
-import { getArchiveEntries } from '@/content/archive';
+import { composeArchive, getArchiveEntries } from '@/content/archive';
 import { getPublishedCaseStudies } from '@/content/case-studies/registry';
 import { getProjectEntries } from '@/content/projects';
 import { getExperienceEntries } from '@/content/experiences';
+
+/** The route keys of a study list, as a set for dedupe/link assertions. */
+function publishedHrefsOf(studies: readonly { domain: string; slug: string }[]): Set<string> {
+  return new Set(studies.map((meta) => `/${meta.domain}/${meta.slug}`));
+}
 
 /**
  * Contract tests for the archive module (ADR-0019): the archive is a
@@ -38,9 +43,7 @@ describe('archive module', () => {
 
   it('skips projects already represented by a published study (no duplicates)', () => {
     const entries = getArchiveEntries();
-    const publishedHrefs = new Set(
-      getPublishedCaseStudies().map((meta) => `/${meta.domain}/${meta.slug}`),
-    );
+    const publishedHrefs = publishedHrefsOf(getPublishedCaseStudies());
     const duplicated = getProjectEntries().filter((project) =>
       project.href ? publishedHrefs.has(project.href) : false,
     );
@@ -52,12 +55,11 @@ describe('archive module', () => {
   });
 
   it('lists projects that have no published study behind them', () => {
-    const entries = getArchiveEntries();
-    const publishedHrefs = new Set(
-      getPublishedCaseStudies().map((meta) => `/${meta.domain}/${meta.slug}`),
-    );
+    const entries = composeArchive(getPublishedCaseStudies(), getProjectEntries(), []);
     const standalone = getProjectEntries().filter(
-      (project) => project.href === undefined || !publishedHrefs.has(project.href),
+      (project) =>
+        project.href === undefined ||
+        !publishedHrefsOf(getPublishedCaseStudies()).has(project.href),
     );
     for (const project of standalone) {
       const match = entries.find(
@@ -68,6 +70,40 @@ describe('archive module', () => {
       expect(match?.year).toBe(project.year);
       expect(match?.href).toBe(project.href);
     }
+  });
+
+  it('composeArchive projects standalone entries — with and without a route', () => {
+    const entries = composeArchive(
+      getPublishedCaseStudies(),
+      [
+        {
+          id: 'standalone',
+          title: 'Standalone Project',
+          line: 'A project with no study behind it.',
+          year: '2024',
+        },
+        {
+          id: 'archived-thing',
+          title: 'Archived Thing',
+          line: 'Not linked from anywhere else.',
+          year: '2023',
+          href: '/work/archived-thing',
+        },
+      ],
+      [],
+    );
+    const projects = entries.filter((entry) => entry.kind === 'project');
+    expect(projects).toHaveLength(2);
+    expect(projects[0]).toMatchObject({
+      title: 'Standalone Project',
+      line: 'A project with no study behind it.',
+      year: '2024',
+      href: undefined,
+    });
+    expect(projects[1]).toMatchObject({
+      title: 'Archived Thing',
+      href: '/work/archived-thing',
+    });
   });
 
   it('sorts reverse-chronologically with undated entries last', () => {
@@ -83,9 +119,7 @@ describe('archive module', () => {
   });
 
   it('keeps every link resolvable to a published study route', () => {
-    const publishedHrefs = new Set(
-      getPublishedCaseStudies().map((meta) => `/${meta.domain}/${meta.slug}`),
-    );
+    const publishedHrefs = publishedHrefsOf(getPublishedCaseStudies());
     for (const entry of getArchiveEntries()) {
       if (entry.href === undefined) continue;
       if (entry.kind === 'experience') {
