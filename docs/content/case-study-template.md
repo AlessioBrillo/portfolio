@@ -37,8 +37,7 @@ resolvable `/{domain}/{slug}` route, but only the slugs listed in
   by direct URL, but the study stays out of the mosaic, the sitemap, and the
   navigation until it joins the order.
 
-To start a new study, copy the placeholder draft
-(`src/content/case-studies/next-ai-physics.mdx`, registered as a draft) or the
-template structure above, then move the slug into `PUBLISHED_ORDER` when the
-copy is ready. The registry content-contract test and the E2E harness follow
-automatically.
+To start a new study, register a draft in `CASE_STUDIES` (an entry whose key
+is absent from `PUBLISHED_ORDER` renders by direct URL as `noindex`, per
+ADR-0017), then move the slug into `PUBLISHED_ORDER` when the copy is ready.
+The registry content-contract test and the E2E harness follow automatically.

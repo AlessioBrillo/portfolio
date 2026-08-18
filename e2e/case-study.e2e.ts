@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test';
-import { getCaseStudy, getPublishedCaseStudies } from '../src/content/case-studies/registry';
+import { getPublishedCaseStudies } from '../src/content/case-studies/registry';
 
 function escapeRegExp(value: string): string {
   return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
@@ -37,23 +37,6 @@ test.describe('case study routes', () => {
 
     await expect(page.getByRole('heading', { name: 'Lost altitude.' })).toBeVisible();
     await expect(page).toHaveTitle(/Lost altitude/);
-  });
-
-  test('draft study renders by direct URL but stays out of published surfaces', async ({
-    page,
-  }) => {
-    const draft = getCaseStudy('ai', 'next-ai-physics');
-    expect(draft).toBeDefined();
-
-    await page.goto(`/${draft?.meta.domain}/${draft?.meta.slug}`);
-    await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
-    await expect(page.getByRole('link', { name: /Back to the ascent/ })).toBeVisible();
-    await expect(page.locator('meta[name="robots"][content="noindex"]')).toHaveCount(1);
-
-    await page.goto('/');
-    await expect(
-      page.locator(`a[href="/${draft?.meta.domain}/${draft?.meta.slug}"]`),
-    ).toHaveCount(0);
   });
 
   test('dev server carries no analytics beacon (ADR-0013 env gating)', async ({ page }) => {

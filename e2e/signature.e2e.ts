@@ -201,22 +201,31 @@ async function currentVisibleMutedColor(page: Page, triggerId: string): Promise<
 }
 
 /**
- * The dominant colour of a top-left background strip taken from the element's
- * own composited box (Playwright scrolls it into view, then the screenshot ->
+ * The dominant colour of a background strip taken from the element's own
+ * composited box (Playwright scrolls it into view, then the screenshot ->
  * canvas readback gives the painted truth). Computed styles cannot express
  * paint order, so this is the only way to assert what actually renders on top
  * -- e.g. that Contact's solid night covers the fixed tonal backdrop. Each
  * target keeps a >=48px background-only padding strip at its top, which is
- * what the clip reads; the element screenshot's scroll-into-view is
- * deterministic: tall scene bands align their top edge with the viewport
- * (heading well past the fade midpoint), while the bottom-of-page sections
- * are already fully visible and cannot scroll further.
+ * what the clip reads.
+ *
+ * The element screenshot's scroll-into-view is viewport-resize dependent: for
+ * a target shorter than the capture viewport it parks the top edge at the
+ * section `scroll-margin` (64px, the fixed TopBar), but for a target taller
+ * than the capture viewport the resize shifts the parked position and can
+ * leave the sampled strip on off-screen compositor tiles. The target is
+ * therefore parked explicitly first (`block: 'start'`), which lands every
+ * target at the same geometry: its scroll-margin, or the bottom clamp for the
+ * footer. The clip's `y` must sit below the 64px fixed TopBar in that parked
+ * geometry (64 + 74 -> viewport 138+) while still clearing the band's own
+ * heading (~131px into the element).
  */
 async function elementClipDominant(
   page: Page,
   selector: string,
   clip: { x: number; y: number; width: number; height: number },
 ): Promise<{ r: number; g: number; b: number }> {
+  await page.locator(selector).evaluate((el) => el.scrollIntoView({ block: 'start' }));
   const shot = await page.locator(selector).screenshot();
   const dataUrl = `data:image/png;base64,${shot.toString('base64')}`;
   return page.evaluate(
@@ -469,9 +478,13 @@ test.describe('tonal signature', () => {
   }) => {
     await page.goto('/');
 
-    // The sampled strip: the element's own top-left background-only padding
-    // (>=48px on every target), free of text or chrome.
-    const strip = { x: 40, y: 10, width: 160, height: 40 };
+    // The sampled strip: background-only padding at the top of the target
+    // (>=48px on every target), free of text or chrome. The `y` clears the
+    // 64px fixed TopBar in the parked geometry (see elementClipDominant):
+    // every target parks at its scroll-margin, so the strip at element 74
+    // reads the viewport 138px down, below the TopBar and above the band's
+    // own heading.
+    const strip = { x: 40, y: 74, width: 160, height: 40 };
 
     // Cruise: a transparent scene band (ai-physics). The element screenshot
     // parks its top edge at the viewport top, so the climb fade -- anchored

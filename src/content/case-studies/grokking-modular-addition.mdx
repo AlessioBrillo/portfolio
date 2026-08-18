@@ -1,0 +1,153 @@
+## Context
+
+After building a transformer from scratch to learn Italian, I wanted to see
+the other side of the same coin: not how a model learns a *language*, but
+how it learns an *algorithm*. There is a canonical case study for that —
+grokking, the delayed-generalization phase transition on modular addition
+(Nanda et al., ICLR 2023). Train a tiny transformer on `(a + b) mod P` and,
+if you are lucky, nothing happens for a thousand epochs; then, abruptly, the
+model snaps from memorization to perfect generalization — and the learned
+algorithm turns out to be a discrete Fourier transform with trigonometric
+identities, recoverable from the weights.
+
+I wanted to reproduce that transition from scratch, then reverse-engineer
+the circuit the way the paper does: Fourier decomposition of the embeddings,
+frequency ablation, and a sparse circuit as the prize.
+
+## Problem
+
+Three knots, and I underestimated all three:
+
+1. **The phenomenon is easy to make impossible.** Grokking's definition of
+   generalization is specific: validation must hold out *equations*
+   (`(a, b)` pairs), not *output classes* (`(a+b) mod P`). My first version
+   split by target class — so some output classes never appeared in training
+   and their unembedding rows were never trained. That is not a harder
+   problem, it is an unsolvable one: 0% validation accuracy even at P=11,
+   with no compute constraint involved.
+2. **Accuracy alone cannot tell grokking from competence.** The paper's real
+   signal is the Fourier *sparsity* of the learned solution: a grokked model
+   uses roughly P/2 frequencies with clean structure. A model can reach 100%
+   validation accuracy with a dense Fourier spectrum — solving the task
+   without grokking. Detecting that difference means measuring the right
+   thing, on the same scale as the threshold you judge it against.
+3. **A negative result is only a result if every alternative is excluded.**
+   If grokking does not appear, the honest possibilities are: memorization,
+   a broken harness, a wrong metric, a missed hyperparameter — or a real
+   dense algorithm. Ruling them out one by one is the actual work.
+
+## Approach
+
+### Stage 1 — The setup
+
+The canonical configuration (Nanda et al.): a single-layer decoder-only
+transformer, d_model=128, d_mlp=512, 4 heads, LayerNorm pre-each block,
+learned positional embeddings for the two input positions, AdamW at
+lr=1e-3 with weight decay 1.0 (the paper's critical hyperparameter), cosine
+schedule over the full run, batch 512. Data: all `(a, b)` pairs of
+`mod 113`, 30% held out at random — every output class present in both
+splits.
+
+### Stage 2 — The bug that made it unreachable
+
+My first dataset split by `(a + b) % P` instead of by `(a, b)`: the model
+was asked to predict output classes its unembedding had never seen. 0%
+validation accuracy at P=11, blamed at the time on a compute shortage. The
+fix holds out random equations — the canonical Power et al. setup. (The
+project's honesty ledger records three audits; each found a real bug — a
+wrong ablation site, a patch that never reached the residual stream, a
+metric summed across heads and plotted against a per-head threshold. The
+audits are part of the evidence base, not an appendix.)
+
+### Stage 3 — The full run, frozen
+
+With the split fixed, the run protocol was frozen: P=113, 3 seeds, 5000
+epochs each, checkpoint every 500, all on CPU — about 57 minutes per seed,
+three seeds in parallel on 9 of 12 threads. A multi-seed manifest harness
+recorded every number with provenance: seed, config, git sha, wall clock,
+per-seed checkpoints, and verification scripts that re-derive the figures
+from the final checkpoint instead of re-running the training.
+
+### Stage 4 — The verdict protocol
+
+After training, three questions, in order:
+
+1. Did validation generalize? (gate: val accuracy on held-out equations)
+2. Is the solution a sparse Fourier circuit? (gate: `k_99`, the number of
+   frequencies whose cumulative weight reaches 0.99 of the total — grokking
+   predicts ≈ P/2)
+3. Does the dense solution still depend on the Fourier basis? (gate:
+   frequency ablation)
+
+## What I built
+
+- `exp2_grokking.py` — data generator, 1-layer transformer, training loop,
+  Fourier analysis and ablation, with a `--quick` smoke mode and a
+  full-scale mode
+- A multi-seed manifest harness (`runner.py`, `results.py`) — every number
+  in this study is provenance-backed: seed, git sha, config, wall clock
+- Checkpoint machinery with full state (model, optimizer, scheduler, RNG)
+  every 500 epochs, so the Fourier analysis runs on the final checkpoint
+  and reproduces from it
+- Progress measures (val curve, Fourier weight spectra) regenerated from
+  the checkpoint, not re-run
+
+```python
+# the detection gate, from the verdict protocol
+k_99 = number of frequencies whose cumulative weight >= 0.99
+grokked  -> k_99 ~= P/2, a sparse circuit
+observed -> k_99 = 111/113, dense
+```
+
+## Result / Reflection
+
+Run log — P=113, frozen protocol, 3 seeds (manifest-backed):
+
+| Signal | Value |
+| --- | --- |
+| Modulus P | 113 |
+| Train fraction | 30% (random equation hold-out) |
+| Model config | 1 layer · 4 heads · d_model 128 · d_mlp 512 |
+| Optimizer / schedule | AdamW (lr 1e-3, weight decay 1.0) · cosine |
+| Seeds / epochs | 3 · 5000, checkpoint every 500 |
+| Final val accuracy | 1.0000 ± 0.0000 (n=3) |
+| Generalization epoch (val ≥ 0.9) | 1208 ± 117 (range 1048–1326) |
+| Fourier frequencies used (k_99) | 111 / 113 — dense (all 3 seeds) |
+| k_90 | 92.7 ± 0.9 |
+| Fourier sparsity | 0.079 ± 0.006 (dense regime) |
+| Wall clock | ~57 min × 3 seeds, CPU, 9/12 threads |
+
+The model **solved modular addition**: 100% validation accuracy on held-out
+equations, all three seeds, with a textbook generalization curve (val snaps
+from near zero to 1.0 around epoch 1208 ± 117). It did **not** grok: the
+Fourier spectrum stayed dense — 111 of 113 frequencies used, sparsity
+0.079, against the ~P/2 sparse circuit the protocol defines as grokking.
+No run in the project's history has ever produced k_99 < P/2.
+
+Read honestly: val-1.0-with-dense-Fourier is a legitimate dense algorithm,
+not a memorization failure — generalization to unseen equations is real and
+the Fourier basis is load-bearing. The verdict protocol stamped this
+**NO-GROK, a positive-negative**: the pipeline, the checkpoints and the
+manifest all worked; the phenomenon did not appear.
+
+What that changed about how I work:
+
+1. **A negative needs as much evidence as a positive.** The verdict rests on
+   three independent gates (accuracy, Fourier sparsity, ablation) — and on
+   audits that each found a real bug before the protocol was frozen. The
+   audits are part of the result.
+2. **The metric must live on the same scale as its own threshold.** One of
+   the project's bugs was a per-head signal summed across heads and plotted
+   against a per-head 0.3 line — a `[0, n_heads]` number against a 0.3
+   threshold. The units are the science.
+3. **A frozen protocol turns "no result" into a result.** After the verdict,
+   the next move is a small-P positive control (P=59/67/97), not another
+   tweak of the frozen run. The first microscope trial — embedding
+   normalization removed — was already falsified: the dense solution
+   persists without it, and the run underperformed the baseline (val 0.7176
+   vs 1.0). The phenomenon does not owe me its appearance; the harness owes
+   me the truth about where it looked.
+
+The growing beat: the point was never the grokking curve. It was owning the
+full loop — from dataset bug to stamped verdict — and being able to prove
+every number in between.

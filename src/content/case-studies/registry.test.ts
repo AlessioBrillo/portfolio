@@ -9,6 +9,7 @@ import type { CaseStudyDomain } from '@/types/domain';
 import corpusBody from '@/content/case-studies/transformer-italian-corpus.mdx?raw';
 import ascentBody from '@/content/case-studies/work-the-ascent.mdx?raw';
 import vdsBody from '@/content/case-studies/vds-licence.mdx?raw';
+import grokkingBody from '@/content/case-studies/grokking-modular-addition.mdx?raw';
 
 const VALID_DOMAINS: readonly CaseStudyDomain[] = ['ai', 'work', 'sky'];
 
@@ -21,7 +22,7 @@ vi.mock('@/content/case-studies/vds-licence.mdx', () => ({
 vi.mock('@/content/case-studies/work-the-ascent.mdx', () => ({
   default: () => null,
 }));
-vi.mock('@/content/case-studies/next-ai-physics.mdx', () => ({
+vi.mock('@/content/case-studies/grokking-modular-addition.mdx', () => ({
   default: () => null,
 }));
 
@@ -58,16 +59,16 @@ describe('getCaseStudy', () => {
     expect(getCaseStudy('sky', 'transformer-italian-corpus')).toBeUndefined();
   });
 
-  it('resolves the draft AI study: registered, complete, and unpublished', () => {
-    const entry = getCaseStudy('ai', 'next-ai-physics');
+  it('resolves the second AI study: registered, complete, and published', () => {
+    const entry = getCaseStudy('ai', 'grokking-modular-addition');
     expect(entry).toBeDefined();
     expect(entry?.meta.domain).toBe('ai');
-    expect(entry?.meta.slug).toBe('next-ai-physics');
+    expect(entry?.meta.slug).toBe('grokking-modular-addition');
     expect(entry?.load).toBeInstanceOf(Function);
     const publishedSlugs = getPublishedCaseStudies().map((meta) => meta.slug);
-    expect(publishedSlugs).not.toContain('next-ai-physics');
+    expect(publishedSlugs).toContain('grokking-modular-addition');
   });
-  it('resolves every registered study loader, draft included', async () => {
+  it('resolves every registered study loader', async () => {
     for (const entry of Object.values(CASE_STUDIES)) {
       const mod = await entry.load();
       expect(mod.default, entry.meta.slug).toBeTypeOf('function');
@@ -160,6 +161,7 @@ const KNOWN_DEBT: readonly MarkerDebt[] = [
 
 const PUBLISHED_BODIES: Readonly<Record<string, string>> = {
   'transformer-italian-corpus': corpusBody,
+  'grokking-modular-addition': grokkingBody,
   'the-ascent': ascentBody,
   'vds-licence': vdsBody,
 };
@@ -199,7 +201,12 @@ describe('published metadata contract', () => {
 describe('getPublishedCaseStudies', () => {
   it('returns every registered study exactly once, in curated order', () => {
     const slugs = getPublishedCaseStudies().map((meta) => meta.slug);
-    expect(slugs).toEqual(['transformer-italian-corpus', 'the-ascent', 'vds-licence']);
+    expect(slugs).toEqual([
+      'transformer-italian-corpus',
+      'grokking-modular-addition',
+      'the-ascent',
+      'vds-licence',
+    ]);
   });
 
   it('exposes the metadata the sitemap and prev/next navigation need', () => {
@@ -215,10 +222,6 @@ describe('isPublishedStudy', () => {
     for (const meta of getPublishedCaseStudies()) {
       expect(isPublishedStudy(meta)).toBe(true);
     }
-  });
-
-  it('returns false for the registered draft study', () => {
-    expect(isPublishedStudy({ domain: 'ai', slug: 'next-ai-physics' })).toBe(false);
   });
 
   it('returns false for an unknown study', () => {
