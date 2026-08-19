@@ -43,13 +43,22 @@ jobs:
               - 'src/lib/altitude.ts'
               - 'e2e/**'
               - 'playwright.config.ts'
+              - 'playwright.config.preview.ts'
               - '.github/workflows/e2e.yml'
 
   e2e:
     needs: filter
     if: needs.filter.outputs.tonal == 'true' || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: dev
+            command: npm run e2e
+          - name: preview
+            command: npm run e2e:preview
 
     steps:
       - uses: actions/checkout@v7
@@ -66,7 +75,7 @@ jobs:
         run: npx playwright install --with-deps chromium
 
       - name: Run the tonal signature harness
-        run: npm run e2e
+        run: ${{ matrix.command }}
 
       - name: Upload report on failure
         if: failure()
