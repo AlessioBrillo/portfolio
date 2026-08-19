@@ -18,6 +18,7 @@ const corpusBody = readRawBody('transformer-italian-corpus');
 const ascentBody = readRawBody('work-the-ascent');
 const vdsBody = readRawBody('vds-licence');
 const grokkingBody = readRawBody('grokking-modular-addition');
+const physicsBody = readRawBody('physics-of-flight');
 
 const VALID_DOMAINS: readonly CaseStudyDomain[] = ['ai', 'work', 'sky'];
 
@@ -165,11 +166,19 @@ const KNOWN_DEBT: readonly MarkerDebt[] = [
       'Author slot': [106],
     },
   },
+  {
+    slug: 'physics-of-flight',
+    markers: {
+      'fill in': [52, 70, 93, 107],
+      '**—**': [94, 110, 111, 112],
+    },
+  },
 ];
 
 const PUBLISHED_BODIES: Readonly<Record<string, string>> = {
   'transformer-italian-corpus': corpusBody,
   'grokking-modular-addition': grokkingBody,
+  'physics-of-flight': physicsBody,
   'the-ascent': ascentBody,
   'vds-licence': vdsBody,
 };
@@ -212,6 +221,7 @@ describe('getPublishedCaseStudies', () => {
     expect(slugs).toEqual([
       'transformer-italian-corpus',
       'grokking-modular-addition',
+      'physics-of-flight',
       'the-ascent',
       'vds-licence',
     ]);
@@ -238,15 +248,15 @@ describe('isPublishedStudy', () => {
 });
 
 /**
- * The physics-of-flight draft (ADR-0017): registered for review, never
- * published. This is the pipeline's first real draft — these tests pin the
- * draft boundary (route resolvable, mosaic/sitemap/prev-next excluded) so a
- * future publish step is a conscious, reviewed decision.
+ * The physics-of-flight study (ADR-0017): published as the physics half of
+ * the AI & Physics core. Its POH figures and logbook example are tracked in
+ * KNOWN_DEBT — the ledger entry forces the conscious step the day the author
+ * fills the real numbers: delete the debt, the exact-match contract verifies.
  */
-describe('physics-of-flight draft (ADR-0017)', () => {
-  it('resolves the draft route with complete metadata', () => {
+describe('physics-of-flight (published)', () => {
+  it('resolves the route with complete metadata', () => {
     const entry = getCaseStudy('ai', 'physics-of-flight');
-    expect(entry, 'draft must be registered in CASE_STUDIES').toBeDefined();
+    expect(entry, 'study must be registered in CASE_STUDIES').toBeDefined();
     expect(entry?.meta.slug).toBe('physics-of-flight');
     expect(entry?.meta.domain).toBe('ai');
     expect(entry?.meta.title.trim().length).toBeGreaterThan(0);
@@ -254,11 +264,11 @@ describe('physics-of-flight draft (ADR-0017)', () => {
     expect(entry?.load).toBeInstanceOf(Function);
   });
 
-  it('stays unpublished: out of the mosaic, sitemap and prev/next', () => {
+  it('is published: in the curated order, the mosaic surfaces, the sitemap and prev/next', () => {
     const publishedSlugs = getPublishedCaseStudies().map((meta) => meta.slug);
-    expect(publishedSlugs).not.toContain('physics-of-flight');
+    expect(publishedSlugs).toContain('physics-of-flight');
     const entry = getCaseStudy('ai', 'physics-of-flight');
-    expect(entry, 'draft must be registered in CASE_STUDIES').toBeDefined();
-    expect(isPublishedStudy(entry!.meta)).toBe(false);
+    expect(entry, 'study must be registered in CASE_STUDIES').toBeDefined();
+    expect(isPublishedStudy(entry!.meta)).toBe(true);
   });
 });
