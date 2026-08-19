@@ -79,6 +79,9 @@
     "src/**/*.css": [
       "prettier --write"
     ],
+    "scripts/**/*.mjs": [
+      "prettier --write"
+    ],
     "*.{json,md}": [
       "prettier --write"
     ]
