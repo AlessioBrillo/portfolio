@@ -76,11 +76,11 @@ export const CASE_STUDIES: Readonly<Record<string, CaseStudyEntry>> = {
     load: () => import('./grokking-modular-addition.mdx'),
   },
   /**
-   * Draft (ADR-0017): registered for review, intentionally absent from
-   * PUBLISHED_ORDER. The physics half of the AI & Physics core — the flight
-   * manual derived from first principles, companion to the VDS licence study.
-   * Its route renders noindex until the author fills the run-log-style
-   * markers and moves it into the curated order.
+   * The physics half of the AI & Physics core — the flight manual derived
+   * from first principles, companion to the VDS licence study. Published
+   * with the POH figures and the logbook example tracked as KNOWN_DEBT in
+   * the registry contract (same discipline as the corpus study's run-log
+   * numbers): the ledger entry self-expires the day the author fills them.
    */
   'ai/physics-of-flight': {
     meta: {
@@ -106,13 +106,14 @@ export function getCaseStudy(domain: string, slug: string): CaseStudyEntry | und
  * Curated reading order for the published studies — the source of truth for
  * cross-study prev/next navigation, the build-time sitemap, and the
  * publish/draft boundary (ADR-0015, ADR-0017). The order is the mosaic's
- * narrative: the serious core first (both AI studies, the language one then
- * the grokking one), the engineered showcase next, the sky closing the
- * flight.
+ * narrative: the serious core first (all three AI studies — the language
+ * one, the grokking one, the flight physics one), the engineered showcase
+ * next, the sky closing the flight.
  */
 const PUBLISHED_ORDER: readonly string[] = [
   'ai/transformer-italian-corpus',
   'ai/grokking-modular-addition',
+  'ai/physics-of-flight',
   'work/the-ascent',
   'sky/vds-licence',
 ];
