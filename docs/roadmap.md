@@ -66,12 +66,14 @@ day the author fills those lines, deleting the debt entry is verified by the
 same test. Publishing a future study is now impossible while it still
 carries placeholders.
 
-The first real draft is registered: `physics-of-flight`
-(`/ai/physics-of-flight`, ADR-0017) — the physics half of the AI & Physics
-core, companion to the VDS licence study. It renders noindex by direct URL,
-stays out of the mosaic, sitemap and prev/next, and its body carries
-author-slot markers (POH figures, a logbook go/no-go example) under the same
-`KNOWN_DEBT` discipline that guards published bodies. Registering it surfaced
+The physics half of the AI & Physics core is published: `physics-of-flight`
+(`/ai/physics-of-flight`, ADR-0017) — the flight manual derived from first
+principles, companion to the VDS licence study. It renders in the mosaic
+surface, the sitemap and the prev/next order (right after the grokking
+study), and its POH figures and the logbook go/no-go example remain tracked
+author markers under the same `KNOWN_DEBT` discipline that guards the corpus
+study's run-log numbers — the ledger entry self-expires the day the author
+fills the real aircraft data. Registering it surfaced
 a latent test-infrastructure gap: `vitest.config.ts` fully replaces
 `vite.config.ts`, and it never mirrored the MDX plugin — so no real `.mdx`
 body had ever been loaded inside a test (the four published bodies were
@@ -164,10 +166,11 @@ is the one thing the gate cannot catch.
 1. **5-8 strong photos** (one sober portrait for "Who", the rest sport / flying /
    experiences).
 2. ~~**2-3 case studies**~~ — resolved: the grokking study
-   (`/ai/grokking-modular-addition`) is published; what remains is the corpus
-   study's run-log numbers (KNOWN_DEBT) and the physics-of-flight draft's
-   author markers (POH figures, one logbook go/no-go example), not a new
-   study.
+   (`/ai/grokking-modular-addition`) is published, and so is the physics half
+   of the AI & Physics core (`/ai/physics-of-flight`); what remains is author
+   data, not new studies — the corpus study's run-log numbers (KNOWN_DEBT)
+   and the physics study's POH figures and logbook go/no-go example
+   (KNOWN_DEBT).
 3. The current **LinkedIn headline** (for the hero eyebrow).
 4. A **domain** + how you want to sign (full name? a small personal brand?).
 5. ~~**Font binaries**~~ — resolved: the Latin-subset variable woff2 files

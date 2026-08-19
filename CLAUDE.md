@@ -67,15 +67,18 @@ sits on the night half of the flight. Case studies are real routes:
 `/{domain}/{slug}` resolves through the data router (ADR-0005), owns its
 document head via `useDocumentMeta`, returns to the exact scroll position via
 the layout's `ScrollRestoration`, and contains lazy-MDX failures behind a
-route-level error boundary so one broken study never crashes the app. Three
+route-level error boundary so one broken study never crashes the app. Five
 long-form studies are published as real routes: `transformer-italian-corpus`
-(AI, carries a professional draft), `work-the-ascent` (work) and
-`vds-licence` (sky); the mosaic index and its tiles are backed by a tested
-content module.
+(AI, carries a professional draft), `grokking-modular-addition` (AI),
+`physics-of-flight` (AI, the flight manual derived from first principles —
+its POH figures and logbook example remain tracked author markers under the
+`KNOWN_DEBT` ledger), `work-the-ascent` (work) and `vds-licence` (sky); the
+mosaic index and its tiles are backed by a tested content module.
 Small-text contrast is AA-safe on every surface. All eight bands — Hero, Who,
 Mosaic, AI & Physics, Work & School, Sky & Sport, Experiences, and Contact —
 are implemented, content-driven sections backed by tested content modules;
 Contact is complete (email + LinkedIn CTAs sourced from `lib/site.ts`) and
 paints its own solid night outside `TonalScene`. What remains for Phase 5 is
-content, not structure: real photos, real copy, and one more long-form
-AI/physics study for the recruiter-facing core.
+content, not structure: real photos, real copy, and the author data tracked
+in the `KNOWN_DEBT` ledger (the corpus study's run-log numbers, the physics
+study's POH figures and logbook example).
