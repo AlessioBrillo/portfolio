@@ -1,5 +1,6 @@
 import { expect, test } from '@playwright/test';
 import { getPublishedCaseStudies } from '../src/content/case-studies/registry';
+import { hasAnalytics, hasCanonicalOrigin } from './env';
 
 function escapeRegExp(value: string): string {
   return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
@@ -25,10 +26,11 @@ test.describe('case study routes', () => {
       await expect(page.getByRole('link', { name: /Back to the ascent/ })).toBeVisible();
       await expect(page.getByRole('heading', { level: 2 }).first()).toBeVisible();
       await expect(page.locator('meta[name="robots"][content="noindex"]')).toHaveCount(0);
-      // Pre-domain contract (src/lib/site.ts): without a configured origin no
-      // canonical link is emitted — previews must never advertise a throwaway
-      // origin as the authoritative one.
-      await expect(page.locator('link[rel="canonical"]')).toHaveCount(0);
+      // Canonical policy (src/lib/site.ts): the link appears exactly when the
+      // deployment set VITE_SITE_URL — never an empty link on a preview, and
+      // the real origin once configured. The assertion flips with the env so
+      // the production build stays testable, not frozen in the pre-domain state.
+      await expect(page.locator('link[rel="canonical"]')).toHaveCount(hasCanonicalOrigin ? 1 : 0);
     });
   }
 
@@ -39,9 +41,9 @@ test.describe('case study routes', () => {
     await expect(page).toHaveTitle(/Lost altitude/);
   });
 
-  test('dev server carries no analytics beacon (ADR-0013 env gating)', async ({ page }) => {
+  test('analytics beacon matches the deploy-time env pair (ADR-0013/0020)', async ({ page }) => {
     await page.goto('/');
-    await expect(page.locator('script[data-domain]')).toHaveCount(0);
+    await expect(page.locator('script[data-domain]')).toHaveCount(hasAnalytics ? 1 : 0);
   });
 
   test('prev/next navigation walks the curated order end to end', async ({ page }, testInfo) => {
@@ -57,16 +59,12 @@ test.describe('case study routes', () => {
     await page.goto(`/${first?.domain}/${first?.slug}`);
     for (const study of PUBLISHED.slice(1)) {
       await page.getByRole('link', { name: /Next study/ }).click();
-      await expect(page).toHaveURL(
-        new RegExp(`/${study.domain}/${escapeRegExp(study.slug)}$`),
-      );
+      await expect(page).toHaveURL(new RegExp(`/${study.domain}/${escapeRegExp(study.slug)}$`));
     }
 
     for (const study of [...PUBLISHED].reverse().slice(1)) {
       await page.getByRole('link', { name: /Previous study/ }).click();
-      await expect(page).toHaveURL(
-        new RegExp(`/${study.domain}/${escapeRegExp(study.slug)}$`),
-      );
+      await expect(page).toHaveURL(new RegExp(`/${study.domain}/${escapeRegExp(study.slug)}$`));
     }
   });
 
