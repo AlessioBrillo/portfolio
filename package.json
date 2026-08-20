@@ -28,6 +28,8 @@
     "test:coverage": "vitest run --coverage",
     "pree2e": "tsc --noEmit -p tsconfig.e2e.json",
     "e2e": "playwright test",
+    "pree2e:preview": "tsc --noEmit -p tsconfig.e2e.json",
+    "e2e:preview": "playwright test -c playwright.config.preview.ts",
     "prepare": "husky"
   },
   "dependencies": {

@@ -1,9 +1,8 @@
 import type { ExperienceEntry } from '@/types/domain';
 
 /**
- * The experiences band (06). Curated storytelling on the surface; a "dig
- * deeper" archive is future work (roadmap Phase 5), so no archive link is
- * rendered until the archive route exists.
+ * The experiences band (06). Curated storytelling on the surface; the
+ * "Dig deeper" link reaches the chronological archive route (ADR-0019).
  */
 const EXPERIENCE_ENTRIES: readonly ExperienceEntry[] = [
   {
