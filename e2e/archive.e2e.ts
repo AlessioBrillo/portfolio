@@ -1,4 +1,5 @@
 import { expect, test } from '@playwright/test';
+import { hasCanonicalOrigin } from './env';
 
 /**
  * The archive surface (ADR-0019): the deep link resolves to the chronological
@@ -14,11 +15,11 @@ test.describe('archive route', () => {
     await expect(page).toHaveTitle(/The archive/);
     await expect(page.getByRole('link', { name: /Back to the ascent/ })).toBeVisible();
     await expect(page.getByRole('heading', { level: 3 }).first()).toBeVisible();
-    // Published surface: no robots meta, and pre-domain no canonical link is
-    // emitted (src/lib/site.ts) — previews must never advertise a throwaway
-    // origin as the authoritative one.
+    // Published surface: no robots meta, and the canonical link appears
+    // exactly when the deployment set VITE_SITE_URL (src/lib/site.ts) — the
+    // assertion flips with the env so the production build stays testable.
     await expect(page.locator('meta[name="robots"][content="noindex"]')).toHaveCount(0);
-    await expect(page.locator('link[rel="canonical"]')).toHaveCount(0);
+    await expect(page.locator('link[rel="canonical"]')).toHaveCount(hasCanonicalOrigin ? 1 : 0);
   });
 
   test('"dig deeper" reaches the archive through SPA navigation', async ({ page }, testInfo) => {
