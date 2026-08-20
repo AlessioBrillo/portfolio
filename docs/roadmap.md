@@ -88,8 +88,10 @@ first, forcing the conscious two-step: fill the markers, then add the key to
 
 CSP note (deliberate tradeoffs in `vercel.json`): `style-src 'unsafe-inline'`
 is required by the Framer Motion / GSAP inline style attributes that drive
-the tonal signature, and `img-src https:` admits the optimized photo
-derivatives from any future CDN origin. Both are scoped allowances inside
+the tonal signature, and `img-src 'self' data:` admits only same-origin
+images plus inline data (photo derivatives live in `public/photos/`); the
+moment a CDN origin is chosen, `img-src` must be widened to that exact
+origin behind a new ADR. Both are scoped allowances inside
 an otherwise strict policy (ADR-0009); they are not loosened further for
 third-party scripts, whose addition would require their own ADR. HSTS
 (`max-age=63072000`) is applied to every deployment, previews included —
