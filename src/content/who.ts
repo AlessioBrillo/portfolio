@@ -24,17 +24,28 @@ const WHO_STATEMENTS: readonly WhoStatement[] = [
 ];
 
 /**
- * The portrait slot: a full responsive asset (ADR-0009). `src` stays empty
- * until a real photo lands — the intrinsic 4:5 ratio and `sizes` are already
- * in place, so the browser reserves the true layout the day the photo ships
- * (no CLS). The optimization script prints the exact `sources`/`srcSet` lines
- * to paste here.
+ * The portrait slot: a full responsive asset (ADR-0009). Generated from
+ * `npm run images -- --src temp-raw-photos` (synthetic test image).
+ * Intrinsic 4:5 ratio with `sizes` reserves layout (zero CLS).
  */
 const PORTRAIT: ImageAsset = {
   alt: 'A sober portrait of Alessio Brillo',
-  width: 1200,
-  height: 1500,
+  src: '/photos/portrait-4x5-960-b4df065a.jpg',
+  width: 960,
+  height: 1200,
   sizes: '(min-width: 1024px) 40vw, 100vw',
+  sources: [
+    {
+      type: 'image/avif',
+      srcSet:
+        '/photos/portrait-4x5-480-b4df065a.avif 480w, /photos/portrait-4x5-960-b4df065a.avif 960w',
+    },
+    {
+      type: 'image/webp',
+      srcSet:
+        '/photos/portrait-4x5-480-b4df065a.webp 480w, /photos/portrait-4x5-960-b4df065a.webp 960w',
+    },
+  ],
 } as const;
 
 /** The three character statements, as an immutable snapshot. */
@@ -42,7 +53,7 @@ export function getWhoStatements(): readonly WhoStatement[] {
   return WHO_STATEMENTS.map((statement) => Object.freeze({ ...statement }));
 }
 
-/** The portrait slot: a photo-ready asset, absent src until the photo lands. */
+/** The portrait slot: a photo-ready asset with real derivatives. */
 export function getWhoPortrait(): ImageAsset {
   return Object.freeze({ ...PORTRAIT });
 }
