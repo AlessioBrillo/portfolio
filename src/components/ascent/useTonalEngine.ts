@@ -10,6 +10,15 @@ import {
   type ToneName,
 } from '@/lib/tone';
 
+/** Debounce helper for resize refresh — avoids StormTrigger spam on resize. */
+function debounce<T extends (...args: unknown[]) => void>(fn: T, wait: number): T {
+  let timeoutId: ReturnType<typeof setTimeout> | null = null;
+  return ((...args: unknown[]) => {
+    if (timeoutId) clearTimeout(timeoutId);
+    timeoutId = setTimeout(() => fn(...args), wait);
+  }) as T;
+}
+
 /**
  * The element a transition's `start`/`end` marks are measured against. A
  * section's own heading, not its outer `<section>`, is the actual content
@@ -190,8 +199,27 @@ export function useTonalEngine(
 
     void setup();
 
+    // Refresh ScrollTrigger after all assets (fonts, images, layout) have
+    // settled. window.load fires after document.fonts.ready and image loads,
+    // guaranteeing the geometry is final. Debounced resize handles viewport
+    // changes (rotation, split-screen, devtools) that shift trigger positions.
+    const debouncedRefresh = debounce(() => {
+      if (!cancelled) ScrollTrigger.refresh();
+    }, 150);
+
+    window.addEventListener(
+      'load',
+      () => {
+        if (!cancelled) ScrollTrigger.refresh();
+      },
+      { once: true },
+    );
+
+    window.addEventListener('resize', debouncedRefresh);
+
     return () => {
       cancelled = true;
+      window.removeEventListener('resize', debouncedRefresh);
       revert?.();
     };
   }, [backdropRef]);
