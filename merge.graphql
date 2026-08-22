@@ -1,0 +1,7 @@
+mutation {
+  mergePullRequest(input: {pullRequestId: "PR_kwDOTBJD7M8AAAABApNsYQ", mergeType: SQUASH}) {
+    pullRequest {
+      merged
+    }
+  }
+}

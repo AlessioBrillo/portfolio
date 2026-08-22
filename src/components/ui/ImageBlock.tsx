@@ -1,4 +1,5 @@
 import type { CSSProperties, ReactElement } from 'react';
+import { useState } from 'react';
 import { SCENE_SOFT_TEXT, useSceneTone } from '@/components/ascent/tone-context';
 import { cn } from '@/lib/utils';
 import type { ImageAsset } from '@/types/domain';
@@ -34,6 +35,7 @@ export function ImageBlock({
   className,
 }: ImageBlockProps): ReactElement {
   const { softTone } = useSceneTone();
+  const [isLoaded, setIsLoaded] = useState(false);
   const frameStyle: CSSProperties | undefined =
     src && width && height ? { aspectRatio: `${width} / ${height}` } : undefined;
   const image = (
@@ -44,26 +46,40 @@ export function ImageBlock({
       alt={alt}
       loading="lazy"
       decoding="async"
-      className="block h-full w-full object-cover"
+      onLoad={() => setIsLoaded(true)}
+      className={cn(
+        'block h-full w-full object-cover transition-opacity duration-500 ease-out',
+        isLoaded ? 'opacity-100' : 'opacity-0',
+      )}
+    />
+  );
+  const shimmer = (
+    <div
+      className="absolute inset-0 animate-pulse bg-gradient-to-r from-black/5 via-black/10 to-black/5"
+      style={{ backgroundSize: '200% 100%', animationDuration: '1.5s' }}
+      aria-hidden="true"
     />
   );
   return (
     <figure className={cn('flex flex-col gap-3', className)}>
       <div
-        className="overflow-hidden rounded-[var(--radius-card)] border border-black/10"
+        className="relative overflow-hidden rounded-[var(--radius-card)] border border-black/10"
         style={frameStyle}
       >
         {src ? (
-          sources && sources.length > 0 ? (
-            <picture>
-              {sources.map((source) => (
-                <source key={source.type} type={source.type} srcSet={source.srcSet} />
-              ))}
-              {image}
-            </picture>
-          ) : (
-            image
-          )
+          <>
+            {!isLoaded && shimmer}
+            {sources && sources.length > 0 ? (
+              <picture>
+                {sources.map((source) => (
+                  <source key={source.type} type={source.type} srcSet={source.srcSet} />
+                ))}
+                {image}
+              </picture>
+            ) : (
+              image
+            )}
+          </>
         ) : (
           <div className="flex aspect-[4/3] items-center justify-center bg-black/5">
             <span

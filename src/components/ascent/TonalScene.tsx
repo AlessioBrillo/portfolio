@@ -4,6 +4,16 @@ import { TONE, type ToneName } from '@/lib/tone';
 import { SceneToneContext } from './tone-context';
 import { useTonalEngine } from './useTonalEngine';
 
+/** Subtle grain overlay (SVG noise, ~3% opacity) — breaks digital flatness without external assets. */
+const GRAIN_SVG = `data:image/svg+xml;base64,${btoa(
+  `<svg viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg">
+    <filter id="noise">
+      <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="4" stitchTiles="stitch"/>
+    </filter>
+    <rect width="100%" height="100%" filter="url(#noise)" opacity="0.03"/>
+  </svg>`,
+)}`;
+
 interface TonalSceneProps {
   children: ReactNode;
 }
@@ -51,6 +61,16 @@ export function TonalScene({ children }: TonalSceneProps): ReactElement {
           data-testid="tonal-backdrop"
           className="pointer-events-none fixed inset-0 -z-10"
           style={{ backgroundColor: TONE.paper }}
+        />
+        <div
+          aria-hidden
+          className="pointer-events-none fixed inset-0 -z-5"
+          style={{
+            backgroundImage: `url("${GRAIN_SVG}")`,
+            backgroundRepeat: 'repeat',
+            backgroundSize: '400px 400px',
+            opacity: 1,
+          }}
         />
         <div className="relative z-10">{children}</div>
       </div>

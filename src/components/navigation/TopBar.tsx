@@ -65,7 +65,7 @@ export function TopBar(): ReactElement {
         <a
           href="#hero"
           className={cn(
-            'font-display text-base no-underline transition-colors',
+            'font-display text-base no-underline transition-colors active:scale-[0.98]',
             inDark ? 'text-cream' : 'text-ink',
           )}
         >
@@ -74,7 +74,7 @@ export function TopBar(): ReactElement {
         <a
           href="#contact"
           className={cn(
-            'font-mono text-xs uppercase tracking-widest no-underline transition-colors',
+            'font-mono text-xs uppercase tracking-widest no-underline transition-colors active:scale-[0.98]',
             inDark ? 'text-cream' : 'text-ink',
           )}
         >

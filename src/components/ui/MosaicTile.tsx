@@ -14,7 +14,7 @@ interface MosaicTileProps {
 const CARD_CLASSES =
   'flex h-full flex-col justify-between gap-6 rounded-[var(--radius-card)] border border-black/10 ' +
   'bg-cream/60 p-6 transition-[transform,border-color] duration-[var(--duration-normal)] ' +
-  'ease-[var(--ease-out-expo)] hover:-translate-y-1 hover:border-orange';
+  'ease-[var(--ease-out-expo)] hover:-translate-y-1 hover:border-orange active:scale-[0.99] active:translate-y-[1px]';
 
 const LINK_CLASSES = `${CARD_CLASSES} block h-full no-underline text-current`;
 

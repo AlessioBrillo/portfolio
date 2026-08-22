@@ -45,7 +45,7 @@ export function EntryCard({ title, line, meta, href, tone }: EntryCardProps): Re
   const classes = cn(
     'flex h-full flex-col justify-between gap-6 rounded-[var(--radius-card)] border p-6',
     'transition-[transform,border-color] duration-[var(--duration-normal)] ease-[var(--ease-out-expo)]',
-    'hover:-translate-y-1 hover:border-orange',
+    'hover:-translate-y-1 hover:border-orange active:scale-[0.99] active:translate-y-[1px]',
     CARD_SURFACE[effectiveTone],
   );
 

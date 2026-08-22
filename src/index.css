@@ -14,6 +14,8 @@
     font-family: var(--font-sans);
     -webkit-font-smoothing: antialiased;
     text-rendering: optimizeLegibility;
+    font-optical-sizing: auto;
+    text-wrap: pretty;
   }
 
   :focus-visible {

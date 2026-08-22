@@ -16,16 +16,18 @@ interface SectionHeaderProps {
 /** Consistent header across every band: mono eyebrow + display H2 + optional intro. */
 export function SectionHeader({ eyebrow, title, intro, tone }: SectionHeaderProps): ReactElement {
   return (
-    <header className="flex flex-col gap-4">
-      <Eyebrow tone={tone}>{eyebrow}</Eyebrow>
+    <header className="flex flex-col">
+      <Eyebrow tone={tone} className="mb-2">
+        {eyebrow}
+      </Eyebrow>
       <h2
         data-tone-trigger
-        className="font-display text-[length:var(--text-h2)] font-medium leading-[1.1]"
+        className="font-display text-[length:var(--text-h2)] font-medium leading-[1.1] text-balance mb-4"
       >
         {title}
       </h2>
       {intro ? (
-        <p className="max-w-2xl text-[length:var(--text-body)] leading-relaxed">{intro}</p>
+        <p className="max-w-2xl text-[length:var(--text-body)] leading-relaxed mt-2">{intro}</p>
       ) : null}
     </header>
   );
