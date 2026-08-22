@@ -124,7 +124,7 @@ export function CaseStudyPage(): ReactElement {
           <h1
             ref={headingRef}
             tabIndex={-1}
-            className="font-display text-[length:var(--text-h2)] font-medium leading-tight"
+            className="font-display text-[length:var(--text-h2)] font-medium leading-tight text-balance"
           >
             {meta.title}
           </h1>

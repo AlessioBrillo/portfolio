@@ -24,7 +24,7 @@ describe('Who', () => {
 
   it('renders the portrait slot with its alt text', () => {
     render(<Who />);
-    expect(screen.getByText(getWhoPortrait().alt)).toBeInTheDocument();
+    expect(screen.getByAltText(getWhoPortrait().alt)).toBeInTheDocument();
   });
 
   it('uses the night muted tone for statements when the scene is on night', () => {

@@ -36,7 +36,7 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
           className="flex min-h-screen flex-col items-center justify-center gap-6 bg-paper px-6 text-center text-ink"
         >
           <Eyebrow>Error</Eyebrow>
-          <h1 className="font-display text-[length:var(--text-h2)] font-medium">
+          <h1 className="font-display text-[length:var(--text-h2)] font-medium text-balance">
             Something went wrong.
           </h1>
           <p className="max-w-md text-ink-soft">{message}</p>

@@ -10,7 +10,7 @@ describe('SkySport', () => {
     for (const entry of getSportEntries()) {
       expect(screen.getByRole('heading', { name: entry.title })).toBeInTheDocument();
       expect(screen.getByText(entry.line)).toBeInTheDocument();
-      expect(screen.getByText(entry.image.alt)).toBeInTheDocument();
+      expect(screen.getByAltText(entry.image.alt)).toBeInTheDocument();
     }
   });
 
@@ -24,7 +24,7 @@ describe('SkySport', () => {
     for (const entry of withoutCaption) {
       const caption = entry.image.caption;
       if (caption) continue;
-      expect(screen.queryByText(entry.image.alt)).toBeInTheDocument();
+      expect(screen.queryByAltText(entry.image.alt)).toBeInTheDocument();
     }
   });
 

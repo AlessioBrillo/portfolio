@@ -34,7 +34,7 @@ export function ArchivePage(): ReactElement {
         </Link>
         <header className="mt-8 flex flex-col gap-4">
           <Eyebrow>06 — Experiences &middot; The archive</Eyebrow>
-          <h1 className="font-display text-[length:var(--text-h2)] font-medium leading-tight">
+          <h1 className="font-display text-[length:var(--text-h2)] font-medium leading-tight text-balance">
             The archive
           </h1>
         </header>
