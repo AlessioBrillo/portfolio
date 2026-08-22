@@ -44,7 +44,7 @@ jobs:
 
   ci:
     needs: filter
-    if: always() && (needs.filter.outputs.code == 'true' || github.event_name == 'workflow_dispatch')
+    if: always() && (needs.filter.outputs.code == 'true' || github.event_name == 'workflow_dispatch' || needs.filter.result == 'failure')
     runs-on: ubuntu-latest
     timeout-minutes: 8
 

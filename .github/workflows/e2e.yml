@@ -49,7 +49,7 @@ jobs:
 
   e2e:
     needs: filter
-    if: always() && (needs.filter.outputs.tonal == 'true' || github.event_name == 'workflow_dispatch')
+    if: always() && (needs.filter.outputs.tonal == 'true' || github.event_name == 'workflow_dispatch' || needs.filter.result == 'failure')
     runs-on: ubuntu-latest
     timeout-minutes: 15
     strategy:
