@@ -23,11 +23,21 @@ jobs:
           fetch-depth: 0
 
       - name: Detect code changes
-        uses: dorny/paths-filter@v4
+        uses: dorny/paths-filter@v3
         id: filter
         with:
           filters: |
             code:
+              - 'src/**'
+              - 'scripts/**'
+              - 'public/**'
+              - '*.ts'
+              - '*.tsx'
+              - '*.css'
+              - '*.html'
+              - '*.json'
+              - 'vercel.json'
+              - '.github/**'
               - '!docs/**'
               - '!*.md'
 
