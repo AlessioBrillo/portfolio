@@ -364,4 +364,31 @@ describe('useTonalEngine', () => {
     // with && - if either is false, refresh is not called.
     expect(mocks.refresh).toHaveBeenCalledTimes(1);
   });
+
+  it('guards refreshIfActive when load fires before scrollTriggerRef is set (race)', async () => {
+    Object.defineProperty(document, 'fonts', {
+      configurable: true,
+      value: { ready: Promise.resolve() },
+    });
+
+    let loadCb: () => void = () => {};
+    const addEventListener = vi
+      .spyOn(window, 'addEventListener')
+      .mockImplementation((event, cb) => {
+        if (event === 'load') loadCb = cb as () => void;
+      });
+
+    // Render engine but DON'T wait for GSAP to load
+    // This means scrollTriggerRef.current is still null when load fires
+    renderEngine();
+
+    // Fire load immediately - before setup() completes and sets scrollTriggerRef
+    loadCb?.();
+    await Promise.resolve();
+
+    // refreshIfActive should NOT call ScrollTrigger.refresh because scrollTriggerRef.current is null
+    expect(mocks.refresh).not.toHaveBeenCalled();
+
+    addEventListener.mockRestore();
+  });
 });
