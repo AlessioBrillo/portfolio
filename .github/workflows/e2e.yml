@@ -48,8 +48,7 @@ jobs:
               - '.github/workflows/e2e.yml'
 
   e2e:
-    needs: filter
-    if: always() && (needs.filter.outputs.tonal == 'true' || github.event_name == 'workflow_dispatch' || needs.filter.result == 'failure')
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
     runs-on: ubuntu-latest
     timeout-minutes: 15
     strategy:

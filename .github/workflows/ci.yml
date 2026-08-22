@@ -43,8 +43,7 @@ jobs:
               - '!*.md'
 
   ci:
-    needs: filter
-    if: always() && (needs.filter.outputs.code == 'true' || github.event_name == 'workflow_dispatch' || needs.filter.result == 'failure')
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
     runs-on: ubuntu-latest
     timeout-minutes: 8
 
