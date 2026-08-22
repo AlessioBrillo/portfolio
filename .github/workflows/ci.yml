@@ -17,6 +17,7 @@ jobs:
     timeout-minutes: 2
     outputs:
       code: ${{ steps.filter.outputs.code }}
+    continue-on-error: true
     steps:
       - uses: actions/checkout@v7
         with:
@@ -43,7 +44,7 @@ jobs:
 
   ci:
     needs: filter
-    if: needs.filter.outputs.code == 'true' || github.event_name == 'workflow_dispatch'
+    if: always() && (needs.filter.outputs.code == 'true' || github.event_name == 'workflow_dispatch')
     runs-on: ubuntu-latest
     timeout-minutes: 8
 
