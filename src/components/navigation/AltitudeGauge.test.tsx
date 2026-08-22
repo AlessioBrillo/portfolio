@@ -162,8 +162,8 @@ describe('AltitudeGauge', () => {
       </ToneProvider>,
     );
     const buttons = screen.getAllByRole('button');
-    expect(buttons[0]).toHaveClass('text-muted-dark');
-    expect(buttons[0]).not.toHaveClass('text-ink-soft');
+    expect(buttons[0]).toHaveClass('text-phosphor-dim');
+    expect(buttons[0]).not.toHaveClass('text-phosphor');
   });
 
   it('keeps night label chrome at contact even when the scene reads paper', () => {
@@ -174,6 +174,6 @@ describe('AltitudeGauge', () => {
       </ToneProvider>,
     );
     const buttons = screen.getAllByRole('button');
-    expect(buttons[0]).toHaveClass('text-muted-dark');
+    expect(buttons[0]).toHaveClass('text-phosphor-dim');
   });
 });

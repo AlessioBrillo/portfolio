@@ -1,40 +1,47 @@
-import type { ReactElement, ReactNode } from 'react';
+import type { ComponentPropsWithoutRef, ReactElement, ReactNode } from 'react';
 import { useSceneTone } from '@/components/ascent/tone-context';
 import { cn } from '@/lib/utils';
 
 export type EyebrowTone = 'light' | 'dark';
 
-interface EyebrowProps {
+interface EyebrowProps extends ComponentPropsWithoutRef<'span'> {
   children: ReactNode;
-  className?: string;
   /**
    * `light` sits on paper-family surfaces, `dark` on night-family ones. When
    * omitted, the label takes its tone from the live scene's *muted* tone
    * (ADR-0012, `softTone` — the muted family flips at its own
    * equal-legibility line, later than the body) so it stays legible while
-   * the backdrop blends; outside a scene it defaults to `light`. The two
-   * tones carry the same muted-but-legible role: each measures well past
-   * WCAG AA against its own surface (8.3:1 / 4.8:1).
+   * the backdrop blends; outside a scene it defaults to `light`.
    */
   tone?: EyebrowTone;
+  /** Semantic element: 'data' for telemetry, 'samp' for output, 'kbd' for input. Default 'span'. */
+  as?: 'span' | 'data' | 'samp' | 'kbd';
 }
 
 /**
- * Mono, uppercase, letter-spaced label. By convention it carries real data
- * (dates, coordinates, altitude, stack) rather than decorative text.
+ * Brutalist telemetry label: mono, uppercase, generous tracking, semantic element.
+ * Carries real data (coordinates, dates, altitude, stack) — never decoration.
  */
-export function Eyebrow({ children, className, tone }: EyebrowProps): ReactElement {
+export function Eyebrow({
+  children,
+  className,
+  tone,
+  as: Component = 'span',
+  ...props
+}: EyebrowProps): ReactElement {
   const sceneTone = useSceneTone();
   const effectiveTone: EyebrowTone = tone ?? (sceneTone.softTone === 'night' ? 'dark' : 'light');
+  const textClass = effectiveTone === 'light' ? 'text-ink-soft' : 'text-phosphor-dim';
   return (
-    <span
+    <Component
       className={cn(
-        'font-mono text-[length:var(--text-eyebrow)] font-medium uppercase tracking-[0.18em]',
-        effectiveTone === 'light' ? 'text-ink-soft' : 'text-muted-dark',
+        'font-mono text-[length:var(--text-micro)] font-medium uppercase tracking-[var(--tracking-widest)]',
+        textClass,
         className,
       )}
+      {...props}
     >
       {children}
-    </span>
+    </Component>
   );
 }

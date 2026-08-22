@@ -15,7 +15,10 @@ export function Mosaic({ surface = 'solid' }: MosaicProps): ReactElement {
 
   return (
     <Band id="mosaic" ariaLabel="The mosaic" tone="paper" surface={surface}>
-      <SectionHeader eyebrow="02 — The Mosaic" title="Pieces under one roof" />
+      <SectionHeader
+        eyebrow="SECTOR 02 · MOSAIC INDEX · 6 PIECES"
+        title="PUZZLE INDEX: PIECES UNDER ONE ROOF"
+      />
       <ul className="mt-12 grid list-none p-0 gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 lg:grid-rows-[auto_auto_auto_auto_auto_auto]">
         {entries.map((entry, index) => (
           <li

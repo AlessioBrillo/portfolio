@@ -14,13 +14,13 @@ import {
 
 describe('tonal constants', () => {
   it('exposes the committed paper and night hex values', () => {
-    expect(TONE.paper).toBe('#F4EFE6');
-    expect(TONE.night).toBe('#14161D');
+    expect(TONE.paper).toBe('#F4F4F0');
+    expect(TONE.night).toBe('#0A0A0A');
   });
 
   it('tunes the scene text family for the equal-legibility flip (ADR-0012)', () => {
     expect(TEXT_TONE.paper).toBe('#000000');
-    expect(TEXT_TONE.night).toBe('#FFFDF6');
+    expect(TEXT_TONE.night).toBe('#FFFFFF');
   });
 });
 
@@ -167,7 +167,7 @@ describe('flip lines (ADR-0012)', () => {
   });
 
   it('locks the flip progress snapshots that the e2e harness mirrors', () => {
-    expect(BODY_FLIP_LINE.progress).toBeCloseTo(0.5645, 3);
-    expect(SOFT_FLIP_LINE.progress).toBeCloseTo(0.6521, 3);
+    expect(BODY_FLIP_LINE.progress).toBeCloseTo(0.5406, 3);
+    expect(SOFT_FLIP_LINE.progress).toBeCloseTo(0.5705, 3);
   });
 });

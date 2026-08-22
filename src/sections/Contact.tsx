@@ -9,13 +9,17 @@ import { SITE } from '@/lib/site';
 export function Contact(): ReactElement {
   return (
     <Band id="contact" ariaLabel="Contact" tone="night">
-      <SectionHeader eyebrow="07 — Contact" title="Let's talk." tone="dark" />
+      <SectionHeader
+        eyebrow="SECTOR 07 · LANDING PROTOCOL · 2 CHANNELS"
+        title="LANDING PROTOCOL: ESTABLISH COMMUNICATIONS"
+        tone="dark"
+      />
       <div className="mt-10 flex flex-wrap items-center gap-6">
         <a href={`mailto:${SITE.email}`}>
-          <Button>Email me</Button>
+          <Button>EMAIL ME</Button>
         </a>
         <GhostLink href={SITE.linkedinUrl} target="_blank" rel="noreferrer">
-          LinkedIn
+          LINKEDIN
         </GhostLink>
       </div>
     </Band>

@@ -27,6 +27,8 @@ interface BandProps {
  * `scene` band defers its background to a `TonalScene` so the tone can crossfade
  * on scroll (ADR-0003, ADR-0010), and reads the live scene tone for its text
  * colour (ADR-0011).
+ *
+ * Brutalist: visible compartmentalization, zero radius, structural hairlines.
  */
 export function Band({
   id,
@@ -37,17 +39,24 @@ export function Band({
 }: BandProps): ReactElement {
   const sceneTone = useSceneTone();
   const effectiveTone = surface === 'scene' ? sceneTone.tone : tone;
-  const text = effectiveTone === 'night' ? 'text-cream' : 'text-ink';
-  const background =
-    surface === 'scene' ? 'bg-transparent' : tone === 'night' ? 'bg-night' : 'bg-paper';
+  const isNight = effectiveTone === 'night';
+  const text = isNight ? 'text-phosphor' : 'text-ink';
+  const background = surface === 'scene' ? 'bg-transparent' : isNight ? 'bg-night' : 'bg-paper';
+  const hairline = isNight ? 'border-phosphor/10' : 'border-ink/10';
 
   return (
     <section
       id={id}
       aria-label={ariaLabel}
-      className={cn('scroll-mt-16 px-6 py-[var(--space-section)]', background, text)}
+      className={cn(
+        'scroll-mt-16 px-6 py-[var(--space-section)]',
+        background,
+        text,
+        'border-y',
+        hairline,
+      )}
     >
-      <div className="mx-auto max-w-page">{children}</div>
+      <div className="mx-auto max-w-page grid-blueprint">{children}</div>
     </section>
   );
 }

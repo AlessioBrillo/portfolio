@@ -1,10 +1,19 @@
 @import 'tailwindcss';
 @import './styles/tokens.css';
 @import './styles/typography.css';
+@import './styles/grid.css';
+@import './styles/texture.css';
 
 @layer base {
   :root {
-    color-scheme: light;
+    color-scheme: light dark;
+  }
+
+  html {
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+    font-optical-sizing: auto;
+    text-wrap: pretty;
   }
 
   body {
@@ -12,17 +21,23 @@
     background-color: var(--color-paper);
     color: var(--color-ink);
     font-family: var(--font-sans);
-    -webkit-font-smoothing: antialiased;
-    text-rendering: optimizeLegibility;
-    font-optical-sizing: auto;
-    text-wrap: pretty;
+    font-size: var(--text-body);
+    line-height: var(--leading-relaxed);
   }
 
+  /* Focus ring — accent color, visible offset */
   :focus-visible {
-    outline: 2px solid var(--color-orange);
+    outline: var(--hairline-thick) solid var(--color-accent);
     outline-offset: 2px;
   }
 
+  /* Selection — accent background, ink text */
+  ::selection {
+    background-color: var(--color-accent);
+    color: var(--color-ink);
+  }
+
+  /* Reduced motion — disable all animations and transitions */
   @media (prefers-reduced-motion: reduce) {
     *,
     *::before,
@@ -32,5 +47,62 @@
       transition-duration: 0.01ms !important;
       scroll-behavior: auto !important;
     }
+  }
+
+  /* Macro typography utilities */
+  .text-macro {
+    font-family: var(--font-display);
+    font-size: var(--text-macro);
+    font-weight: 900;
+    line-height: var(--leading-none);
+    letter-spacing: var(--tracking-tight);
+    text-transform: uppercase;
+  }
+
+  .text-macro-sm {
+    font-family: var(--font-display);
+    font-size: var(--text-macro-sm);
+    font-weight: 900;
+    line-height: var(--leading-none);
+    letter-spacing: var(--tracking-tight-sm);
+    text-transform: uppercase;
+  }
+
+  .text-sector {
+    font-family: var(--font-display);
+    font-size: var(--text-sector);
+    font-weight: 900;
+    line-height: var(--leading-tight);
+    letter-spacing: var(--tracking-tight-sm);
+    text-transform: uppercase;
+  }
+
+  /* Micro typography — telemetry data */
+  .text-micro {
+    font-family: var(--font-mono);
+    font-size: var(--text-micro);
+    font-weight: 500;
+    line-height: var(--leading-normal);
+    letter-spacing: var(--tracking-wider);
+    text-transform: uppercase;
+  }
+
+  .text-micro-sm {
+    font-family: var(--font-mono);
+    font-size: var(--text-micro-sm);
+    font-weight: 500;
+    line-height: var(--leading-normal);
+    letter-spacing: var(--tracking-widest);
+    text-transform: uppercase;
+  }
+
+  /* Eyebrow / label */
+  .text-eyebrow {
+    font-family: var(--font-mono);
+    font-size: var(--text-eyebrow);
+    font-weight: 500;
+    line-height: var(--leading-snug);
+    letter-spacing: var(--tracking-widest);
+    text-transform: uppercase;
   }
 }

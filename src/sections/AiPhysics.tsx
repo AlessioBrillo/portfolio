@@ -15,13 +15,13 @@ export function AiPhysics({ surface = 'solid' }: AiPhysicsProps): ReactElement {
   return (
     <Band id="ai-physics" ariaLabel="AI and physics" tone="paper" surface={surface}>
       <SectionHeader
-        eyebrow="03 — AI & Physics"
-        title="Where the thinking shows"
-        intro="Problem -> approach -> result. Long-form case studies open as their own routes."
+        eyebrow="SECTOR 03 · CORE TELEMETRY · 2 STUDIES"
+        title="CORE TELEMETRY: WHERE THE THINKING SHOWS"
+        intro="PROBLEM → APPROACH → RESULT. LONG-FORM CASE STUDIES OPEN AS THEIR OWN ROUTES."
       />
       <ul className="mt-12 grid list-none grid-cols-1 gap-6 p-0 sm:grid-cols-2">
         {studies.map((meta) => {
-          const metaLine = [meta.role, meta.year].filter(Boolean).join(' \u00B7 ');
+          const metaLine = [meta.role, meta.year].filter(Boolean).join(' · ');
           return (
             <li key={meta.slug}>
               <EntryCard

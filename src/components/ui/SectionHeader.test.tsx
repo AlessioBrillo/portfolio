@@ -5,9 +5,9 @@ import { SectionHeader } from '@/components/ui/SectionHeader';
 describe('SectionHeader', () => {
   it('renders the eyebrow and the display heading', () => {
     render(<SectionHeader eyebrow="03 · AI & Physics" title="Where the thinking shows" />);
-    expect(screen.getByText('03 · AI & Physics')).toBeInTheDocument();
+    expect(screen.getByText('[03 · AI & Physics]')).toBeInTheDocument();
     expect(
-      screen.getByRole('heading', { level: 2, name: 'Where the thinking shows' }),
+      screen.getByRole('heading', { level: 2, name: 'WHERE THE THINKING SHOWS' }),
     ).toBeInTheDocument();
   });
 
@@ -23,11 +23,11 @@ describe('SectionHeader', () => {
 
   it('defaults the eyebrow to the light tone', () => {
     render(<SectionHeader eyebrow="Ground" title="Hero" />);
-    expect(screen.getByText('Ground')).toHaveClass('text-ink-soft');
+    expect(screen.getByText('[Ground]')).toHaveClass('text-ink-soft');
   });
 
   it('passes the dark tone to the eyebrow', () => {
     render(<SectionHeader eyebrow="Cruise" title="Night" tone="dark" />);
-    expect(screen.getByText('Cruise')).toHaveClass('text-muted-dark');
+    expect(screen.getByText('[Cruise]')).toHaveClass('text-phosphor-dim');
   });
 });

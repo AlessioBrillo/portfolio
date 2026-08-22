@@ -15,16 +15,16 @@ export function Who({ surface = 'solid' }: WhoProps): ReactElement {
   return (
     <Band id="who" ariaLabel="Who I am" tone="paper" surface={surface}>
       <SectionHeader
-        eyebrow="01 — Who"
-        title="Enterprising, adventurous, curious"
-        intro="Three statements that show, rather than claim."
+        eyebrow="SECTOR 01 · CHARACTER · ENTERPRISING · ADVENTUROUS · CURIOUS"
+        title="CHARACTER: ENTERPRISING · ADVENTUROUS · CURIOUS"
+        intro="THREE STATEMENTS THAT SHOW, RATHER THAN CLAIM."
       />
       <div className="mt-12 grid gap-10 lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)]">
         <ImageBlock {...getWhoPortrait()} className="lg:sticky lg:top-24" />
         <ul className="flex list-none flex-col gap-8 p-0">
           {getWhoStatements().map((statement) => (
-            <li key={statement.id} className="flex flex-col gap-2 border-t border-black/10 pt-4">
-              <h3 className="font-display text-[length:var(--text-h3)] font-medium">
+            <li key={statement.id} className="flex flex-col gap-2 border-t border-ink/10 pt-4">
+              <h3 className="font-display text-[length:var(--text-h3)] font-black leading-[1.1] tracking-[-0.02em] text-balance">
                 {statement.title}
               </h3>
               <p className={`max-w-prose leading-relaxed ${SCENE_SOFT_TEXT[softTone]}`}>

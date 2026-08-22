@@ -43,19 +43,19 @@ export function Hero({ surface = 'solid' }: HeroProps): ReactElement {
         animate={motionState ?? 'shown'}
       >
         <motion.p className="flex items-center gap-3" variants={rise}>
-          <span aria-hidden className="h-px w-8 bg-orange" />
-          <Eyebrow>45.6306&deg; N &middot; 8.7281&deg; E — VDS</Eyebrow>
+          <span aria-hidden className="h-px w-8 bg-accent" />
+          <Eyebrow as="data">[ 45.6306° N · 8.7281° E — VDS ]</Eyebrow>
         </motion.p>
 
         <motion.h1
-          className="font-display text-[length:var(--text-hero)] font-medium leading-[1.02] tracking-[-0.02em] text-balance"
+          className="font-display text-[length:var(--text-macro)] font-black leading-[var(--leading-none)] tracking-[var(--tracking-tight)] text-balance uppercase"
           variants={rise}
         >
-          {SITE.name}
+          {SITE.name.toUpperCase()}
         </motion.h1>
 
         <motion.p
-          className="max-w-[60ch] text-[length:var(--text-body)] leading-relaxed text-ink"
+          className="max-w-[60ch] font-sans text-[length:var(--text-body)] leading-[var(--leading-relaxed)] text-ink"
           variants={rise}
         >
           Student of AI and physics. I build things, fly small aircraft, and chase the next hard

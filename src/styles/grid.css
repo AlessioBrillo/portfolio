@@ -1,0 +1,206 @@
+/*
+ * Blueprint Grid System — Industrial Brutalist Layout
+ * Visible compartmentalization via CSS Grid with 1px gap trick
+ */
+
+/* Grid container utility */
+.grid-blueprint {
+  display: grid;
+  grid-template-columns: repeat(var(--grid-columns), 1fr);
+  gap: var(--grid-gap);
+  background-color: var(--color-hairline-light);
+}
+
+@media (prefers-color-scheme: dark) {
+  .grid-blueprint {
+    background-color: var(--color-hairline-dark);
+  }
+}
+
+/* Grid child — each cell gets contrasting background for visible lines */
+.grid-blueprint > * {
+  background-color: inherit;
+}
+
+/* Explicit column spans for common patterns */
+.col-span-1 {
+  grid-column: span 1;
+}
+.col-span-2 {
+  grid-column: span 2;
+}
+.col-span-3 {
+  grid-column: span 3;
+}
+.col-span-4 {
+  grid-column: span 4;
+}
+.col-span-5 {
+  grid-column: span 5;
+}
+.col-span-6 {
+  grid-column: span 6;
+}
+.col-span-7 {
+  grid-column: span 7;
+}
+.col-span-8 {
+  grid-column: span 8;
+}
+.col-span-9 {
+  grid-column: span 9;
+}
+.col-span-10 {
+  grid-column: span 10;
+}
+.col-span-11 {
+  grid-column: span 11;
+}
+.col-span-12 {
+  grid-column: span 12;
+}
+
+.col-start-1 {
+  grid-column-start: 1;
+}
+.col-start-2 {
+  grid-column-start: 2;
+}
+.col-start-3 {
+  grid-column-start: 3;
+}
+.col-start-4 {
+  grid-column-start: 4;
+}
+.col-start-5 {
+  grid-column-start: 5;
+}
+.col-start-6 {
+  grid-column-start: 6;
+}
+.col-start-7 {
+  grid-column-start: 7;
+}
+.col-start-8 {
+  grid-column-start: 8;
+}
+.col-start-9 {
+  grid-column-start: 9;
+}
+.col-start-10 {
+  grid-column-start: 10;
+}
+.col-start-11 {
+  grid-column-start: 11;
+}
+.col-start-12 {
+  grid-column-start: 12;
+}
+
+/* Row spans */
+.row-span-1 {
+  grid-row: span 1;
+}
+.row-span-2 {
+  grid-row: span 2;
+}
+.row-span-3 {
+  grid-row: span 3;
+}
+.row-span-4 {
+  grid-row: span 4;
+}
+
+/* Horizontal rule — structural separator */
+.hr-structural {
+  width: 100%;
+  height: var(--hairline-thick);
+  background-color: currentColor;
+  border: none;
+  margin: 0;
+}
+
+.hr-structural-light {
+  color: var(--color-ink);
+  opacity: 0.15;
+}
+
+.hr-structural-dark {
+  color: var(--color-phosphor);
+  opacity: 0.15;
+}
+
+.hr-accent {
+  height: var(--hairline-thick);
+  background-color: var(--color-accent);
+  border: none;
+  width: 6rem;
+  margin: 0;
+}
+
+/* Visible compartment borders */
+.border-compartment {
+  border: var(--hairline-thick) solid currentColor;
+}
+
+.border-compartment-light {
+  color: var(--color-ink);
+  opacity: 0.12;
+}
+
+.border-compartment-dark {
+  color: var(--color-phosphor);
+  opacity: 0.12;
+}
+
+/* ASCII corner markers via pseudo-elements */
+.ascii-corners::before,
+.ascii-corners::after {
+  content: '';
+  position: absolute;
+  width: 1.5rem;
+  height: 1.5rem;
+  border: var(--hairline-thick) solid currentColor;
+  opacity: 0.3;
+}
+
+.ascii-corners::before {
+  top: 0;
+  left: 0;
+  border-right: none;
+  border-bottom: none;
+}
+
+.ascii-corners::after {
+  bottom: 0;
+  right: 0;
+  border-left: none;
+  border-top: none;
+}
+
+/* Dense data cluster — for telemetry blocks */
+.data-cluster {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1.5rem;
+  font-family: var(--font-mono);
+  font-size: var(--text-micro);
+  line-height: var(--leading-normal);
+  letter-spacing: var(--tracking-wider);
+  text-transform: uppercase;
+}
+
+.data-cluster > * {
+  white-space: nowrap;
+}
+
+/* Negative space wrapper — vast empty areas framing macro type */
+.negative-space {
+  padding-block: calc(var(--space-section) * 1.5);
+}
+
+@media (max-width: 768px) {
+  .negative-space {
+    padding-block: calc(var(--space-section) * 1);
+  }
+}

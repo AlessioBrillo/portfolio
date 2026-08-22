@@ -30,7 +30,7 @@ function ReadTone(): ReactElement {
 describe('SCENE_SOFT_TEXT', () => {
   it('maps each tone to an AA-soft text utility class (ADR-0011)', () => {
     expect(SCENE_SOFT_TEXT.paper).toBe('text-ink-soft');
-    expect(SCENE_SOFT_TEXT.night).toBe('text-muted-dark');
+    expect(SCENE_SOFT_TEXT.night).toBe('text-phosphor-dim');
     expect(SCENE_SOFT_TEXT.paper).not.toBe(SCENE_SOFT_TEXT.night);
   });
 });

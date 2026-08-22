@@ -10,15 +10,17 @@ interface WorkSchoolProps {
 
 /** 04 — Work & school projects. A light grid; each enlarges into detail. */
 export function WorkSchool({ surface = 'solid' }: WorkSchoolProps): ReactElement {
+  const entries = getProjectEntries();
+
   return (
     <Band id="work-school" ariaLabel="Work and school" tone="paper" surface={surface}>
       <SectionHeader
-        eyebrow="04 — Work & School"
-        title="Things I have shipped"
-        intro="Built end to end, from the first commit to the deploy that proves it."
+        eyebrow="SECTOR 04 · OPERATIONAL LOG · 4 ENTRIES"
+        title="OPERATIONAL LOG: PROJECTS THAT ENLARGE"
+        intro="BUILT END TO END, FROM THE FIRST COMMIT TO THE DEPLOY THAT PROVES IT."
       />
       <ul className="mt-12 grid list-none grid-cols-1 gap-6 p-0 sm:grid-cols-2">
-        {getProjectEntries().map((entry) => (
+        {entries.map((entry) => (
           <li key={entry.id}>
             <EntryCard title={entry.title} line={entry.line} meta={entry.year} href={entry.href} />
           </li>

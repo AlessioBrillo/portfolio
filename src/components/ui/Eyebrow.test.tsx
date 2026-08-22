@@ -20,9 +20,9 @@ describe('Eyebrow', () => {
     expect(screen.getByText('Ground')).toHaveClass('text-ink-soft');
   });
 
-  it('uses the dark tone (muted-dark on night) when requested', () => {
+  it('uses the dark tone (phosphor-dim on night) when requested', () => {
     render(<Eyebrow tone="dark">Cruise</Eyebrow>);
-    expect(screen.getByText('Cruise')).toHaveClass('text-muted-dark');
+    expect(screen.getByText('Cruise')).toHaveClass('text-phosphor-dim');
   });
 
   it('defaults to the dark tone when the scene is on night', () => {
@@ -31,7 +31,7 @@ describe('Eyebrow', () => {
         <Eyebrow>Cruise</Eyebrow>
       </ToneProvider>,
     );
-    expect(screen.getByText('Cruise')).toHaveClass('text-muted-dark');
+    expect(screen.getByText('Cruise')).toHaveClass('text-phosphor-dim');
   });
 
   it('follows the muted tone when the scene splits body and soft tones (ADR-0012)', () => {

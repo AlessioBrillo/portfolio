@@ -13,21 +13,30 @@ interface SectionHeaderProps {
   tone?: EyebrowTone;
 }
 
-/** Consistent header across every band: mono eyebrow + display H2 + optional intro. */
+/**
+ * Brutalist sector header: ASCII-framed eyebrow, macro H2, structural rule,
+ * micro intro. Zero decoration, pure hierarchy.
+ */
 export function SectionHeader({ eyebrow, title, intro, tone }: SectionHeaderProps): ReactElement {
   return (
-    <header className="flex flex-col">
-      <Eyebrow tone={tone} className="mb-2">
-        {eyebrow}
+    <header className="flex flex-col gap-4">
+      <Eyebrow tone={tone} className="mb-1" as="data">
+        [{eyebrow}]
       </Eyebrow>
       <h2
         data-tone-trigger
-        className="font-display text-[length:var(--text-h2)] font-medium leading-[1.1] text-balance mb-4"
+        className="font-display text-[length:var(--text-sector)] font-black leading-[0.9] tracking-[-0.04em] text-balance uppercase"
       >
-        {title}
+        {title.toUpperCase()}
       </h2>
+      <hr
+        className="hr-structural hr-structural-light dark:hr-structural-dark"
+        aria-hidden="true"
+      />
       {intro ? (
-        <p className="max-w-2xl text-[length:var(--text-body)] leading-relaxed mt-2">{intro}</p>
+        <p className="font-mono text-[length:var(--text-micro)] leading-[var(--leading-normal)] tracking-[var(--tracking-wider)] uppercase max-w-3xl">
+          {intro}
+        </p>
       ) : null}
     </header>
   );

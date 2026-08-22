@@ -15,12 +15,13 @@ describe('GhostLink', () => {
     expect(link).toHaveAttribute('rel', 'noreferrer');
   });
 
-  it('inherits the surrounding text colour and draws the orange underline on hover', () => {
+  it('inherits the surrounding text colour and prepends >>> on hover', () => {
     render(<GhostLink href="#contact">Contact</GhostLink>);
     const link = screen.getByRole('link');
     expect(link).toHaveClass('text-current', 'no-underline');
-    expect(link).toHaveClass('after:bg-orange');
-    expect(link).toHaveClass('hover:after:scale-x-100');
+    expect(link).toHaveClass('font-mono', 'uppercase', 'tracking-[var(--tracking-wide)]');
+    expect(link).toHaveClass('hover:text-accent');
+    expect(link).toHaveClass('before:content-[">>>_"]');
   });
 
   it('merges a custom className', () => {

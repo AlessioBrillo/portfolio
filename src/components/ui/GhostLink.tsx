@@ -5,15 +5,14 @@ interface GhostLinkProps extends AnchorHTMLAttributes<HTMLAnchorElement> {
   children: ReactNode;
 }
 
-/** The standard link: an orange underline that draws in from the left on hover. */
+/** Brutalist data link: mono, uppercase, tracking, prepends >>> on hover. */
 export function GhostLink({ children, className, ...props }: GhostLinkProps): ReactElement {
   return (
     <a
       className={cn(
-        'group relative inline-block font-sans text-current no-underline active:scale-[0.98]',
-        'after:absolute after:bottom-0 after:left-0 after:h-px after:w-full after:origin-left',
-        'after:scale-x-0 after:bg-orange after:transition-transform after:duration-[var(--duration-normal)]',
-        'after:ease-[var(--ease-out-expo)] hover:after:scale-x-100',
+        'inline-flex items-center gap-1 font-mono text-[length:var(--text-micro)] uppercase tracking-[var(--tracking-wide)] text-current no-underline',
+        'hover:text-accent active:scale-[0.98]',
+        'before:content-[">>>_"] before:opacity-0 before:transition-opacity before:duration-[var(--duration-fast)] hover:before:opacity-100',
         className,
       )}
       {...props}

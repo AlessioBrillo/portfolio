@@ -9,7 +9,7 @@ describe('Who', () => {
     render(<Who />);
     expect(screen.getByRole('region', { name: /who i am/i })).toBeInTheDocument();
     expect(screen.getByRole('heading', { level: 2 })).toHaveTextContent(
-      'Enterprising, adventurous, curious',
+      'CHARACTER: ENTERPRISING · ADVENTUROUS · CURIOUS',
     );
   });
 
@@ -35,6 +35,6 @@ describe('Who', () => {
     );
     const statement = getWhoStatements()[0];
     if (!statement) return;
-    expect(screen.getByText(statement.line)).toHaveClass('text-muted-dark');
+    expect(screen.getByText(statement.line)).toHaveClass('text-phosphor-dim');
   });
 });

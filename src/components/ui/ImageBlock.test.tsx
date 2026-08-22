@@ -92,6 +92,6 @@ describe('ImageBlock', () => {
         <ImageBlock alt="Photo" caption="A night view" />
       </ToneProvider>,
     );
-    expect(screen.getByText('A night view')).toHaveClass('text-muted-dark');
+    expect(screen.getByText('A night view')).toHaveClass('text-phosphor-dim');
   });
 });

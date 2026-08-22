@@ -10,18 +10,8 @@ import { cn } from '@/lib/utils';
 import type { SectionId } from '@/types/domain';
 
 /**
- * The navigation IS the metaphor (ADR-0006): a vertical altitude gauge driven
- * by IntersectionObserver per `useCurrentSection`. Each altitude stop targets a
- * section element; the gauge lights the matching stop orange when that section
- * occupies the most viewport real estate. Sections without a dedicated stop
- * map to the nearest previous stop.
- *
- * Beside the labels, a vertical track fills with the flight's altitude
- * (rise-and-fall per ADR-0010, `useAltitudeProfile`): orange marks the current
- * position — the one place the accent indicates something functional.
- *
- * On mobile the gauge collapses into a thin top journey-progress bar
- * (`useScrollProgress`).
+ * Brutalist flight instrument: vertical gauge with structural track, mono labels,
+ * accent position marker. Mobile: top progress bar with visible grid ticks.
  */
 const TARGETS: readonly SectionId[] = ALTITUDE_STOPS.map((s) => s.target);
 
@@ -32,13 +22,13 @@ export function AltitudeGauge(): ReactElement {
   const progress = useScrollProgress();
   const { tone: sceneTone } = useSceneTone();
   const activeIndex = resolveGaugeStop(currentSection, TARGETS, SECTION_ORDER);
-  // Labels follow the live scene tone (ADR-0011) so they stay legible through
-  // the blends; explicit solid-night sections still force dark chrome.
   const inDark = isNightSection(currentSection) || sceneTone === 'night';
+  const trackColor = inDark ? 'bg-phosphor/10' : 'bg-ink/10';
+  const labelColor = inDark ? 'text-phosphor-dim' : 'text-ink-soft';
+  const labelHover = inDark ? 'hover:text-phosphor' : 'hover:text-ink';
+  const activeColor = 'text-accent';
 
   const goTo = (sectionId: string): void => {
-    // CSS `scroll-behavior: auto` overrides only declarative scrolling, not
-    // programmatic smooth scrolling — honour the preference explicitly (ADR-0009).
     document.getElementById(sectionId)?.scrollIntoView({
       behavior: prefersReducedMotion ? 'auto' : 'smooth',
       block: 'start',
@@ -50,42 +40,65 @@ export function AltitudeGauge(): ReactElement {
       <div
         aria-hidden
         data-testid="gauge-progress-bar"
-        className="fixed inset-x-0 top-0 z-40 h-0.5 bg-ink/15 md:hidden"
+        className="fixed inset-x-0 top-0 z-40 h-1 border-b border-ink/10 dark:border-phosphor/10 md:hidden"
       >
         <div
           data-testid="gauge-progress-fill"
-          className="h-full bg-orange"
+          className="h-full bg-accent"
           style={{ width: `${Math.round(progress * 100)}%` }}
         />
+        <div
+          aria-hidden
+          className="absolute inset-x-0 top-full h-[4px] grid-blueprint"
+          style={{ gridTemplateColumns: 'repeat(var(--grid-columns), 1fr)' }}
+        >
+          {Array.from({ length: 12 }).map((_, i) => (
+            <div key={i} className="border-ink/10 dark:border-phosphor/10" />
+          ))}
+        </div>
       </div>
       <nav
         aria-label="Altitude navigation"
         className="fixed right-6 top-1/2 z-40 hidden -translate-y-1/2 items-center gap-5 md:flex"
       >
-        <div className="flex flex-col items-end gap-4">
-          {ALTITUDE_STOPS.map((stop, index) => (
-            <button
-              key={stop.band}
-              type="button"
-              onClick={() => goTo(stop.target)}
-              aria-current={index === activeIndex ? 'step' : undefined}
-              className={cn(
-                'font-mono text-[length:var(--text-eyebrow)] uppercase tracking-[0.18em] transition-colors active:scale-[0.97]',
-                index === activeIndex
-                  ? 'text-orange'
-                  : inDark
-                    ? 'text-muted-dark hover:text-cream'
-                    : 'text-ink-soft hover:text-ink',
-              )}
-            >
-              {stop.label}
-            </button>
-          ))}
+        <div className="relative">
+          <div
+            aria-hidden
+            className={cn('absolute left-1/2 -translate-x-1/2 h-full w-px', trackColor)}
+          />
+          <div className="flex flex-col items-end gap-6">
+            {ALTITUDE_STOPS.map((stop, index) => (
+              <button
+                key={stop.band}
+                type="button"
+                onClick={() => goTo(stop.target)}
+                aria-current={index === activeIndex ? 'step' : undefined}
+                className={cn(
+                  'relative font-mono text-[length:var(--text-micro)] uppercase tracking-[var(--tracking-widest)] transition-colors active:scale-[0.97] pr-4',
+                  index === activeIndex ? activeColor : cn(labelColor, labelHover),
+                )}
+              >
+                {stop.label}
+                {index === activeIndex && (
+                  <span
+                    aria-hidden
+                    className="absolute right-0 top-1/2 -translate-y-1/2 w-3 h-3 bg-accent rounded-none"
+                  />
+                )}
+              </button>
+            ))}
+          </div>
         </div>
-        <div aria-hidden className="relative h-56 w-px overflow-hidden rounded-full bg-ink/15">
+        <div
+          aria-hidden
+          className={cn(
+            'relative h-56 w-px overflow-hidden border-l-[var(--hairline-thick)]',
+            trackColor,
+          )}
+        >
           <div
             data-testid="gauge-altitude-fill"
-            className="absolute inset-x-0 bottom-0 bg-orange transition-[height] duration-[var(--duration-slow)] ease-[var(--ease-out-expo)]"
+            className="absolute inset-x-0 bottom-0 bg-accent transition-[height] duration-[var(--duration-slow)] ease-[var(--ease-out-expo)]"
             style={{ height: `${Math.round(altitude * 100)}%` }}
           />
         </div>

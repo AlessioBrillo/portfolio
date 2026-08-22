@@ -15,7 +15,7 @@ describe('Hero', () => {
 
   it('renders the name as the page heading', () => {
     render(<Hero />);
-    expect(screen.getByRole('heading', { name: 'Alessio Brillo' })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'ALESSIO BRILLO' })).toBeInTheDocument();
   });
 
   it('renders the one-line manifesto', () => {

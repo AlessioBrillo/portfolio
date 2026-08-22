@@ -36,6 +36,6 @@ describe('SkySport', () => {
     );
     const entry = getSportEntries()[0];
     if (!entry) return;
-    expect(screen.getByText(entry.line)).toHaveClass('text-muted-dark');
+    expect(screen.getByText(entry.line)).toHaveClass('text-phosphor-dim');
   });
 });

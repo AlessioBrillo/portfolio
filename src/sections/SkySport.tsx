@@ -15,19 +15,23 @@ export function SkySport({ surface = 'solid' }: SkySportProps): ReactElement {
   return (
     <Band id="sky-sport" ariaLabel="Sky and sport" tone="paper" surface={surface}>
       <SectionHeader
-        eyebrow="05 — Sky & Sport"
-        title="Altitude, on the ground and above it"
-        intro="Aviation is also the narrative thread of the whole site — the circle closes here."
+        eyebrow="SECTOR 05 · DESCENT VECTOR · 3 DISCIPLINES"
+        title="DESCENT VECTOR: AVIATION · TENNIS · MOUNTAIN"
+        intro="AVIATION IS ALSO THE NARRATIVE THREAD OF THE WHOLE SITE — THE CIRCLE CLOSES HERE."
       />
       <ul className="mt-12 grid list-none grid-cols-1 gap-6 p-0 sm:grid-cols-2 lg:grid-cols-3">
         {getSportEntries().map((entry) => (
           <li key={entry.id}>
             <article className="flex h-full flex-col gap-4">
               <ImageBlock {...entry.image} />
-              <h3 className="font-display text-[length:var(--text-h3)] font-medium">
+              <h3 className="font-display text-[length:var(--text-h3)] font-black leading-[1.1] tracking-[-0.02em] text-balance">
                 {entry.title}
               </h3>
-              <p className={`text-sm leading-relaxed ${SCENE_SOFT_TEXT[softTone]}`}>{entry.line}</p>
+              <p
+                className={`font-sans text-[length:var(--text-body-sm)] leading-[var(--leading-relaxed)] ${SCENE_SOFT_TEXT[softTone]}`}
+              >
+                {entry.line}
+              </p>
             </article>
           </li>
         ))}

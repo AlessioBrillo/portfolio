@@ -55,11 +55,11 @@ describe('EntryCard', () => {
         </MemoryRouter>
       </ToneProvider>,
     );
-    expect(screen.getByText(base.line)).toHaveClass('text-muted-dark');
+    expect(screen.getByText(base.line)).toHaveClass('text-phosphor-dim');
   });
 
   it('lets an explicit tone override the scene tone', () => {
     renderWithRouter(<EntryCard {...base} tone="dark" />);
-    expect(screen.getByText(base.line)).toHaveClass('text-muted-dark');
+    expect(screen.getByText(base.line)).toHaveClass('text-phosphor-dim');
   });
 });

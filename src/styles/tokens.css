@@ -3,51 +3,99 @@
  * source of truth for the design system: colours, type families, spacing,
  * motion, radii and the fluid type scale. It is imported by `src/index.css`
  * before the base layer so every utility class generated from these tokens is
- * available site-wide (ADR-0002, ADR-0008).
+ * available site-wide (ADR-0002, ADR-0008, ADR-0021, ADR-0022).
  *
  * JS mirrors of the motion/colour tokens live in `src/lib/animation.ts` and
  * `src/lib/tone.ts` -- keep the two in sync; `src/lib/tokens.test.ts` guards
  * the contract.
  */
 @theme {
-  --color-orange: #e9622e;
-  --color-paper: #f4efe6;
-  --color-night: #14161d;
-  --color-olive: #5e6b4f;
-  /* Full black ink: deepens the equal-legibility crossfade floor (ADR-0012).
-     18.3:1 on paper, 20.6:1 on the cream tile surface. */
+  /* ===== COLOUR SYSTEM — Swiss Industrial Print (ADR-0021) ===== */
+  /* Single accent: Aviation Red — never diluted */
+  --color-accent: #e61919;
+  --color-accent-hover: #cc1515;
+
+  /* Light substrate: Newsprint / Matte documentation paper */
+  --color-paper: #f4f4f0;
+  --color-paper-elevated: #ffffff;
   --color-ink: #000000;
-  --color-cream: #fffdf6;
-  --color-muted-light: #8a8377;
-  --color-muted-dark: #7b8190;
-  /* 85% ink over paper: 8.3:1 on paper, 8.7:1 on the cream tile surface —
-     the muted tone for small text on light backgrounds (AA floor is 4.5:1). */
   --color-ink-soft: #48453f;
-  /* Slightly deeper ink for text on the orange surface: 4.83:1 on orange
-     (the orange itself is never diluted — the darkening goes to the ink). */
+  --color-muted: #8a8377;
+  --color-hairline-light: #0000001a;
+
+  /* Dark substrate: Deactivated CRT / Deep night */
+  --color-night: #0a0a0a;
+  --color-night-elevated: #121212;
+  --color-phosphor: #ffffff;
+  --color-phosphor-dim: #9e9e9e;
+  --color-hairline-dark: #ffffff1a;
+
+  /* Legacy aliases for tonal engine compatibility (ADR-0012) */
+  --color-orange: #e61919;
+  --color-cream: #ffffff;
+  --color-muted-light: #48453f;
+  --color-muted-dark: #9e9e9e;
   --color-ink-deep: #221e19;
+  --color-olive: #5e6b4f;
 
-  --font-display: 'Fraunces', ui-serif, Georgia, 'Times New Roman', serif;
+  /* ===== TYPOGRAPHY — Industrial Brutalist (ADR-0022) ===== */
+  /* Macro: Archivo Black — heavy industrial sans, negative tracking */
+  --font-display: 'Archivo Black', 'Archivo', ui-sans-serif, system-ui, sans-serif;
+  /* Sans: Geist Sans — neutral grotesque for body */
   --font-sans: 'Geist Sans', ui-sans-serif, system-ui, -apple-system, sans-serif;
-  --font-mono: 'Geist Mono', ui-monospace, 'JetBrains Mono', 'SFMono-Regular', monospace;
+  /* Mono: JetBrains Mono — technical monospace for telemetry */
+  --font-mono: 'JetBrains Mono', 'Geist Mono', ui-monospace, 'SFMono-Regular', monospace;
 
-  --space-section: clamp(6rem, 4rem + 6vw, 10rem);
+  /* ===== SPACING — Extreme vertical rhythm ===== */
+  --space-section: clamp(8rem, 6rem + 8vw, 14rem);
+  --space-unit: 4px;
 
-  /* Shared page container width (Band, TopBar, Footer) → `max-w-page`. */
+  /* ===== LAYOUT ===== */
   --container-page: 75rem;
+  --grid-columns: 12;
+  --grid-gap: 1px;
 
+  /* ===== MOTION ===== */
   --duration-fast: 150ms;
   --duration-normal: 300ms;
   --duration-slow: 600ms;
   --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-sharp: cubic-bezier(0.4, 0, 0.2, 1);
 
-  --radius-soft: 8px;
-  --radius-card: 12px;
+  /* ===== SHAPE — Zero radius, mechanical corners ===== */
+  --radius-none: 0;
   --hairline: 1px;
+  --hairline-thick: 2px;
 
-  --text-hero: clamp(3rem, 1rem + 7vw, 6rem);
-  --text-h2: clamp(2.25rem, 1.5rem + 2.5vw, 3.5rem);
-  --text-h3: clamp(1.375rem, 1.2rem + 0.6vw, 1.625rem);
-  --text-body: clamp(1.0625rem, 1rem + 0.25vw, 1.1875rem);
-  --text-eyebrow: 0.8125rem;
+  /* ===== FLUID TYPE SCALE — Extreme contrast ===== */
+  /* Macro headlines: massive, tight leading, negative tracking, UPPERCASE */
+  --text-macro: clamp(4rem, 10vw, 15rem);
+  --text-macro-sm: clamp(3rem, 6vw, 8rem);
+  /* Sector headlines: large, tight */
+  --text-sector: clamp(2.5rem, 4vw, 5rem);
+  /* Standard headings */
+  --text-h2: clamp(2rem, 3vw, 3.5rem);
+  --text-h3: clamp(1.25rem, 1.1rem + 0.5vw, 1.5rem);
+  /* Body: smaller, tighter measure */
+  --text-body: clamp(0.9375rem, 0.9rem + 0.2vw, 1rem);
+  --text-body-sm: 0.875rem;
+  /* Micro telemetry: fixed small, generous tracking */
+  --text-micro: 0.75rem;
+  --text-micro-sm: 0.6875rem;
+  --text-eyebrow: 0.75rem;
+
+  /* ===== TRACKING SCALE ===== */
+  --tracking-tight: -0.06em;
+  --tracking-tight-sm: -0.04em;
+  --tracking-normal: 0;
+  --tracking-wide: 0.05em;
+  --tracking-wider: 0.1em;
+  --tracking-widest: 0.15em;
+
+  /* ===== LEADING SCALE ===== */
+  --leading-none: 0.85;
+  --leading-tight: 0.95;
+  --leading-snug: 1.1;
+  --leading-normal: 1.4;
+  --leading-relaxed: 1.5;
 }

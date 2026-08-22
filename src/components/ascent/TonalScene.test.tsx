@@ -36,7 +36,7 @@ describe('TonalScene', () => {
         <span>content</span>
       </TonalScene>,
     );
-    const backdrop = container.querySelector('.pointer-events-none.fixed.inset-0');
+    const backdrop = container.querySelector('.pointer-events-none.fixed.inset-0.-z-10');
     expect(backdrop).toBeInTheDocument();
     expect(backdrop).toHaveAttribute('aria-hidden');
     expect(backdrop).toHaveStyle({ backgroundColor: TONE.paper });
@@ -82,7 +82,7 @@ describe('TonalScene', () => {
 
     // React owns the seed colour only; the engine paints the backdrop after
     // mount, so a state flip must never snap it back to a React-driven value.
-    const backdrop = container.querySelector('.pointer-events-none.fixed.inset-0');
+    const backdrop = container.querySelector('.pointer-events-none.fixed.inset-0.-z-10');
     expect(backdrop).toHaveStyle({ backgroundColor: TONE.paper });
   });
 });

@@ -1,0 +1,161 @@
+/*
+ * Texture & Post-Processing Effects — Industrial Brutalist Atmosphere
+ * Simulated analog degradation: noise, halftone, CRT scanlines
+ */
+
+/* ===== GLOBAL MECHANICAL NOISE ===== */
+/* Low-opacity SVG noise overlay on root */
+html::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 9999;
+  opacity: 0.025;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%' height='100%' filter='url(%23noise)'/%3E%3C/svg%3E");
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html::before {
+    display: none;
+  }
+}
+
+/* ===== HALFTONE / DITHER OVERLAY ===== */
+/* CSS-only halftone pattern for images and large text */
+.halftone-overlay {
+  position: relative;
+  overflow: hidden;
+}
+
+.halftone-overlay::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='8'%3E%3Ccircle cx='4' cy='4' r='2.5' fill='currentColor'/%3E%3C/svg%3E");
+  background-size: 8px 8px;
+  mix-blend-mode: multiply;
+  opacity: 0.15;
+}
+
+.halftone-overlay-light::after {
+  color: var(--color-ink);
+}
+
+.halftone-overlay-dark::after {
+  color: var(--color-phosphor);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .halftone-overlay::after {
+    display: none;
+  }
+}
+
+/* 1-bit ordered dither (Bayer 4x4) for images */
+.dither-1bit {
+  position: relative;
+}
+
+.dither-1bit::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16'%3E%3Cfilter id='dither'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.5' numOctaves='1' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%' height='100%' filter='url(%23dither)'/%3E%3C/svg%3E");
+  background-size: 16px 16px;
+  mix-blend-mode: hard-light;
+  opacity: 0.08;
+}
+
+/* ===== CRT SCANLINES — Night bands only ===== */
+.scanlines {
+  position: relative;
+  overflow: hidden;
+}
+
+.scanlines::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 2px,
+    rgba(0, 0, 0, 0.08) 2px,
+    rgba(0, 0, 0, 0.08) 4px
+  );
+  background-size: 100% 4px;
+  opacity: 0.5;
+  animation: scanline-flicker 8s linear infinite;
+}
+
+@keyframes scanline-flicker {
+  0%,
+  100% {
+    opacity: 0.45;
+  }
+  50% {
+    opacity: 0.55;
+  }
+  13% {
+    opacity: 0.48;
+  }
+  26% {
+    opacity: 0.52;
+  }
+  37% {
+    opacity: 0.47;
+  }
+  63% {
+    opacity: 0.53;
+  }
+  74% {
+    opacity: 0.49;
+  }
+  87% {
+    opacity: 0.51;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .scanlines::after {
+    display: none;
+  }
+}
+
+/* Phosphor glow for macro text on night */
+.phosphor-glow {
+  text-shadow:
+    0 0 1px currentColor,
+    0 0 2px currentColor,
+    0 0 4px currentColor;
+}
+
+/* ===== VIGNETTE — Subtle edge darkening ===== */
+.vignette::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(ellipse at center, transparent 60%, rgba(0, 0, 0, 0.15) 100%);
+  z-index: 1;
+}
+
+@media (prefers-color-scheme: dark) {
+  .vignette::before {
+    background: radial-gradient(ellipse at center, transparent 60%, rgba(255, 255, 255, 0.02) 100%);
+  }
+}
+
+/* ===== UTILITY: Disable all textures for reduced motion ===== */
+@media (prefers-reduced-motion: reduce) {
+  .halftone-overlay::after,
+  .dither-1bit::after,
+  .scanlines::after,
+  html::before {
+    display: none !important;
+  }
+}

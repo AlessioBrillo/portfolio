@@ -13,8 +13,8 @@ import type { SectionId } from '@/types/domain';
 
 /** The two surfaces the flight crossfades between. */
 export const TONE = {
-  paper: '#F4EFE6',
-  night: '#14161D',
+  paper: '#F4F4F0',
+  night: '#0A0A0A',
 } as const;
 
 export type ToneName = keyof typeof TONE;
@@ -22,23 +22,23 @@ export type ToneName = keyof typeof TONE;
 /**
  * The scene's body text family (ADR-0012): the ink-family colour that sits
  * on each committed backdrop tone, mirroring the CSS tokens `--color-ink` /
- * `--color-cream`. The two values are tuned so the equal-legibility flip
+ * `--color-phosphor`. The two values are tuned so the equal-legibility flip
  * (see `flipLineFor`) clears WCAG AA (4.5:1) at every instant of the blend.
  */
 export const TEXT_TONE = {
   paper: '#000000',
-  night: '#FFFDF6',
+  night: '#FFFFFF',
 } as const;
 
 /**
  * The scene's muted text family (ADR-0012): `--color-ink-soft` /
- * `--color-muted-dark`. The pair is luminance-close by design — it is the
+ * `--color-phosphor-dim`. The pair is luminance-close by design — it is the
  * hero/body/muted hierarchy, not a defect — so its flip line bounds the
  * worst case to a documented floor instead of clearing AA.
  */
 export const SOFT_TEXT_TONE = {
   paper: '#48453F',
-  night: '#7B8190',
+  night: '#9E9E9E',
 } as const;
 
 /**

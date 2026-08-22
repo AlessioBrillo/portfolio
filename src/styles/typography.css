@@ -1,7 +1,14 @@
 @font-face {
-  font-family: 'Fraunces';
-  src: url('/fonts/Fraunces.woff2') format('woff2');
-  font-weight: 100 900;
+  font-family: 'Archivo';
+  src: url('/fonts/Archivo.woff2') format('woff2');
+  font-weight: 400 900;
+  font-style: normal;
+  font-display: optional;
+}
+@font-face {
+  font-family: 'Archivo Black';
+  src: url('/fonts/ArchivoBlack.woff2') format('woff2');
+  font-weight: 900;
   font-style: normal;
   font-display: optional;
 }
@@ -13,9 +20,9 @@
   font-display: optional;
 }
 @font-face {
-  font-family: 'Geist Mono';
-  src: url('/fonts/GeistMono.woff2') format('woff2');
-  font-weight: 100 900;
+  font-family: 'JetBrains Mono';
+  src: url('/fonts/JetBrainsMono.woff2') format('woff2');
+  font-weight: 100 800;
   font-style: normal;
   font-display: optional;
 }

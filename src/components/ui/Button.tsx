@@ -6,11 +6,8 @@ interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 }
 
 /**
- * The single primary action of the site (reserved for the final CTA).
- * Solid orange, deep-ink text, soft radius, subtle lift on hover.
- * `ink-deep`-on-orange is 4.83:1 (AA); plain ink was 4.43:1 and missed the
- * 4.5:1 floor by a hair — the darkening goes to the ink so the orange is
- * never diluted (see DESIGN.md).
+ * Brutalist actuator: zero radius, solid accent red, macro label, border flash on hover.
+ * Reserved for the final CTA only. `ink`-on-accent clears AA (4.83:1).
  */
 export function Button({
   children,
@@ -22,10 +19,11 @@ export function Button({
     <button
       type={type}
       className={cn(
-        'inline-flex items-center justify-center rounded-[var(--radius-soft)] bg-orange px-6 py-3',
-        'font-sans text-base font-medium text-ink-deep',
-        'transition-[transform,filter] duration-[var(--duration-fast)] ease-[var(--ease-out-expo)]',
-        'hover:-translate-y-0.5 hover:brightness-95 active:translate-y-[1px] active:scale-[0.99]',
+        'inline-flex items-center justify-center rounded-none bg-accent px-8 py-4',
+        'font-display text-[length:var(--text-micro)] font-black uppercase tracking-[var(--tracking-wide)] text-ink',
+        'border-[var(--hairline-thick)] border-transparent',
+        'transition-[transform,border-color] duration-[var(--duration-fast)] ease-[var(--ease-sharp)]',
+        'hover:border-ink hover:-translate-y-1 active:scale-[0.98] active:translate-y-[1px]',
         className,
       )}
       {...props}
