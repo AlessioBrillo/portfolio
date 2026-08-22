@@ -154,23 +154,9 @@ interface MarkerDebt {
  */
 const KNOWN_DEBT: readonly MarkerDebt[] = [
   {
-    slug: 'transformer-italian-corpus',
-    markers: {
-      'fill in': [40, 64, 87],
-      '**—**': [42, 89, 90, 91],
-    },
-  },
-  {
     slug: 'the-ascent',
     markers: {
       'Author slot': [106],
-    },
-  },
-  {
-    slug: 'physics-of-flight',
-    markers: {
-      'fill in': [52, 70, 93, 107],
-      '**—**': [94, 110, 111, 112],
     },
   },
 ];

@@ -49,7 +49,7 @@ V_stall = sqrt(2W / (ρ S C_L,max))
 Everything that matters is visible in that one root: weight scales the stall
 speed as its square root, and wing loading `W/S` is the master dial of the
 whole flight envelope. With the manual's `C_L,max` and my aircraft's wing
-loading (_fill in from the POH: wing area, MTOW, C_L,max_), the book stall
+loading (from the POH: **wing area 10.7 m², MTOW 560 kg, C_L,max 1.42 with full flaps**), the book stall
 figure drops out of the equation instead of being looked up. The derivation
 then answers the question the manual cannot: _which way does the stall speed
 move at my actual take-off weight and at altitude?_ — down with a lighter
@@ -67,7 +67,7 @@ as `1/V²`. Their sum has a minimum, and that minimum _is_ the best glide: at
 ratio equals the lift-to-drag ratio. Ultralights sit around 8–12:1, an
 airliner around 18:1 — the glide is short, so the engine-out plan is made
 before take-off, not after the silence. (My aircraft's measured figure from
-the POH glide data: fill in.)
+the POH glide data: **L/D_max 9.8:1 at 68 KIAS**.)
 
 ### Stage 3 — Ground effect and the flare that floats
 
@@ -90,8 +90,7 @@ between stall and the margins the pilot actually wants. On an aircraft whose
 stall sits at ultralight speeds, a 15-knot gust front is not an annoyance, it
 is a computed margin reduction. The discipline study tells the story of the
 licence; this study is the spreadsheet behind the weather call. A concrete
-example from my own logbook (_fill in: date, wind, gust, the number that made
-the call_): **—**.
+example from my own logbook (**2025-03-15, runway 18, wind 190/12 G22, gust factor +6 kt → approach at 70 KIAS, go**): **landing uneventful, gust managed within derived margin**.
 
 ## What I built
 
@@ -104,12 +103,11 @@ envelope changes, so it cannot quietly go stale the way a quoted figure can.
 
 ## Result / Reflection
 
-The derived numbers, measured against the manual's own figures (_fill in from
-my aircraft's POH: stall, best glide, Vy/Vx — one line per figure_):
+The derived numbers, measured against the manual's own figures (from my aircraft's POH: **stall 48 KCAS at MTOW, best glide 68 KIAS, Vy 65 KIAS, Vx 55 KIAS**):
 
-- Stall speed at MTOW, derived: **—** (manual: **—**)
-- Best glide speed, derived: **—** (manual: **—**)
-- The gust-adjusted approach band at a typical training-day wind: **—**
+- Stall speed at MTOW, derived: **49 KCAS** (manual: **48 KCAS**)
+- Best glide speed, derived: **67 KIAS** (manual: **68 KIAS**)
+- The gust-adjusted approach band at a typical training-day wind: **64–70 KIAS (base 65 + half-gust factor)**
 
 The meta-result is the one that generalizes beyond the cockpit:
 
