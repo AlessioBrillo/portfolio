@@ -17,6 +17,7 @@ jobs:
     timeout-minutes: 2
     outputs:
       tonal: ${{ steps.filter.outputs.tonal }}
+    continue-on-error: true
     steps:
       - uses: actions/checkout@v7
         with:
@@ -48,7 +49,7 @@ jobs:
 
   e2e:
     needs: filter
-    if: needs.filter.outputs.tonal == 'true' || github.event_name == 'workflow_dispatch'
+    if: always() && (needs.filter.outputs.tonal == 'true' || github.event_name == 'workflow_dispatch')
     runs-on: ubuntu-latest
     timeout-minutes: 15
     strategy:
