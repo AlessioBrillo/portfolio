@@ -11,7 +11,7 @@ import {
 } from '@/lib/tone';
 
 /** Debounce helper for resize refresh — avoids StormTrigger spam on resize. */
-function debounce<T extends (...args: unknown[]) => void>(fn: T, wait: number): T {
+export function debounce<T extends (...args: unknown[]) => void>(fn: T, wait: number): T {
   let timeoutId: ReturnType<typeof setTimeout> | null = null;
   return ((...args: unknown[]) => {
     if (timeoutId) clearTimeout(timeoutId);
@@ -76,6 +76,12 @@ export function useTonalEngine(
   const onSoftToneChangeRef = useRef(onSoftToneChange);
   onSoftToneChangeRef.current = onSoftToneChange;
 
+  // ScrollTrigger is stored in a ref so the load/resize callbacks can access it
+  // after the dynamic import completes. This also makes the refresh logic
+  // testable (the ref is visible to the test mock).
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const scrollTriggerRef = useRef<any>(null);
+
   useEffect(() => {
     const el = backdropRef.current;
     if (!el) return;
@@ -89,6 +95,7 @@ export function useTonalEngine(
         if (cancelled || el === null) return;
         const { gsap } = gsapMod;
         const { ScrollTrigger } = stMod;
+        scrollTriggerRef.current = ScrollTrigger;
 
         gsap.registerPlugin(ScrollTrigger);
 
@@ -203,18 +210,12 @@ export function useTonalEngine(
     // settled. window.load fires after document.fonts.ready and image loads,
     // guaranteeing the geometry is final. Debounced resize handles viewport
     // changes (rotation, split-screen, devtools) that shift trigger positions.
-    const debouncedRefresh = debounce(() => {
-      if (!cancelled) ScrollTrigger.refresh();
-    }, 150);
+    const refreshIfActive = (): void => {
+      if (!cancelled && scrollTriggerRef.current) scrollTriggerRef.current.refresh();
+    };
+    const debouncedRefresh = debounce(refreshIfActive, 150);
 
-    window.addEventListener(
-      'load',
-      () => {
-        if (!cancelled) ScrollTrigger.refresh();
-      },
-      { once: true },
-    );
-
+    window.addEventListener('load', refreshIfActive, { once: true });
     window.addEventListener('resize', debouncedRefresh);
 
     return () => {

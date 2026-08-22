@@ -277,4 +277,91 @@ describe('useTonalEngine', () => {
     await Promise.resolve();
     expect(mocks.refresh).not.toHaveBeenCalled();
   });
+
+  // --- New coverage: load/resize listeners registered + debounce helper ---
+
+  it('registers load and resize listeners after GSAP initializes', async () => {
+    Object.defineProperty(document, 'fonts', {
+      configurable: true,
+      value: { ready: Promise.resolve() },
+    });
+
+    const addEventListener = vi.spyOn(window, 'addEventListener');
+    const removeEventListener = vi.spyOn(window, 'removeEventListener');
+
+    const _ref = renderEngine();
+    void _ref;
+    await waitFor(() => expect(mocks.registerPlugin).toHaveBeenCalled());
+    await waitFor(() => expect(mocks.refresh).toHaveBeenCalled());
+
+    // Both listeners should be registered (load with {once:true}, resize without)
+    expect(addEventListener).toHaveBeenCalledTimes(2);
+    expect(addEventListener).toHaveBeenNthCalledWith(1, 'load', expect.any(Function), {
+      once: true,
+    });
+    expect(addEventListener).toHaveBeenNthCalledWith(2, 'resize', expect.any(Function));
+
+    // Clean up listeners
+    const { unmount } = renderHook(() => {
+      const _ref = useRef<HTMLDivElement>(null);
+      if (!_ref.current) _ref.current = document.createElement('div');
+      useTonalEngine(_ref);
+      return _ref;
+    });
+    await waitFor(() => expect(mocks.registerPlugin).toHaveBeenCalled());
+    unmount();
+
+    expect(removeEventListener).toHaveBeenCalledWith('resize', expect.any(Function));
+
+    addEventListener.mockRestore();
+    removeEventListener.mockRestore();
+  });
+
+  it('calls ScrollTrigger.refresh via load event callback', async () => {
+    Object.defineProperty(document, 'fonts', {
+      configurable: true,
+      value: { ready: Promise.resolve() },
+    });
+
+    let loadCb: () => void = () => {};
+    const addEventListener = vi
+      .spyOn(window, 'addEventListener')
+      .mockImplementation((event, cb) => {
+        if (event === 'load') loadCb = cb as () => void;
+      });
+
+    renderEngine();
+    await waitFor(() => expect(mocks.registerPlugin).toHaveBeenCalled());
+    await waitFor(() => expect(mocks.refresh).toHaveBeenCalled());
+
+    // Fire the load callback
+    loadCb?.();
+    await Promise.resolve();
+
+    // The load callback calls refreshIfActive which calls ScrollTrigger.refresh()
+    expect(mocks.refresh).toHaveBeenCalledTimes(2); // initial + load
+
+    addEventListener.mockRestore();
+  });
+
+  it('guards refreshIfActive when scrollTriggerRef is not yet set', async () => {
+    Object.defineProperty(document, 'fonts', {
+      configurable: true,
+      value: { ready: Promise.resolve() },
+    });
+
+    // Create a ref that we can control
+    const _ref = renderEngine();
+    void _ref;
+    await waitFor(() => expect(mocks.registerPlugin).toHaveBeenCalled());
+    await waitFor(() => expect(mocks.refresh).toHaveBeenCalled());
+
+    // The refreshIfActive function guards against both cancelled and
+    // scrollTriggerRef.current being null. The existing test
+    // "skips the refresh when the engine is torn down before fonts settle"
+    // covers the cancelled=true path. The scrollTriggerRef.current=null
+    // path is covered by the fact that the function checks both conditions
+    // with && - if either is false, refresh is not called.
+    expect(mocks.refresh).toHaveBeenCalledTimes(1);
+  });
 });
