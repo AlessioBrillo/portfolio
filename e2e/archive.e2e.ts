@@ -28,7 +28,10 @@ test.describe('archive route', () => {
       'Viewport-independent DOM assertion; a single project suffices.',
     );
     await page.goto('/');
-    await page.getByRole('link', { name: /Dig deeper/ }).click();
+    // Locate by href since the link text contains an em dash that may not match regex reliably
+    const link = page.locator('a[href="/archive"]');
+    await expect(link).toBeVisible({ timeout: 10000 });
+    await link.click();
     await expect(page).toHaveURL(/\/archive$/);
     await expect(page.getByRole('heading', { level: 1 })).toContainText('The archive');
   });
