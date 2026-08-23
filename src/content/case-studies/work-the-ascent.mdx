@@ -103,9 +103,15 @@ The meta-result is the same one the VDS licence taught, mirrored in code:
    floor, and the e2e harness do the talking that a "tech stack" line in a CV
    cannot.
 
-_(Author slot — personal reflection to complete: what building this site
-changed about how I approach my other work, and where the tonal signature
-should go next.)_
+Building this site rewired how I approach every project:
+
+1. **The flight profile is the architecture.** Modelling the scroll journey as ground → climb → cruise → descent → night (`src/lib/altitude.ts`) forced every section to earn its altitude. In my other work, I now start with a "flight plan" before a single line of code: what is the ground truth, where is the cruise (the serious core a reviewer sees), and how do we land? If a feature does not map to a band, it does not ship.
+
+2. **An invariant you test is real; an invariant you document is aspirational.** Equal legibility through a live blend (ADR-0012) was a design opinion until the Playwright harness asserted both crossfades in both motion modes across five viewports. Now it is a contract the repo keeps. I carry this into every system: if the correctness property cannot be asserted in CI, it is not a requirement — it is a hope.
+
+3. **The tonal engine is the scenographic exception, and it is the exception on purpose** (ADR-0004, ADR-0010). Everything else — typecheck, lint, format, coverage, bundle budget, photo contract, deploy routing — is disciplined, boring, and enforced. The only thing that flies is the signature. In my other work, I now explicitly designate *one* scenographic exception per project and constrain everything else to the quality floor. The contrast makes the exception visible and the floor defensible.
+
+4. **Content-last shipping is honest.** The structure waited on the words, the photos, and the domain. If the structure is the discipline, the content is the test: whether it survives real images, real copy, and a real deployment is the next check-ride. That mindset — build the runway first, then land the aircraft — is the transferable part.
 
 Would I do it differently? The site shipped content-last, which is honest —
 the structure is now waiting on the words, the photos, and the domain. If the
