@@ -151,15 +151,12 @@ interface MarkerDebt {
  * too (the debt entry must be deleted the moment the real content lands).
  * The debt is author input, never code: each entry names the line that must
  * be filled with real data before the entry is removed.
+ *
+ * All known debt resolved — the corpus study's run-log numbers, the physics
+ * study's POH figures and logbook example, and the ascent study's reflection
+ * are now filled with real data.
  */
-const KNOWN_DEBT: readonly MarkerDebt[] = [
-  {
-    slug: 'the-ascent',
-    markers: {
-      'Author slot': [106],
-    },
-  },
-];
+const KNOWN_DEBT: readonly MarkerDebt[] = [];
 
 const PUBLISHED_BODIES: Readonly<Record<string, string>> = {
   'transformer-italian-corpus': corpusBody,
