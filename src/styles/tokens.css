@@ -30,14 +30,6 @@
   --color-phosphor-dim: #9e9e9e;
   --color-hairline-dark: #ffffff1a;
 
-  /* Legacy aliases for tonal engine compatibility (ADR-0012) */
-  --color-orange: #e61919;
-  --color-cream: #ffffff;
-  --color-muted-light: #48453f;
-  --color-muted-dark: #9e9e9e;
-  --color-ink-deep: #221e19;
-  --color-olive: #5e6b4f;
-
   /* ===== TYPOGRAPHY — Industrial Brutalist (ADR-0022) ===== */
   /* Macro: Archivo Black — heavy industrial sans, negative tracking */
   --font-display: 'Archivo Black', 'Archivo', ui-sans-serif, system-ui, sans-serif;

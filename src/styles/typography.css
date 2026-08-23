@@ -1,13 +1,14 @@
 @font-face {
   font-family: 'Archivo';
-  src: url('/fonts/Archivo.woff2') format('woff2');
+  src: url('/fonts/Archivo.woff2') format('woff2-variations');
   font-weight: 400 900;
+  font-stretch: 75% 125%;
   font-style: normal;
   font-display: optional;
 }
 @font-face {
   font-family: 'Archivo Black';
-  src: url('/fonts/ArchivoBlack.woff2') format('woff2');
+  src: url('/fonts/Archivo.woff2') format('woff2-variations');
   font-weight: 900;
   font-style: normal;
   font-display: optional;
@@ -21,7 +22,7 @@
 }
 @font-face {
   font-family: 'JetBrains Mono';
-  src: url('/fonts/JetBrainsMono.woff2') format('woff2');
+  src: url('/fonts/JetBrainsMono.woff2') format('woff2-variations');
   font-weight: 100 800;
   font-style: normal;
   font-display: optional;
