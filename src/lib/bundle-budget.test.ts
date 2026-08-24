@@ -14,6 +14,15 @@ import {
 } from '@/lib/bundle-budget';
 
 const BASELINE: BudgetBaseline = { entryChunkKb: 165, totalJsKb: 225 };
+const BASELINE_WITH_CHUNKS: BudgetBaseline = {
+  entryChunkKb: 165,
+  totalJsKb: 225,
+  chunks: [
+    { name: 'assets/index-abc.js', gzipKb: 140 },
+    { name: 'assets/gsap-abc.js', gzipKb: 25 },
+    { name: 'assets/lazy-abc.js', gzipKb: 15 },
+  ],
+};
 
 const tempDirs: string[] = [];
 
@@ -176,5 +185,67 @@ describe('checkBundle', () => {
     );
 
     expect(result.violations).toEqual([]);
+  });
+
+  describe('failOnIncrease mode', () => {
+    it('passes when all chunks are at or below their per-chunk baseline', () => {
+      const result = checkBundle(
+        [
+          chunk('assets/index-abc.js', 140 * 1024),
+          chunk('assets/gsap-abc.js', 25 * 1024),
+          chunk('assets/lazy-abc.js', 15 * 1024),
+        ],
+        'assets/index-abc.js',
+        BASELINE_WITH_CHUNKS,
+        true,
+      );
+
+      expect(result.violations).toEqual([]);
+    });
+
+    it('fails when any chunk exceeds its per-chunk baseline', () => {
+      const result = checkBundle(
+        [
+          chunk('assets/index-abc.js', 140 * 1024),
+          chunk('assets/gsap-abc.js', 30 * 1024), // increased from 25
+          chunk('assets/lazy-abc.js', 15 * 1024),
+        ],
+        'assets/index-abc.js',
+        BASELINE_WITH_CHUNKS,
+        true,
+      );
+
+      expect(result.violations).toContain(
+        'chunk assets/gsap-abc.js increased to 30.0 kB gzip — baseline 25 kB',
+      );
+    });
+
+    it('ignores chunks not present in the per-chunk baseline', () => {
+      const result = checkBundle(
+        [
+          chunk('assets/index-abc.js', 140 * 1024),
+          chunk('assets/new-chunk.js', 50 * 1024), // new chunk, no baseline
+        ],
+        'assets/index-abc.js',
+        BASELINE_WITH_CHUNKS,
+        true,
+      );
+
+      expect(result.violations).toEqual([]);
+    });
+
+    it('does nothing when per-chunk baseline is absent', () => {
+      const result = checkBundle(
+        [chunk('assets/index-abc.js', 200 * 1024)], // way over entry budget
+        'assets/index-abc.js',
+        BASELINE, // no chunks field
+        true,
+      );
+
+      // Only the entry budget violation should be reported
+      expect(result.violations).toEqual([
+        'entry chunk assets/index-abc.js is 200.0 kB gzip — budget 165 kB',
+      ]);
+    });
   });
 });
