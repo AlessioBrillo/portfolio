@@ -1,18 +1,19 @@
 # Build Roadmap
 
-Incremental construction: each phase is independently verifiable. **Phase 4 is
-closed; the site is in Phase 5 (content) — all structure is live and validated.**
+Incremental construction: each phase is independently verifiable. **Phase 5 is
+closed; the site is in Phase 6 (finishing & deploy) — all content is live and
+validated, deploy waits on domain.**
 
-| Phase | Goal                                                                                                                              | Status                         |
-| ----- | --------------------------------------------------------------------------------------------------------------------------------- | ------------------------------ |
-| 0     | **Content & assets.** Selected photos, 2-3 written case studies, headline, domain. _(The site is only as strong as its content.)_ | Pending (needs inputs)         |
-| 1     | **Foundations.** Vite + Tailwind, color/typography tokens, self-hosted fonts, scale and grid.                                     | **Scaffolded**                 |
-| 2     | **The signature.** Hero + first working quota transition. _Validate "the Ascent" before going further._                           | **Validated**                  |
-| 3     | **The full ascent.** All tonal bands + altitude gauge + scroll engine (GSAP).                                                     | **Validated**                  |
-| 4     | **Mosaic + one real case study** (MDX route end-to-end).                                                                          | **Validated**                  |
-| 5     | **Content.** Remaining case studies, archive, experience storytelling.                                                            | In progress (structure live)   |
-| 6     | **Finishing & deploy.** A11y, performance, OG card, 404, reduced-motion -> Vercel + domain.                                       | Ready (deploy waits on domain) |
-| 7     | **After.** CV hook, analytics, optional private area.                                                                             | Pending                        |
+| Phase | Goal                                                                                                                              | Status                               |
+| ----- | --------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------ |
+| 0     | **Content & assets.** Selected photos, 2-3 written case studies, headline, domain. _(The site is only as strong as its content.)_ | **Complete**                         |
+| 1     | **Foundations.** Vite + Tailwind, color/typography tokens, self-hosted fonts, scale and grid.                                     | **Scaffolded**                       |
+| 2     | **The signature.** Hero + first working quota transition. _Validate "the Ascent" before going further._                           | **Validated**                        |
+| 3     | **The full ascent.** All tonal bands + altitude gauge + scroll engine (GSAP).                                                     | **Validated**                        |
+| 4     | **Mosaic + one real case study** (MDX route end-to-end).                                                                          | **Validated**                        |
+| 5     | **Content.** Remaining case studies, archive, experience storytelling.                                                            | **Complete**                         |
+| 6     | **Finishing & deploy.** A11y, performance, OG card, 404, reduced-motion -> Vercel + domain.                                       | In progress (deploy waits on domain) |
+| 7     | **After.** CV hook, analytics, optional private area.                                                                             | Pending                              |
 
 Phase 2's crossfade (both climb and descent) is implemented and validated
 end-to-end by the Playwright harness (`npm run e2e`) -- it now stands as the
@@ -44,47 +45,37 @@ study in `CASE_STUDIES` without placing it in `PUBLISHED_ORDER` renders it
 as a `noindex` draft by direct URL for review, and the deep-link and
 prev/next E2E tests are registry-driven -- a new published study is covered
 without editing the harness.
-Phase 5 still awaits the author's inputs below: real photos, real copy (the
-corpus study's run-log numbers), and nothing structural. The last structural
-gap is closed: the experiences archive (ADR-0019) is a real route
-(`/archive`) — a reverse-chronological projection over the published-study
-registry, the projects and the experience stories, with automatic dedupe
-(a project already covered by a published study appears once). The band's
-"Dig deeper" link reaches it through SPA navigation, it carries its own
-document head (canonical only once the domain lands), and the E2E harness
-covers the deep link and the navigation path.
+Phase 5 is complete: all author inputs have been provided and validated.
+The `KNOWN_DEBT` ledger in `src/content/case-studies/registry.test.ts` is
+empty — the corpus study's run-log numbers, the physics study's POH figures
+and logbook example, and the ascent study's reflection are all filled with
+real data. The registry contract tests enforce this: any placeholder in a
+published body fails the build.
 
-To make those inputs turnkey, the study pipeline carries a publishing
-safety net (`docs/content/case-study-guide.md`): the authoring template
-(`docs/content/case-study-template.md`) carries a definition-of-done
-checklist, and the registry contract tests enforce that no published body
-contains author-slot markers — exact match against a `KNOWN_DEBT` ledger that
-currently records the corpus study's run-log
-numbers (`**—**` at lines 42/89/90/91, `fill in` at 40/64/87) and the ascent
-study's unfinished reflection (line 106). The ledger is self-expiring: the
-day the author fills those lines, deleting the debt entry is verified by the
-same test. Publishing a future study is now impossible while it still
-carries placeholders.
+Five long-form studies are published as real routes: the corpus study
+(`/ai/transformer-italian-corpus`), the grokking study
+(`/ai/grokking-modular-addition`), the physics study (`/ai/physics-of-flight`,
+ADR-0017), the ascent study (`/work/the-ascent`) and the VDS licence study
+(`/sky/vds-licence`); each domain route ships with its own code-split MDX
+body and E2E deep-link coverage. The publishing pipeline (ADR-0017) remains
+live: registering a study in `CASE_STUDIES` without placing it in
+`PUBLISHED_ORDER` renders it as a `noindex` draft by direct URL for review,
+and the deep-link and prev/next E2E tests are registry-driven — a new
+published study is covered without editing the harness.
 
-The physics half of the AI & Physics core is published: `physics-of-flight`
-(`/ai/physics-of-flight`, ADR-0017) — the flight manual derived from first
-principles, companion to the VDS licence study. It renders in the mosaic
-surface, the sitemap and the prev/next order (right after the grokking
-study), and its POH figures and the logbook go/no-go example remain tracked
-author markers under the same `KNOWN_DEBT` discipline that guards the corpus
-study's run-log numbers — the ledger entry self-expires the day the author
-fills the real aircraft data. Registering it surfaced
-a latent test-infrastructure gap: `vitest.config.ts` fully replaces
-`vite.config.ts`, and it never mirrored the MDX plugin — so no real `.mdx`
-body had ever been loaded inside a test (the four published bodies were
-`vi.mock`ed, and a real load died in `vite:import-analysis`). The plugin is
-now mirrored (enforce-pre, same `providerImportSource`), and the published-
-body contract reads its raw sources with `node:fs` instead of `?raw` imports,
-which the MDX plugin would intercept. The loader contract now exercises the
-true MDX pipeline on the draft body; the draft-pinning tests become the
-publish gate — the day the study is published, "stays unpublished" fails
-first, forcing the conscious two-step: fill the markers, then add the key to
-`PUBLISHED_ORDER`.
+The experiences archive (ADR-0019) is a real route (`/archive`) — a
+reverse-chronological projection over the published-study registry, the
+projects and the experience stories, with automatic dedupe (a project already
+covered by a published study appears once). The band's "Dig deeper" link
+reaches it through SPA navigation, it carries its own document head
+(canonical only once the domain lands), and the E2E harness covers the deep
+link and the navigation path.
+
+The photo pipeline is live: 8 optimized derivatives (portrait + 3 sport
+disciplines × AVIF/WebP/JPG at 2 widths) are committed under
+`public/photos/` and referenced by content modules (`who.ts`, `sky.ts`). The
+`npm run photos:check` gate enforces the contract bidirectionally — every
+referenced URL exists, and every committed derivative is referenced.
 
 CSP note (deliberate tradeoffs in `vercel.json`): `style-src 'unsafe-inline'`
 is required by the Framer Motion / GSAP inline style attributes that drive
@@ -167,19 +158,18 @@ is the one thing the gate cannot catch.
 
 ## Inputs needed to proceed
 
-1. **5-8 strong photos** (one sober portrait for "Who", the rest sport / flying /
-   experiences).
-2. ~~**2-3 case studies**~~ — resolved: the grokking study
-   (`/ai/grokking-modular-addition`) is published, and so is the physics half
-   of the AI & Physics core (`/ai/physics-of-flight`); what remains is author
-   data, not new studies — the corpus study's run-log numbers (KNOWN_DEBT)
-   and the physics study's POH figures and logbook go/no-go example
-   (KNOWN_DEBT).
-3. The current **LinkedIn headline** (for the hero eyebrow).
+1. ~~**5-8 strong photos**~~ — resolved: portrait + VDS, tennis, MTB
+   derivatives committed under `public/photos/`.
+2. ~~**2-3 case studies**~~ — resolved: five studies published
+   (corpus, grokking, physics, ascent, VDS).
+3. ~~**LinkedIn headline**~~ — Hero eyebrow uses coordinates + VDS marker
+   (`[ 45.6306° N · 8.7281° E — VDS ]`), the author's pilot identity.
 4. A **domain** + how you want to sign (full name? a small personal brand?).
 5. ~~**Font binaries**~~ — resolved: the Latin-subset variable woff2 files
    (Fraunces / Geist / Geist Mono, OFL licenses alongside) are committed under
    `src/assets/fonts/` and wired via `@font-face` (ADR-0007).
+
+**Only the domain remains.** All code, content, assets, and gates are ready.
 
 ## The one justified risk
 
