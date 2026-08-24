@@ -8,9 +8,13 @@
  *   - total JS     — every chunk summed (entry + lazy routes + lazy vendor).
  *
  * Usage:
- *   npm run bundle:check            gate mode — exit 1 when over budget
- *   npm run bundle:report           report mode — prints the per-chunk
- *                                   breakdown and never fails (local review)
+ *   npm run bundle:check                      gate mode — exit 1 when over budget
+ *   npm run bundle:check -- --fail-on-increase  gate mode — also fail if any
+ *                                     individual chunk exceeds baseline total
+ *   npm run bundle:check -- --update-baseline   update baseline with per-chunk
+ *                                     data from current build (local use)
+ *   npm run bundle:report                     report mode — prints the per-chunk
+ *                                     breakdown and never fails (local review)
  *
  * Requires a production build first (`npm run build`); `dist/` is
  * git-ignored, so CI always builds before this step.
@@ -21,7 +25,7 @@
  * this file is the thin CLI wrapper, following the same split as
  * `scripts/optimize-images.mjs` / `src/lib/photo-pipeline.ts`.
  */
-import { existsSync, readFileSync } from 'node:fs';
+import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { readFile } from 'node:fs/promises';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -37,6 +41,8 @@ const DIST_DIR = join(ROOT, 'dist');
 const INDEX_HTML = join(DIST_DIR, 'index.html');
 const BASELINE_PATH = join(ROOT, 'bundle-baseline.json');
 const REPORT_ONLY = process.argv.includes('--report');
+const FAIL_ON_INCREASE = process.argv.includes('--fail-on-increase');
+const UPDATE_BASELINE = process.argv.includes('--update-baseline');
 
 const toKb = (bytes) => bytes / 1024;
 
@@ -52,7 +58,7 @@ const entryFile = readEntryScript(html);
 const chunks = await listJsChunks(DIST_DIR);
 const gzip = computeGzip(chunks);
 const baseline = JSON.parse(readFileSync(BASELINE_PATH, 'utf8'));
-const result = checkBundle(gzip, entryFile, baseline);
+const result = checkBundle(gzip, entryFile, baseline, FAIL_ON_INCREASE);
 
 console.log('[bundle] JS payload (whole-file gzip):');
 for (const chunk of gzip) {
@@ -77,3 +83,19 @@ if (result.violations.length > 0) {
   process.exit(1);
 }
 console.log('[bundle] within budget');
+
+if (UPDATE_BASELINE) {
+  const chunkBaselines = gzip.map((chunk) => ({
+    name: chunk.name,
+    gzipKb: Math.round(toKb(chunk.gzipBytes) * 10) / 10, // round to 0.1 kB
+  }));
+  const updatedBaseline = {
+    ...baseline,
+    entryChunkKb: baseline.entryChunkKb,
+    totalJsKb: baseline.totalJsKb,
+    chunks: chunkBaselines,
+    origin: `${baseline.origin} | Updated ${new Date().toISOString().split('T')[0]} via --update-baseline`,
+  };
+  writeFileSync(BASELINE_PATH, JSON.stringify(updatedBaseline, null, 2) + '\n');
+  console.log('[bundle] baseline updated with per-chunk data');
+}
