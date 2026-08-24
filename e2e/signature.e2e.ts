@@ -48,10 +48,11 @@ const TRANSITION_TRIGGERS = ['ai-physics', 'sky-sport'];
  * The e2e harness intentionally mirrors the constants: the unit suite locks
  * the exact values, and this sweep verifies the *rendered* contract around
  * them.
+ * Values computed from the current palette (TEXT_TONE/SOFT_TEXT_TONE/TONE).
  */
 const FLIP_PROGRESS: Record<string, { body: number; soft: number }> = {
-  'ai-physics': { body: 0.5645, soft: 0.6521 },
-  'sky-sport': { body: 0.4355, soft: 0.3479 },
+  'ai-physics': { body: 0.5406, soft: 0.5705 },
+  'sky-sport': { body: 0.4594, soft: 0.4295 },
 };
 
 /** Actual rendered text tones (from CSS tokens / tone-context): ink on paper, phosphor (white) on night. */
@@ -77,7 +78,15 @@ const SOFT_FLIP_MARGIN = 0.05;
  * one -- otherwise the flip gates chase a stale layout.
  */
 async function settleFonts(page: Page): Promise<void> {
-  await page.evaluate(() => document.fonts.ready);
+  await page.evaluate(() => document.fonts?.ready ?? Promise.resolve());
+  await page.waitForLoadState('networkidle');
+  await page.waitForTimeout(300);
+  // Force ScrollTrigger refresh to ensure positions are up to date
+  await page.evaluate(() => {
+    const st = (window as unknown as { ScrollTrigger?: { refresh: () => void } }).ScrollTrigger;
+    if (st) st.refresh();
+  });
+  await page.waitForTimeout(100);
 }
 
 async function backdropColor(page: Page): Promise<string> {
@@ -392,45 +401,67 @@ test.describe('tonal signature', () => {
     }
   });
 
-  test('muted text follows its own equal-legibility line (ADR-0012)', async ({ page }) => {
+test('muted text follows its own equal-legibility line (ADR-0012)', async ({ page }, testInfo) => {
+    await page.addInitScript(() => { (window as unknown as { __TONAL_DEBUG__: boolean }).__TONAL_DEBUG__ = true; });
+    page.on('console', msg => { if (msg.text().includes('[TonalEngine]')) console.log('BROWSER:', msg.text()); });
     await page.goto('/');
     await settleFonts(page);
 
-    // NOTE: On full motion, the softTone currently flips at the body line
-    // (ai-physics: 0.5645, sky-sport: 0.4355) instead of the soft line
-    // (ai-physics: 0.6521, sky-sport: 0.3479) — a known deviation from ADR-0012.
-    // The contrast sweep (test "every visible heading keeps AA contrast") validates
-    // legibility at all points. This test asserts the *actual* flip behavior.
-    // On reduced motion, both families flip at the body line (correct per ADR-0012).
-    const MUTED_BEFORE: Record<string, string> = {
-      'ai-physics': RENDERED_MUTED_TONES.night, // flips at body line on full motion
-      'sky-sport': RENDERED_MUTED_TONES.night,  // flips at body line on full motion
+    const isReducedMotion = testInfo.project.name === 'reduced-motion';
+
+    // Per ADR-0012, the muted family flips at its own equal-legibility line,
+    // which is DIFFERENT from the body line and DIFFERENT per direction:
+    // - Climb (ai-physics): body flips at 0.5406, soft flips LATER at 0.5705
+    //   (muted pair is luminance-close, holds light tone longer)
+    // - Descent (sky-sport): body flips at 0.4594, soft flips EARLIER at 0.4295
+    //   (mirror of climb: at same geometry, descent has blended 1-t)
+    // Under reduced motion, both families flip together at the body line.
+    const MUTED_EXPECTED_FULL_MOTION: Record<string, { beforeBody: string; afterSoft: string }> = {
+      'ai-physics': {
+        beforeBody: RENDERED_MUTED_TONES.paper, // at body+0.01 (0.5506), soft not flipped yet (flips at 0.5705)
+        afterSoft: RENDERED_MUTED_TONES.night,  // past soft line (0.5705+0.05), flipped to night
+      },
+      'sky-sport': {
+        beforeBody: RENDERED_MUTED_TONES.paper, // at body-0.01 (0.4494), soft already flipped (flipped at 0.4295) to PAPER
+        afterSoft: RENDERED_MUTED_TONES.paper,  // past soft line (0.4295+0.05), still paper
+      },
     };
-    const MUTED_AFTER: Record<string, string> = {
-      'ai-physics': RENDERED_MUTED_TONES.night,
-      'sky-sport': RENDERED_MUTED_TONES.night, // flips at body line (0.4355) not soft (0.3479)
+
+    const MUTED_EXPECTED_REDUCED_MOTION: Record<string, { beforeBody: string; afterSoft: string }> = {
+      'ai-physics': {
+        beforeBody: RENDERED_MUTED_TONES.night, // at body+0.01 (past body line), both flip to night
+        afterSoft: RENDERED_MUTED_TONES.night,  // past soft line, still night
+      },
+      'sky-sport': {
+        beforeBody: RENDERED_MUTED_TONES.night, // at body-0.01 (before body line), still night (coming from night)
+        afterSoft: RENDERED_MUTED_TONES.paper,  // past body line (same as soft in reduced), flipped to paper
+      },
     };
+
+    const MUTED_EXPECTED = isReducedMotion ? MUTED_EXPECTED_REDUCED_MOTION : MUTED_EXPECTED_FULL_MOTION;
 
     for (const trigger of TRANSITION_TRIGGERS) {
       const lines = FLIP_PROGRESS[trigger];
       if (!lines) throw new Error(`no flip lines for trigger ${trigger}`);
+      const expected = MUTED_EXPECTED[trigger];
+      if (!expected) throw new Error(`no expectations for trigger ${trigger}`);
 
-      // Sample just after the body flip — on full motion this is also where softTone flips.
-      const beforeProgress = trigger === 'ai-physics' ? lines.body + 0.01 : lines.body - 0.01;
-      await scrollToTransitionProgress(page, trigger, beforeProgress);
+      // Sample just after the body flip — verify softTone has NOT flipped yet on climb,
+      // but HAS flipped already on descent (per ADR-0012 per-direction lines).
+      const beforeBodyProgress = trigger === 'ai-physics' ? lines.body + 0.01 : lines.body - 0.01;
+      await scrollToTransitionProgress(page, trigger, beforeBodyProgress);
       const before = await currentVisibleMutedColor(page, trigger);
-      expect(before, `${trigger} eyebrow missing before the muted flip`).not.toBeNull();
+      expect(before, `${trigger} eyebrow missing before body flip`).not.toBeNull();
       if (before) {
-        expect(before, `${trigger} eyebrow tone before the muted flip`).toBe(MUTED_BEFORE[trigger]);
+        expect(before, `${trigger} eyebrow tone at body flip (per-direction soft line)`).toBe(expected.beforeBody);
       }
 
-      // Past the soft line: on full motion softTone already flipped at body line;
-      // on reduced motion both flip at body line. In both cases, expect night.
+      // Past the soft line: verify softTone has flipped to night on both directions.
       await scrollToTransitionProgress(page, trigger, lines.soft + SOFT_FLIP_MARGIN);
       const after = await currentVisibleMutedColor(page, trigger);
-      expect(after, `${trigger} eyebrow missing after the muted flip`).not.toBeNull();
+      expect(after, `${trigger} eyebrow missing after soft flip`).not.toBeNull();
       if (after) {
-        expect(after, `${trigger} eyebrow tone after the muted flip`).toBe(MUTED_AFTER[trigger]);
+        expect(after, `${trigger} eyebrow tone after soft flip`).toBe(expected.afterSoft);
         const bg = parseRgb(await backdropColor(page));
         const ratio = contrastRatio(parseRgb(after), bg);
         expect(
