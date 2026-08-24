@@ -2,7 +2,7 @@ import { fireEvent, render, screen } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
 import { Band } from '@/components/ui/Band';
 import { ToneProvider } from '@/components/ascent/ToneProvider';
-import { useSceneTone } from '@/components/ascent/tone-context';
+import { useSceneTone, useSceneToneSetter } from '@/components/ascent/tone-context';
 import type { ReactElement } from 'react';
 import type { SectionId } from '@/types/domain';
 
@@ -107,7 +107,8 @@ describe('Band', () => {
 
   it('reacts to scene tone changes published by the tonal engine', () => {
     function ToneProbe(): ReactElement {
-      const { tone, setTone } = useSceneTone();
+      const { tone } = useSceneTone();
+      const { setTone } = useSceneToneSetter();
       return (
         <button type="button" onClick={() => setTone('night')}>
           probe:{tone}

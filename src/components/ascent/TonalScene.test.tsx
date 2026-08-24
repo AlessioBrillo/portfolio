@@ -2,7 +2,7 @@ import { fireEvent, render, screen } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 import type { ReactElement } from 'react';
 import { TonalScene } from '@/components/ascent/TonalScene';
-import { useSceneTone } from '@/components/ascent/tone-context';
+import { useSceneTone, useSceneToneSetter } from '@/components/ascent/tone-context';
 import { TONE } from '@/lib/tone';
 
 // The GSAP engine is exercised in useTonalEngine.test.ts; here we only assert
@@ -12,7 +12,8 @@ vi.mock('@/components/ascent/useTonalEngine', () => ({
 }));
 
 function ToneProbe(): ReactElement {
-  const { tone, setTone } = useSceneTone();
+  const { tone } = useSceneTone();
+  const { setTone } = useSceneToneSetter();
   return (
     <button type="button" onClick={() => setTone('night')}>
       tone:{tone}

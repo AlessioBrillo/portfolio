@@ -1,7 +1,7 @@
 import { useRef, useState, useMemo } from 'react';
 import type { ReactElement, ReactNode } from 'react';
 import { TONE, type ToneName } from '@/lib/tone';
-import { SceneToneContext } from './tone-context';
+import { SceneToneContext, SceneToneSetterContext } from './tone-context';
 import { useTonalEngine } from './useTonalEngine';
 import { useReducedMotion } from '@/hooks/useReducedMotion';
 
@@ -88,20 +88,29 @@ export function TonalScene({ children }: TonalSceneProps): ReactElement {
     };
   }, [tone, prefersReducedMotion]);
 
+  const readonlyValue = useMemo(() => ({ tone, softTone }), [tone, softTone]);
+  const setterValue = useMemo(() => ({ setTone, setSoftTone }), [setTone, setSoftTone]);
+
   return (
-    <SceneToneContext.Provider value={{ tone, setTone, softTone, setSoftTone }}>
-      <div className="relative">
-        <div
-          ref={backdropRef}
-          aria-hidden
-          data-testid="tonal-backdrop"
-          className="pointer-events-none fixed inset-0 -z-10"
-          style={{ backgroundColor: TONE.paper }}
-        />
-        <div aria-hidden className="pointer-events-none fixed inset-0 -z-5" style={grainStyle} />
-        <div aria-hidden className="pointer-events-none fixed inset-0 -z-4" style={scanlineStyle} />
-        <div className="relative z-10">{children}</div>
-      </div>
-    </SceneToneContext.Provider>
+    <SceneToneSetterContext.Provider value={setterValue}>
+      <SceneToneContext.Provider value={readonlyValue}>
+        <div className="relative">
+          <div
+            ref={backdropRef}
+            aria-hidden
+            data-testid="tonal-backdrop"
+            className="pointer-events-none fixed inset-0 -z-10"
+            style={{ backgroundColor: TONE.paper }}
+          />
+          <div aria-hidden className="pointer-events-none fixed inset-0 -z-5" style={grainStyle} />
+          <div
+            aria-hidden
+            className="pointer-events-none fixed inset-0 -z-4"
+            style={scanlineStyle}
+          />
+          <div className="relative z-10">{children}</div>
+        </div>
+      </SceneToneContext.Provider>
+    </SceneToneSetterContext.Provider>
   );
 }

@@ -10,8 +10,11 @@ import {
   type ToneName,
 } from '@/lib/tone';
 
-/** Type for ScrollTrigger — only the surface we actually use (`refresh()`). */
-type ScrollTriggerType = { refresh: () => void };
+/** Type for ScrollTrigger — only the surface we actually use (`refresh()`, `getAll()`). */
+type ScrollTriggerType = {
+  refresh: () => void;
+  getAll: () => Array<{ kill: () => void }>;
+};
 
 /** Debounce helper for resize refresh — avoids StormTrigger spam on resize. */
 export function debounce<T extends (...args: unknown[]) => void>(fn: T, wait: number): T {
@@ -45,19 +48,8 @@ function transitionTrigger(sectionId: string): Element | null {
 }
 
 /**
- * The scroll position at which a scene text family flips while the backdrop
- * is *blending* (ADR-0012): the transition's own equal-legibility line,
- * computed by bisection over the actual GSAP-blended backdrop colours (see
- * `flipLineFor` in `src/lib/tone.ts`). The line is per transition -- the
- * climb and the descent run over the same window in opposite directions, so
- * at any shared geometry the backdrop has blended different amounts and a
- * single shared position would strand the outgoing tone below AA.
- *
- * Flip positions are *relative* starts (`top <pct>%` of the trigger heading).
- * Relative positions are re-measured by ScrollTrigger on every refresh, so
- * they self-heal after fonts or images shift the layout -- an absolute pixel
- * start would freeze first-render geometry and fire the flip late (the exact
- * defect this anchor avoids).
+ * Compute the ScrollTrigger start position string for a given text tone family
+ * and transition (ADR-0012 equal-legibility line).
  */
 function flipStart(
   textTone: Readonly<Record<ToneName, string>>,
@@ -66,23 +58,41 @@ function flipStart(
   return flipLineFor(textTone, transition).position;
 }
 
+/**
+ * Progress thresholds (0..1) for body and soft flips per transition.
+ * Computed once at module load from the declared palette.
+ */
+const FLIP_PROGRESS: Record<string, { body: number; soft: number }> = (() => {
+  const out: Record<string, { body: number; soft: number }> = {};
+  for (const transition of TONAL_TRANSITIONS) {
+    out[transition.trigger] = {
+      body: flipLineFor(TEXT_TONE, transition).progress,
+      soft: flipLineFor(SOFT_TEXT_TONE, transition).progress,
+    };
+  }
+  return out;
+})();
+
+/** Detect reduced motion at runtime — avoids gsap.matchMedia flakiness. */
+function prefersReducedMotion(): boolean {
+  if (typeof window === 'undefined') return false;
+  return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+}
+
 export function useTonalEngine(
   backdropRef: RefObject<HTMLDivElement | null>,
   onToneChange?: (tone: ToneName) => void,
   onSoftToneChange?: (tone: ToneName) => void,
 ): void {
-  // Kept in a ref so the GSAP effect only depends on the backdrop element:
-  // `TonalScene` passes the stable `setTone` state setter, and re-running the
-  // whole engine setup on every render would rebuild every ScrollTrigger.
   const onToneChangeRef = useRef(onToneChange);
   onToneChangeRef.current = onToneChange;
   const onSoftToneChangeRef = useRef(onSoftToneChange);
   onSoftToneChangeRef.current = onSoftToneChange;
 
-  // ScrollTrigger is stored in a ref so the load/resize callbacks can access it
-  // after the dynamic import completes. This also makes the refresh logic
-  // testable (the ref is visible to the test mock).
   const scrollTriggerRef = useRef<ScrollTriggerType | null>(null);
+  // Track previous progress per transition trigger to detect line crossings
+  // without relying on getVelocity() which returns px/s (incompatible with 0..1 progress).
+  const prevProgressRef = useRef<Map<string, number>>(new Map());
 
   useEffect(() => {
     const el = backdropRef.current;
@@ -102,67 +112,15 @@ export function useTonalEngine(
         gsap.registerPlugin(ScrollTrigger);
 
         const ctx = gsap.context(() => {
-          const mm = gsap.matchMedia();
-
-          mm.add('(prefers-reduced-motion: no-preference)', () => {
+          if (prefersReducedMotion()) {
+            // Reduced motion: discrete switches at the per-direction body line.
             for (const transition of TONAL_TRANSITIONS) {
               const trigger = transitionTrigger(transition.trigger);
               if (!trigger) continue;
-              gsap.fromTo(
-                el,
-                { backgroundColor: TONE[transition.from] },
-                {
-                  backgroundColor: TONE[transition.to],
-                  ease: 'none',
-                  immediateRender: false,
-                  scrollTrigger: {
-                    trigger,
-                    start: transition.start,
-                    end: transition.end,
-                    scrub: true,
-                  },
-                },
-              );
-
-              // Body text flip: at the equal-legibility line the incoming
-              // tone becomes the strictly more legible choice (ADR-0012), so
-              // scene bands switch their primary text colour there -- an
-              // instant, scroll-linked change (no CSS transition: both tones
-              // are equally legible at that line, and a time-based smooth
-              // would lag the scroll-linked backdrop under fast scrolling).
+              const startPos = flipStart(TEXT_TONE, transition);
               ScrollTrigger.create({
                 trigger,
-                start: flipStart(TEXT_TONE, transition),
-                onEnter: () => onToneChangeRef.current?.(transition.to),
-                onLeaveBack: () => onToneChangeRef.current?.(transition.from),
-              });
-
-              // Muted text flip: its own equal-legibility line, which fires
-              // later than the body line (the muted pair is luminance-close
-              // by design, so it can hold the light tone longer). Worst case
-              // at the line is the documented floor (~1.57:1, ADR-0012).
-              ScrollTrigger.create({
-                trigger,
-                start: flipStart(SOFT_TEXT_TONE, transition),
-                onEnter: () => onSoftToneChangeRef.current?.(transition.to),
-                onLeaveBack: () => onSoftToneChangeRef.current?.(transition.from),
-              });
-            }
-          });
-
-          mm.add('(prefers-reduced-motion: reduce)', () => {
-            for (const transition of TONAL_TRANSITIONS) {
-              const trigger = transitionTrigger(transition.trigger);
-              if (!trigger) continue;
-              // Same anchor as the full-motion body flip: under reduced motion
-              // the backdrop switches at the same equal-legibility line, so
-              // both paths flip the backdrop and the scene text tone together.
-              // Both text families flip here too: there is no blend to
-              // equalise against, and a split between the lines would strand
-              // one family on the wrong committed tone between them.
-              ScrollTrigger.create({
-                trigger,
-                start: flipStart(TEXT_TONE, transition),
+                start: startPos,
                 onEnter: () => {
                   gsap.set(el, { backgroundColor: TONE[transition.to] });
                   onToneChangeRef.current?.(transition.to);
@@ -175,15 +133,57 @@ export function useTonalEngine(
                 },
               });
             }
-          });
+          } else {
+            // Full motion: single ScrollTrigger per transition with onUpdate for precise flips.
+            for (const transition of TONAL_TRANSITIONS) {
+              const trigger = transitionTrigger(transition.trigger);
+              if (!trigger) continue;
+
+              const lines = FLIP_PROGRESS[transition.trigger];
+              if (!lines) continue;
+
+              prevProgressRef.current.set(transition.trigger, -1);
+
+              const tween = gsap.fromTo(
+                el,
+                { backgroundColor: TONE[transition.from] },
+                {
+                  backgroundColor: TONE[transition.to],
+                  ease: 'none',
+                  immediateRender: false,
+                  scrollTrigger: {
+                    trigger,
+                    start: transition.start,
+                    end: transition.end,
+                    scrub: true,
+                    onUpdate: (self) => {
+                      const progress = self.progress;
+                      const prevProgress = prevProgressRef.current.get(transition.trigger) ?? -1;
+                      prevProgressRef.current.set(transition.trigger, progress);
+
+                      // Body flip: fire when crossing the body equal-legibility line
+                      if (prevProgress < lines.body && progress >= lines.body) {
+                        onToneChangeRef.current?.(transition.to);
+                      } else if (prevProgress >= lines.body && progress < lines.body) {
+                        onToneChangeRef.current?.(transition.from);
+                      }
+
+                      // Soft flip: fire when crossing the soft equal-legibility line
+                      if (prevProgress < lines.soft && progress >= lines.soft) {
+                        onSoftToneChangeRef.current?.(transition.to);
+                      } else if (prevProgress >= lines.soft && progress < lines.soft) {
+                        onSoftToneChangeRef.current?.(transition.from);
+                      }
+                    },
+                  },
+                },
+              );
+
+              void tween;
+            }
+          }
         }, el);
 
-        // ScrollTrigger measures every start/end position at creation, but
-        // the display fonts (Fraunces, Geist) swap in after the first paint
-        // and shift every trigger below the hero by tens of pixels -- the
-        // fade and the flip lines would fire at stale positions forever.
-        // Re-measure once the fonts settle so the flips land on their true
-        // equal-legibility geometry (the e2e harness gates this alignment).
         if (document.fonts) {
           void document.fonts.ready.then(() => {
             if (cancelled) return;
@@ -193,15 +193,8 @@ export function useTonalEngine(
 
         revert = () => ctx.revert();
       } catch (error) {
-        // GSAP is a runtime enhancement: the seed `paper` backdrop and the
-        // scene context's default `paper` tone keep every band AA-legible
-        // even if the dynamic import fails, so the page degrades to the
-        // ground tone instead of breaking. The failure is surfaced loudly
-        // rather than swallowed -- a silent miss of the signature would be
-        // far harder to debug.
         const err = error instanceof Error ? error : new Error(String(error));
         console.error('Tonal engine: GSAP failed to load; the page stays on the paper tone.', err);
-        // Emit event for observability (Sentry, LogRocket, custom handlers)
         if (typeof window !== 'undefined') {
           window.dispatchEvent(
             new CustomEvent('tonal-engine-error', {
@@ -214,10 +207,6 @@ export function useTonalEngine(
 
     void setup();
 
-    // Refresh ScrollTrigger after all assets (fonts, images, layout) have
-    // settled. window.load fires after document.fonts.ready and image loads,
-    // guaranteeing the geometry is final. Debounced resize handles viewport
-    // changes (rotation, split-screen, devtools) that shift trigger positions.
     const refreshIfActive = (): void => {
       if (!cancelled && scrollTriggerRef.current) scrollTriggerRef.current.refresh();
     };

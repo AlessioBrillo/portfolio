@@ -1,7 +1,12 @@
 import { fireEvent, render, screen } from '@testing-library/react';
 import type { ReactElement } from 'react';
 import { describe, expect, it } from 'vitest';
-import { SCENE_SOFT_TEXT, SceneToneContext, useSceneTone } from '@/components/ascent/tone-context';
+import {
+  SCENE_SOFT_TEXT,
+  SceneToneContext,
+  useSceneTone,
+  useSceneToneSetter,
+} from '@/components/ascent/tone-context';
 
 function Probe(): ReactElement {
   const { tone, softTone } = useSceneTone();
@@ -13,7 +18,8 @@ function Probe(): ReactElement {
 }
 
 function ReadTone(): ReactElement {
-  const { tone, setTone, softTone, setSoftTone } = useSceneTone();
+  const { tone, softTone } = useSceneTone();
+  const { setTone, setSoftTone } = useSceneToneSetter();
   return (
     <button
       type="button"
@@ -51,14 +57,7 @@ describe('useSceneTone', () => {
 
   it('reads the tones published by the nearest SceneToneContext', () => {
     render(
-      <SceneToneContext.Provider
-        value={{
-          tone: 'night',
-          setTone: () => undefined,
-          softTone: 'paper',
-          setSoftTone: () => undefined,
-        }}
-      >
+      <SceneToneContext.Provider value={{ tone: 'night', softTone: 'paper' }}>
         <Probe />
       </SceneToneContext.Provider>,
     );

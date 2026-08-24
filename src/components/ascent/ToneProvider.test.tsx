@@ -2,10 +2,11 @@ import { fireEvent, render, screen } from '@testing-library/react';
 import type { ReactElement } from 'react';
 import { describe, expect, it } from 'vitest';
 import { ToneProvider } from '@/components/ascent/ToneProvider';
-import { useSceneTone } from '@/components/ascent/tone-context';
+import { useSceneTone, useSceneToneSetter } from '@/components/ascent/tone-context';
 
 function ReadTone(): ReactElement {
-  const { tone, setTone, softTone, setSoftTone } = useSceneTone();
+  const { tone, softTone } = useSceneTone();
+  const { setTone, setSoftTone } = useSceneToneSetter();
   return (
     <button
       type="button"
