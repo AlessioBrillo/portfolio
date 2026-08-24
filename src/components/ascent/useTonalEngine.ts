@@ -10,6 +10,9 @@ import {
   type ToneName,
 } from '@/lib/tone';
 
+/** Type for ScrollTrigger — only the surface we actually use (`refresh()`). */
+type ScrollTriggerType = { refresh: () => void };
+
 /** Debounce helper for resize refresh — avoids StormTrigger spam on resize. */
 export function debounce<T extends (...args: unknown[]) => void>(fn: T, wait: number): T {
   let timeoutId: ReturnType<typeof setTimeout> | null = null;
@@ -79,8 +82,7 @@ export function useTonalEngine(
   // ScrollTrigger is stored in a ref so the load/resize callbacks can access it
   // after the dynamic import completes. This also makes the refresh logic
   // testable (the ref is visible to the test mock).
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const scrollTriggerRef = useRef<any>(null);
+  const scrollTriggerRef = useRef<ScrollTriggerType | null>(null);
 
   useEffect(() => {
     const el = backdropRef.current;
@@ -197,10 +199,16 @@ export function useTonalEngine(
         // ground tone instead of breaking. The failure is surfaced loudly
         // rather than swallowed -- a silent miss of the signature would be
         // far harder to debug.
-        console.error(
-          'Tonal engine: GSAP failed to load; the page stays on the paper tone.',
-          error,
-        );
+        const err = error instanceof Error ? error : new Error(String(error));
+        console.error('Tonal engine: GSAP failed to load; the page stays on the paper tone.', err);
+        // Emit event for observability (Sentry, LogRocket, custom handlers)
+        if (typeof window !== 'undefined') {
+          window.dispatchEvent(
+            new CustomEvent('tonal-engine-error', {
+              detail: { message: err.message, cause: err.cause, stack: err.stack },
+            }),
+          );
+        }
       }
     }
 
