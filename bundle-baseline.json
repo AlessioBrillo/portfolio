@@ -1,5 +1,39 @@
 {
   "entryChunkKb": 165,
   "totalJsKb": 225,
-  "origin": "Measured 2026-08-18 from the production build at commit 3e6e205 with this gate's own method (whole-file zlib gzip of dist/): entry chunk 143.71 kB, total JS 196.95 kB. Budgets are baseline +10%, rounded up. Raise a budget only with a deliberate ADR or an accepted, measured regression."
+  "origin": "Measured 2026-08-18 from the production build at commit 3e6e205 with this gate's own method (whole-file zlib gzip of dist/): entry chunk 143.71 kB, total JS 196.95 kB. Budgets are baseline +10%, rounded up. Raise a budget only with a deliberate ADR or an accepted, measured regression. | Updated 2026-08-24 via --update-baseline",
+  "chunks": [
+    {
+      "name": "assets/grokking-modular-addition-C63cM6JP.js",
+      "gzipKb": 3.8
+    },
+    {
+      "name": "assets/gsap-WthEQL9P.js",
+      "gzipKb": 26.5
+    },
+    {
+      "name": "assets/index-CqcyrgMk.js",
+      "gzipKb": 146.2
+    },
+    {
+      "name": "assets/physics-of-flight-x474nVrU.js",
+      "gzipKb": 3.5
+    },
+    {
+      "name": "assets/ScrollTrigger-l6JEjUcF.js",
+      "gzipKb": 17
+    },
+    {
+      "name": "assets/transformer-italian-corpus-o4zvx9th.js",
+      "gzipKb": 2.8
+    },
+    {
+      "name": "assets/vds-licence-CV9Sb5aJ.js",
+      "gzipKb": 2.6
+    },
+    {
+      "name": "assets/work-the-ascent-DxfrmQig.js",
+      "gzipKb": 3.6
+    }
+  ]
 }
