@@ -194,7 +194,27 @@ export function useTonalEngine(
         revert = () => ctx.revert();
       } catch (error) {
         const err = error instanceof Error ? error : new Error(String(error));
-        console.error('Tonal engine: GSAP failed to load; the page stays on the paper tone.', err);
+        console.error('Tonal engine: GSAP failed to load; applying degraded static gradient.', err);
+        if (el && typeof window !== 'undefined') {
+          // Degraded static gradient representing the flight profile:
+          // paper (ground) -> night (cruise) -> paper (descent) -> night (contact)
+          el.style.backgroundImage = `
+            linear-gradient(
+              to bottom,
+              ${TONE.paper} 0%,
+              ${TONE.paper} 25%,
+              ${TONE.night} 25%,
+              ${TONE.night} 50%,
+              ${TONE.paper} 50%,
+              ${TONE.paper} 75%,
+              ${TONE.night} 75%,
+              ${TONE.night} 100%
+            )
+          `
+            .replace(/\s+/g, ' ')
+            .trim();
+          el.style.backgroundColor = 'transparent';
+        }
         if (typeof window !== 'undefined') {
           window.dispatchEvent(
             new CustomEvent('tonal-engine-error', {

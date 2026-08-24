@@ -26,7 +26,8 @@ describe('useTonalEngine — GSAP load failure', () => {
 
     await waitFor(() => expect(errorSpy).toHaveBeenCalled());
     expect(errorSpy.mock.calls[0]?.[0]).toContain('Tonal engine');
-    expect(result.current.current?.style.backgroundColor).toBe('');
+    // Degraded mode applies a static gradient and sets backgroundColor to transparent
+    expect(result.current.current?.style.backgroundColor).toBe('transparent');
     errorSpy.mockRestore();
   });
 });
