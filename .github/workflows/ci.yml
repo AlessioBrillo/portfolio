@@ -85,7 +85,7 @@ jobs:
         run: npm run build
 
       - name: Enforce bundle budget (ADR-0018)
-        run: npm run bundle:check
+        run: npm run bundle:check -- --fail-on-increase
 
       - name: Enforce the SPA-fallback routing contract (vercel.json vs public/)
         run: npm run deploy:check
