@@ -1,7 +1,7 @@
-import { useRef, useState, useMemo } from 'react';
+import { useRef, useState, useMemo, useEffect } from 'react';
 import type { ReactElement, ReactNode } from 'react';
 import { TONE, type ToneName } from '@/lib/tone';
-import { SceneToneContext } from './tone-context';
+import { SceneToneContext, SceneToneSetterContext } from './tone-context';
 import { useTonalEngine } from './useTonalEngine';
 import { useReducedMotion } from '@/hooks/useReducedMotion';
 
@@ -64,8 +64,20 @@ export function TonalScene({ children }: TonalSceneProps): ReactElement {
   const backdropRef = useRef<HTMLDivElement>(null);
   const [tone, setTone] = useState<ToneName>('paper');
   const [softTone, setSoftTone] = useState<ToneName>('paper');
+  const [engineError, setEngineError] = useState<Error | null>(null);
   const prefersReducedMotion = useReducedMotion();
   useTonalEngine(backdropRef, setTone, setSoftTone);
+
+  useEffect(() => {
+    function handleEngineError(
+      event: CustomEvent<{ message: string; cause: unknown; stack?: string }>,
+    ): void {
+      setEngineError(new Error(event.detail.message, { cause: event.detail.cause }));
+    }
+    window.addEventListener('tonal-engine-error', handleEngineError as EventListener);
+    return () =>
+      window.removeEventListener('tonal-engine-error', handleEngineError as EventListener);
+  }, []);
 
   const grainStyle = useMemo(
     () => ({
@@ -88,20 +100,38 @@ export function TonalScene({ children }: TonalSceneProps): ReactElement {
     };
   }, [tone, prefersReducedMotion]);
 
+  const readonlyValue = useMemo(() => ({ tone, softTone }), [tone, softTone]);
+  const setterValue = useMemo(() => ({ setTone, setSoftTone }), [setTone, setSoftTone]);
+
   return (
-    <SceneToneContext.Provider value={{ tone, setTone, softTone, setSoftTone }}>
-      <div className="relative">
-        <div
-          ref={backdropRef}
-          aria-hidden
-          data-testid="tonal-backdrop"
-          className="pointer-events-none fixed inset-0 -z-10"
-          style={{ backgroundColor: TONE.paper }}
-        />
-        <div aria-hidden className="pointer-events-none fixed inset-0 -z-5" style={grainStyle} />
-        <div aria-hidden className="pointer-events-none fixed inset-0 -z-4" style={scanlineStyle} />
-        <div className="relative z-10">{children}</div>
-      </div>
-    </SceneToneContext.Provider>
+    <SceneToneSetterContext.Provider value={setterValue}>
+      <SceneToneContext.Provider value={readonlyValue}>
+        <div className="relative">
+          <div
+            ref={backdropRef}
+            aria-hidden
+            data-testid="tonal-backdrop"
+            className="pointer-events-none fixed inset-0 -z-10"
+            style={{ backgroundColor: TONE.paper }}
+          />
+          <div aria-hidden className="pointer-events-none fixed inset-0 -z-5" style={grainStyle} />
+          <div
+            aria-hidden
+            className="pointer-events-none fixed inset-0 -z-4"
+            style={scanlineStyle}
+          />
+          <div className="relative z-10">{children}</div>
+          {engineError && (
+            <div
+              role="status"
+              aria-live="polite"
+              className="fixed bottom-4 left-4 right-4 sm:left-auto sm:right-4 sm:w-80 z-50 bg-ink/95 backdrop-blur text-paper px-4 py-3 text-sm font-mono border border-orange/50"
+            >
+              Animation unavailable — static view active
+            </div>
+          )}
+        </div>
+      </SceneToneContext.Provider>
+    </SceneToneSetterContext.Provider>
   );
 }

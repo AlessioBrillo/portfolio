@@ -2,29 +2,39 @@ import { createContext, useContext } from 'react';
 import type { ToneName } from '@/lib/tone';
 
 /**
- * The live tones of the `TonalScene` backdrop.
+ * Read-only view of the live scene tones.
  *
- * `TonalScene` owns the state and feeds it from the tonal engine; scene bands
- * (ADR-0010) read it so their text colour follows the backdrop instead of
+ * Scene bands (ADR-0010) consume this to follow the backdrop tone instead of
  * being pinned to a static per-band tone. `tone` is the currently legible
  * tone for the *body* text family (flips at the body equal-legibility line,
  * ADR-0012); `softTone` is the same for the *muted* family (flips at its own
- * line). The `setTone`/`setSoftTone` setters let the engine publish flips
- * (see `useTonalEngine`); under reduced motion the engine publishes both
- * tones together at the body line.
+ * line). Only `TonalScene` (via the internal setter context) may publish flips.
  */
-export interface SceneToneValue {
+export interface SceneToneReadonly {
   tone: ToneName;
-  setTone: (tone: ToneName) => void;
   softTone: ToneName;
-  setSoftTone: (tone: ToneName) => void;
 }
 
 /** Defaults to `paper` so scene bands outside a scene degrade to the ground tone. */
-export const SceneToneContext = createContext<SceneToneValue>({
+export const SceneToneContext = createContext<SceneToneReadonly>({
   tone: 'paper',
-  setTone: () => undefined,
   softTone: 'paper',
+});
+
+/**
+ * Internal setter context — only `TonalScene` should provide this.
+ *
+ * The tonal engine (`useTonalEngine`) publishes flips through these setters.
+ * Under reduced motion the engine publishes both tones together at the body line.
+ * Not exported for general consumption; prevents accidental tone overrides.
+ */
+export interface SceneToneSetter {
+  setTone: (tone: ToneName) => void;
+  setSoftTone: (tone: ToneName) => void;
+}
+
+export const SceneToneSetterContext = createContext<SceneToneSetter>({
+  setTone: () => undefined,
   setSoftTone: () => undefined,
 });
 
@@ -40,7 +50,12 @@ export const SCENE_SOFT_TEXT: Record<ToneName, string> = {
   night: 'text-phosphor-dim',
 };
 
-/** Reads the live scene tone; falls back to `paper` when no `TonalScene` is mounted. */
-export function useSceneTone(): SceneToneValue {
+/** Reads the live scene tone (read-only); falls back to `paper` when no `TonalScene` is mounted. */
+export function useSceneTone(): SceneToneReadonly {
   return useContext(SceneToneContext);
+}
+
+/** Internal hook for the tonal engine to publish flips. Not for general use. */
+export function useSceneToneSetter(): SceneToneSetter {
+  return useContext(SceneToneSetterContext);
 }

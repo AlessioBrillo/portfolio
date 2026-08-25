@@ -1,7 +1,7 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import type { ReactElement, ReactNode } from 'react';
 import type { ToneName } from '@/lib/tone';
-import { SceneToneContext } from './tone-context';
+import { SceneToneContext, SceneToneSetterContext } from './tone-context';
 
 interface ToneProviderProps {
   children: ReactNode;
@@ -27,9 +27,12 @@ export function ToneProvider({
 }: ToneProviderProps): ReactElement {
   const [tone, setTone] = useState<ToneName>(initialTone);
   const [softTone, setSoftTone] = useState<ToneName>(initialSoftTone ?? initialTone);
+  const readonlyValue = useMemo(() => ({ tone, softTone }), [tone, softTone]);
+  const setterValue = useMemo(() => ({ setTone, setSoftTone }), [setTone, setSoftTone]);
+
   return (
-    <SceneToneContext.Provider value={{ tone, setTone, softTone, setSoftTone }}>
-      {children}
-    </SceneToneContext.Provider>
+    <SceneToneSetterContext.Provider value={setterValue}>
+      <SceneToneContext.Provider value={readonlyValue}>{children}</SceneToneContext.Provider>
+    </SceneToneSetterContext.Provider>
   );
 }
