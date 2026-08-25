@@ -12,6 +12,7 @@ import type { SectionId } from '@/types/domain';
 /**
  * Brutalist flight instrument: vertical gauge with structural track, mono labels,
  * accent position marker. Mobile: top progress bar with visible grid ticks.
+ * Uses ADR-0021/0022 token system via sceneTone context.
  */
 const TARGETS: readonly SectionId[] = ALTITUDE_STOPS.map((s) => s.target);
 
@@ -28,6 +29,8 @@ export function AltitudeGauge(): ReactElement {
   const labelHover = inDark ? 'hover:text-phosphor' : 'hover:text-ink';
   const activeColor = 'text-accent';
 
+  const borderClass = inDark ? 'border-phosphor/10' : 'border-ink/10';
+
   const goTo = (sectionId: string): void => {
     document.getElementById(sectionId)?.scrollIntoView({
       behavior: prefersReducedMotion ? 'auto' : 'smooth',
@@ -40,7 +43,7 @@ export function AltitudeGauge(): ReactElement {
       <div
         aria-hidden
         data-testid="gauge-progress-bar"
-        className="fixed inset-x-0 top-0 z-40 h-1 border-b border-ink/10 dark:border-phosphor/10 md:hidden"
+        className={cn('fixed inset-x-0 top-0 z-40 h-1 border-b md:hidden', borderClass)}
       >
         <div
           data-testid="gauge-progress-fill"
@@ -53,7 +56,7 @@ export function AltitudeGauge(): ReactElement {
           style={{ gridTemplateColumns: 'repeat(var(--grid-columns), 1fr)' }}
         >
           {Array.from({ length: 12 }).map((_, i) => (
-            <div key={i} className="border-ink/10 dark:border-phosphor/10" />
+            <div key={i} className={borderClass} />
           ))}
         </div>
       </div>
