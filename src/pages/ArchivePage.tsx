@@ -42,7 +42,7 @@ export function ArchivePage(): ReactElement {
           The chronological record behind the curated surface — every study, project and story this
           site shows, newest first.
         </p>
-        <ol className="mt-12 flex list-none flex-col divide-y divide-black/10 p-0">
+        <ol className="mt-12 flex list-none flex-col divide-y divide-ink/10 p-0">
           {entries.map((entry) => (
             <li
               key={`${entry.kind}-${entry.title}`}
@@ -58,7 +58,7 @@ export function ArchivePage(): ReactElement {
                   {entry.href ? (
                     <Link
                       to={entry.href}
-                      className="no-underline transition-colors hover:text-orange"
+                      className="no-underline transition-colors hover:text-accent"
                     >
                       {entry.title}
                     </Link>

@@ -16,11 +16,11 @@ import type { CaseStudyMeta } from '@/types/domain';
 function Skeleton(): ReactElement {
   return (
     <div className="flex flex-col gap-4" aria-busy="true" aria-label="Loading case study">
-      <div className="h-4 w-3/4 animate-pulse rounded bg-black/10" />
-      <div className="h-4 w-1/2 animate-pulse rounded bg-black/10" />
-      <div className="h-4 w-full animate-pulse rounded bg-black/10" />
-      <div className="h-4 w-5/6 animate-pulse rounded bg-black/10" />
-      <div className="h-4 w-2/3 animate-pulse rounded bg-black/10" />
+      <div className="h-4 w-3/4 animate-pulse rounded bg-ink/10" />
+      <div className="h-4 w-1/2 animate-pulse rounded bg-ink/10" />
+      <div className="h-4 w-full animate-pulse rounded bg-ink/10" />
+      <div className="h-4 w-5/6 animate-pulse rounded bg-ink/10" />
+      <div className="h-4 w-2/3 animate-pulse rounded bg-ink/10" />
     </div>
   );
 }
@@ -59,7 +59,7 @@ function StudyNavLink({
       )}
     >
       <span className="font-mono text-xs uppercase tracking-widest text-ink-soft">{label}</span>
-      <span className="font-display text-[length:var(--text-h3)] font-medium text-ink transition-colors group-hover:text-orange">
+      <span className="font-display text-[length:var(--text-h3)] font-medium text-ink transition-colors group-hover:text-accent">
         {study.title}
       </span>
     </Link>
@@ -139,7 +139,7 @@ export function CaseStudyPage(): ReactElement {
         {nav.prev || nav.next ? (
           <nav
             aria-label="More case studies"
-            className="mt-16 grid gap-10 border-t border-black/10 pt-8 sm:grid-cols-2"
+            className="mt-16 grid gap-10 border-t border-ink/10 pt-8 sm:grid-cols-2"
           >
             {nav.prev ? <StudyNavLink label="Previous study" study={nav.prev} /> : <span />}
             {nav.next ? <StudyNavLink label="Next study" study={nav.next} align="end" /> : <span />}
