@@ -29,6 +29,8 @@ interface BandProps {
  * colour (ADR-0011).
  *
  * Brutalist: visible compartmentalization, zero radius, structural hairlines.
+ * Uses ADR-0021/0022 token system: --color-ink, --color-phosphor, --color-paper,
+ * --color-night, --color-hairline-light, --color-hairline-dark.
  */
 export function Band({
   id,

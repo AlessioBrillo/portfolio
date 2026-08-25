@@ -22,6 +22,8 @@ const DIRECTION_THRESHOLD_PX = 8;
  * Hides on scroll-down and reveals on scroll-up to preserve immersion
  * (ADR-0006); under reduced motion it stays permanently visible (ADR-0009).
  * Movement is a compositor-friendly CSS transform, no animation library.
+ * Uses ADR-0021/0022 token system: --color-ink, --color-phosphor, --color-paper,
+ * --color-night, --color-hairline-light, --color-hairline-dark.
  */
 export function TopBar(): ReactElement {
   const currentSection = useCurrentSection();
@@ -52,15 +54,19 @@ export function TopBar(): ReactElement {
   const inDark = isNightSection(currentSection) || sceneTone === 'night';
   const visible = prefersReducedMotion || !hidden;
 
+  const borderClass = inDark ? 'border-phosphor/10' : 'border-ink/10';
+  const bgClass = inDark ? 'bg-night/70' : 'bg-paper/70';
+  const textClass = inDark ? 'text-phosphor' : 'text-ink';
+
   return (
     <header
       className={cn(
         'fixed inset-x-0 top-0 z-30',
         'border-b backdrop-blur-sm transition-[transform,color,background-color,border-color] duration-[var(--duration-slow)]',
         visible ? 'translate-y-0' : '-translate-y-full',
-        inDark
-          ? 'border-phosphor/10 bg-night/70 text-phosphor'
-          : 'border-ink/10 bg-paper/70 text-ink',
+        borderClass,
+        bgClass,
+        textClass,
       )}
     >
       <div className="mx-auto flex max-w-page items-center justify-between px-6 py-4">
@@ -68,7 +74,7 @@ export function TopBar(): ReactElement {
           href="#hero"
           className={cn(
             'font-display text-base no-underline transition-colors active:scale-[0.98]',
-            inDark ? 'text-phosphor' : 'text-ink',
+            textClass,
           )}
         >
           Alessio Brillo
@@ -77,7 +83,7 @@ export function TopBar(): ReactElement {
           href="#contact"
           className={cn(
             'font-mono text-xs uppercase tracking-widest no-underline transition-colors active:scale-[0.98]',
-            inDark ? 'text-phosphor' : 'text-ink',
+            textClass,
           )}
         >
           Contact
