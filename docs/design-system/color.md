@@ -1,49 +1,71 @@
-# Color — "Terra -> Cielo -> Notte"
+# Color — Swiss Industrial Print (Brutalist)
 
-> Decision record: [ADR-0008](../adr/0008-visual-identity-palette.md).
+> Decision record: [ADR-0021](../adr/0021-palette-shift-brutalist.md).
 
-Six named values. Orange is the signature and the only true accent; olive enters
-sparingly for the nature/outdoor theme.
+**Single archetype commitment**: Swiss Industrial Print applied consistently across both light (paper) and dark (night) substrates. No olive, no second accent.
 
-| Token  | Hex       | Tailwind | Role                                                                      |
-| ------ | --------- | -------- | ------------------------------------------------------------------------- |
-| Orange | `#E9622E` | `orange` | Signature accent. Links, CTA, details, the thread through the climb.      |
-| Paper  | `#F4EFE6` | `paper`  | Background of light bands (ground/day). Warm, tailored.                   |
-| Night  | `#14161D` | `night`  | Background of dark bands (cruise/night). Blue-black, not brown.           |
-| Olive  | `#5E6B4F` | `olive`  | Natural accent, used rarely (outdoor sport, nature).                      |
-| Ink    | `#000000` | `ink`    | Body text on Paper. Full black: deepens the crossfade floor (ADR-0012).   |
-| Cream  | `#FFFDF6` | `cream`  | Text on Night + light surfaces. Slightly brighter than before (ADR-0012). |
+| Token              | Hex         | Tailwind         | Role                                                                                                    |
+| ------------------ | ----------- | ---------------- | ------------------------------------------------------------------------------------------------------- |
+| **Accent**         | `#E61919`   | `accent`         | Aviation/Hazard Red — sole accent. Structural hairlines, critical highlights, final CTA. Never diluted. |
+| **Paper**          | `#F4F4F0`   | `paper`          | Background of light bands. Matte newsprint / unbleached documentation paper.                            |
+| **Paper Elevated** | `#FFFFFF`   | `paper-elevated` | Cards, modals on paper bands.                                                                           |
+| **Ink**            | `#000000`   | `ink`            | Primary text on Paper. Full black — maximum contrast, deepens crossfade floor (ADR-0012).               |
+| **Ink Soft**       | `#48453F`   | `ink-soft`       | Muted text on Paper. Captions, metadata (8.3:1 AA).                                                     |
+| **Muted**          | `#8A8377`   | `muted`          | Legacy neutral — being phased out in favor of `ink-soft`.                                               |
+| **Hairline Light** | `#0000001A` | `hairline-light` | 1px structural lines on paper bands.                                                                    |
+| **Night**          | `#0A0A0A`   | `night`          | Background of dark bands. Deactivated CRT — deeper than blue-black.                                     |
+| **Night Elevated** | `#121212`   | `night-elevated` | Cards, modals on night bands.                                                                           |
+| **Phosphor**       | `#FFFFFF`   | `phosphor`       | Primary text on Night. White phosphor emission.                                                         |
+| **Phosphor Dim**   | `#9E9E9E`   | `phosphor-dim`   | Muted text on Night. Captions, metadata (4.8:1 AA).                                                     |
+| **Hairline Dark**  | `#FFFFFF1A` | `hairline-dark`  | 1px structural lines on night bands.                                                                    |
 
-Neutrals for captions/metadata: `#8A8377` (`muted-light`, on light) and `#7B8190`
-(`muted-dark`, on dark).
+## The Single Accent Rule
 
-## The golden rule
+Red (`#E61919`) appears on a small fraction of any view; its rarity is the signal. If red is doing decoration, remove it. **No olive, no terracotta, no second accent.**
 
-Orange is never diluted across a hundred uses. It is the heartbeat you keep
-finding from ground to night, and it is what holds the puzzle together. The one
-place orange is purely _functional_ is the current-position marker on the
-altitude gauge.
+## The True Substrate Rule
 
-## Contrast
+- **Paper** is `#F4F4F0` (newsprint), not warm cream (`#F4EFE6`).
+- **Night** is `#0A0A0A` (deactivated CRT), not blue-black (`#14161D`).
+- The generic AI-generator palette is explicitly avoided.
 
-Ink-on-Paper and Cream-on-Night pass AA comfortably. Orange is an **accent, not
-body text** — use it for large titles and details, never for small paragraphs.
-The orange CTA button uses **ink** text (4.42:1), not cream (3.14:1, fails).
-Verify every pair with an AA checker (see
-[ADR-0009](../adr/0009-accessibility-performance-floor.md)).
+## The Phosphor Rule
 
-> **Known a11y finding (2026-06-22, fix scheduled for the a11y/Phase-6 pass).**
-> The muted neutrals are _tone-specific_: `muted-light` (`#8A8377`) is ~3.27:1 on
-> Paper — below the 4.5:1 AA floor for body/caption text — while `muted-dark`
-> (`#7B8190`) is fine on Night, and vice-versa. Today `Eyebrow` and
-> `SectionHeader` hardcode `muted-light` regardless of band tone, so muted text
-> fails AA on the light bands. The fix is to make those components **tone-aware**
-> (pick the muted neutral from the band tone), not to darken a single token
-> (which would then fail on the dark bands). The Hero already side-steps this by
-> using `ink/70` for its eyebrow and `ink` for its manifesto.
+Text on night is white phosphor (`#FFFFFF`), never cream (`#FFFDF6`). The equal-legibility flip lines (ADR-0012) are computed against these exact values.
+
+## Contrast Guarantees (ADR-0012)
+
+| Pair                 | Surface | Contrast | Status             |
+| -------------------- | ------- | -------- | ------------------ |
+| Ink / Paper          | Light   | 18.3:1   | AA ✅              |
+| Phosphor / Night     | Dark    | 17.8:1   | AA ✅              |
+| Ink Soft / Paper     | Light   | 8.3:1    | AA ✅              |
+| Phosphor Dim / Night | Dark    | 4.8:1    | AA ✅              |
+| Accent / Paper       | Light   | 4.5:1    | AA ✅ (large text) |
+| Accent / Night       | Dark    | 4.5:1    | AA ✅ (large text) |
+| Ink / Accent (CTA)   | Both    | 4.83:1   | AA ✅              |
+
+**Body text family** (ink/phosphor) clears **≥ 4.54:1** at every instant of both crossfades (climb & descent), both directions, both motion preferences — verified by unit sweep (0.01 steps) and Playwright e2e harness.
+
+**Muted text family** (ink-soft/phosphor-dim) bounded at documented floor **≥ 1.57:1** at flip lines — improves on the 1.03:1 midpoint defect of the prior palette.
 
 ## Where tokens live
 
-Color tokens are declared CSS-first in the `@theme` block of
-`src/styles/tokens.css` (imported by `src/index.css`), so they are available as
-Tailwind utilities (`bg-night`, `text-orange`, ...).
+Color tokens are declared CSS-first in the `@theme` block of `src/styles/tokens.css` (imported by `src/index.css`), available as Tailwind utilities (`bg-night`, `text-accent`, `text-phosphor`, `text-ink-soft`, ...).
+
+JS mirrors live in `src/lib/tone.ts` (`TONE`, `TEXT_TONE`, `SOFT_TEXT_TONE`) — kept in sync by `src/lib/tokens.test.ts`.
+
+## Deprecated (removed post-migration)
+
+| Legacy Token              | Replacement                | Status  |
+| ------------------------- | -------------------------- | ------- |
+| `orange` (`#E9622E`)      | `accent` (`#E61919`)       | Removed |
+| `olive` (`#5E6B4F`)       | — (no replacement)         | Removed |
+| `cream` (`#FFFDF6`)       | `phosphor` (`#FFFFFF`)     | Removed |
+| `muted-light` (`#8A8377`) | `ink-soft` (`#48453F`)     | Removed |
+| `muted-dark` (`#7B8190`)  | `phosphor-dim` (`#9E9E9E`) | Removed |
+| `ink-deep` (`#221E19`)    | — (unused)                 | Removed |
+
+---
+
+**Reference**: [ADR-0021](../adr/0021-palette-shift-brutalist.md), [ADR-0012](../adr/0012-equal-legibility-flip-lines.md), [ADR-0009](../adr/0009-accessibility-performance-floor.md).

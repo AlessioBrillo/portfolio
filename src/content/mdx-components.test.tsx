@@ -59,7 +59,7 @@ describe('mdxComponents', () => {
   it('gives code blocks a night surface so they read as figures', () => {
     const Pre = mdxComponents.pre!;
     render(<Pre>loss = 3.2</Pre>);
-    expect(screen.getByText('loss = 3.2')).toHaveClass('bg-night', 'text-cream');
+    expect(screen.getByText('loss = 3.2')).toHaveClass('bg-night', 'text-phosphor');
   });
 
   it('styles unordered lists with markers', () => {
@@ -72,18 +72,21 @@ describe('mdxComponents', () => {
     expect(screen.getByRole('list')).toHaveClass('list-disc');
   });
 
-  it('renders blockquotes with the orange editorial edge', () => {
+  it('renders blockquotes with the accent editorial edge', () => {
     const Blockquote = mdxComponents.blockquote!;
     render(<Blockquote>Quote</Blockquote>);
-    expect(screen.getByText('Quote')).toHaveClass('border-l-2', 'border-orange');
+    expect(screen.getByText('Quote')).toHaveClass(
+      'border-l-[var(--hairline-thick)]',
+      'border-accent',
+    );
   });
 
-  it('keeps the orange underline link treatment', () => {
+  it('keeps the accent underline link treatment', () => {
     const A = mdxComponents.a!;
     render(<A href="https://example.com">link</A>);
     expect(screen.getByRole('link', { name: 'link' })).toHaveClass(
       'underline',
-      'decoration-orange',
+      'decoration-accent',
     );
   });
 

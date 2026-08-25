@@ -8,13 +8,12 @@
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
     <link rel="manifest" href="/site.webmanifest" />
-    <!-- Critical font preloads (font-display:optional in CSS) — eliminates FOIT/FOUT
-         and layout shift. Fonts served from /fonts/ (public/) for stable URLs.
-         Matches tokens.css @font-face definitions in src/styles/typography.css. -->
+<!-- Critical font preloads (font-display:optional in CSS) — eliminates FOIT/FOUT
+     and layout shift. Fonts served from /fonts/ (public/) for stable URLs.
+     Matches tokens.css @font-face definitions in src/styles/typography.css. -->
     <link rel="preload" as="font" type="font/woff2" crossorigin href="/fonts/Archivo.woff2" />
     <link rel="preload" as="font" type="font/woff2" crossorigin href="/fonts/Geist.woff2" />
     <link rel="preload" as="font" type="font/woff2" crossorigin href="/fonts/JetBrainsMono.woff2" />
-    <link rel="preload" as="font" type="font/woff2" crossorigin href="/fonts/GeistMono.woff2" />
     <!--
       Social cards (og:image must be absolute at deploy; the relative path keeps
       the interim deployment truthful). The card source is

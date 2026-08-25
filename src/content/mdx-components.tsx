@@ -65,18 +65,18 @@ function Paragraph(props: ComponentProps<'p'>): ReactElement {
 function Link(props: ComponentProps<'a'>): ReactElement {
   return (
     <a
-      className="font-medium text-ink underline decoration-orange decoration-2 underline-offset-4 transition-colors hover:text-orange"
+      className="font-medium text-accent underline decoration-accent decoration-2 underline-offset-4 transition-colors hover:text-accent/80"
       {...props}
     />
   );
 }
 
 function UnorderedList(props: ComponentProps<'ul'>): ReactElement {
-  return <ul className="list-disc space-y-2 pl-6 marker:text-orange" {...props} />;
+  return <ul className="list-disc space-y-2 pl-6 marker:text-accent" {...props} />;
 }
 
 function OrderedList(props: ComponentProps<'ol'>): ReactElement {
-  return <ol className="list-decimal space-y-2 pl-6 marker:text-orange" {...props} />;
+  return <ol className="list-decimal space-y-2 pl-6 marker:text-accent" {...props} />;
 }
 
 function ListItem(props: ComponentProps<'li'>): ReactElement {
@@ -93,21 +93,29 @@ function Emphasis(props: ComponentProps<'em'>): ReactElement {
 
 function InlineCode(props: ComponentProps<'code'>): ReactElement {
   return (
-    <code className="rounded-[4px] bg-black/5 px-1.5 py-0.5 font-mono text-[0.875em]" {...props} />
+    <code
+      className="rounded-none bg-night/50 px-1.5 py-0.5 font-mono text-[0.875em] text-phosphor"
+      {...props}
+    />
   );
 }
 
 function Preformatted(props: ComponentProps<'pre'>): ReactElement {
   return (
     <pre
-      className="overflow-x-auto rounded-[var(--radius-card)] bg-night px-5 py-4 font-mono text-sm leading-relaxed text-cream [&>code]:bg-transparent [&>code]:p-0"
+      className="overflow-x-auto rounded-none bg-night px-5 py-4 font-mono text-sm leading-relaxed text-phosphor [&>code]:bg-transparent [&>code]:p-0"
       {...props}
     />
   );
 }
 
 function Blockquote(props: ComponentProps<'blockquote'>): ReactElement {
-  return <blockquote className="border-l-2 border-orange pl-5 italic text-ink" {...props} />;
+  return (
+    <blockquote
+      className="border-l-[var(--hairline-thick)] border-accent pl-5 italic text-ink"
+      {...props}
+    />
+  );
 }
 
 function Hr(props: ComponentProps<'hr'>): ReactElement {

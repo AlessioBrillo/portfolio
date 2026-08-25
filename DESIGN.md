@@ -1,246 +1,362 @@
 ---
 name: The Ascent
-description: A single-page, scroll-driven portfolio where scrolling flies a flight profile and light/dark is the journey.
+description: A single-page, scroll-driven portfolio where scrolling flies a flight profile — paper to night and back — rendered in Industrial Brutalist / Swiss Industrial Print aesthetic.
 colors:
-  orange: '#E9622E'
-  paper: '#F4EFE6'
-  night: '#14161D'
-  olive: '#5E6B4F'
-  ink: '#2A2722'
-  cream: '#FBF8F2'
-  muted-light: '#8A8377'
-  muted-dark: '#7B8190'
+  accent: '#E61919'
+  paper: '#F4F4F0'
+  paper-elevated: '#FFFFFF'
+  ink: '#000000'
+  ink-soft: '#48453F'
+  muted: '#8A8377'
+  hairline-light: '#0000001A'
+  night: '#0A0A0A'
+  night-elevated: '#121212'
+  phosphor: '#FFFFFF'
+  phosphor-dim: '#9E9E9E'
+  hairline-dark: '#FFFFFF1A'
 typography:
   display:
-    fontFamily: 'Fraunces, ui-serif, Georgia, serif'
-    fontSize: 'clamp(3rem, 1rem + 7vw, 6rem)'
-    fontWeight: 500
-    lineHeight: 1.02
-    letterSpacing: '-0.02em'
+    fontFamily: 'Archivo Black, Archivo, ui-sans-serif, system-ui, sans-serif'
+    fontSize: 'clamp(4rem, 10vw, 15rem)'
+    fontWeight: 900
+    lineHeight: 0.85
+    letterSpacing: '-0.06em'
+    textTransform: 'uppercase'
+  sector:
+    fontFamily: 'Archivo Black, Archivo, ui-sans-serif, system-ui, sans-serif'
+    fontSize: 'clamp(2.5rem, 4vw, 5rem)'
+    fontWeight: 900
+    lineHeight: 0.95
+    letterSpacing: '-0.04em'
+    textTransform: 'uppercase'
   headline:
-    fontFamily: 'Fraunces, ui-serif, Georgia, serif'
-    fontSize: 'clamp(2.25rem, 1.5rem + 2.5vw, 3.5rem)'
-    fontWeight: 500
+    fontFamily: 'Archivo Black, Archivo, ui-sans-serif, system-ui, sans-serif'
+    fontSize: 'clamp(2rem, 3vw, 3.5rem)'
+    fontWeight: 900
     lineHeight: 1.1
-    letterSpacing: '-0.01em'
+    letterSpacing: '-0.02em'
+    textTransform: 'uppercase'
   title:
     fontFamily: 'Geist Sans, ui-sans-serif, system-ui, sans-serif'
-    fontSize: 'clamp(1.375rem, 1.2rem + 0.6vw, 1.625rem)'
+    fontSize: 'clamp(1.25rem, 1.1rem + 0.5vw, 1.5rem)'
     fontWeight: 600
-    lineHeight: 1.3
+    lineHeight: 1.1
     letterSpacing: 'normal'
   body:
     fontFamily: 'Geist Sans, ui-sans-serif, system-ui, sans-serif'
-    fontSize: 'clamp(1.0625rem, 1rem + 0.25vw, 1.1875rem)'
+    fontSize: 'clamp(0.9375rem, 0.9rem + 0.2vw, 1rem)'
     fontWeight: 400
-    lineHeight: 1.6
+    lineHeight: 1.5
     letterSpacing: 'normal'
   label:
-    fontFamily: 'Geist Mono, ui-monospace, monospace'
-    fontSize: '0.8125rem'
+    fontFamily: 'JetBrains Mono, Geist Mono, ui-monospace, monospace'
+    fontSize: '0.75rem'
     fontWeight: 500
     lineHeight: 1.4
-    letterSpacing: '0.18em'
+    letterSpacing: '0.1em'
+    textTransform: 'uppercase'
+  micro:
+    fontFamily: 'JetBrains Mono, Geist Mono, ui-monospace, monospace'
+    fontSize: '0.75rem'
+    fontWeight: 400
+    lineHeight: 1.4
+    letterSpacing: '0.1em'
+    textTransform: 'uppercase'
 rounded:
-  soft: '8px'
-  card: '12px'
+  none: '0'
 spacing:
   hairline: '1px'
-  section: 'clamp(6rem, 4rem + 6vw, 10rem)'
+  hairline-thick: '2px'
+  section: 'clamp(8rem, 6rem + 8vw, 14rem)'
+  unit: '4px'
 components:
   button-primary:
-    backgroundColor: '{colors.orange}'
+    backgroundColor: '{colors.accent}'
     textColor: '{colors.ink}'
     typography: '{typography.label}'
-    rounded: '{rounded.soft}'
-    padding: '14px 28px'
+    rounded: '{rounded.none}'
+    padding: '1rem 2rem'
+    border: '{spacing.hairline-thick} solid transparent'
+    transition: 'transform 150ms cubic-bezier(0.4, 0, 0.2, 1), border-color 150ms cubic-bezier(0.4, 0, 0.2, 1)'
   button-primary-hover:
-    backgroundColor: '{colors.orange}'
-    textColor: '{colors.ink}'
+    borderColor: '{colors.ink}'
+    transform: 'translateY(-4px) scale(0.98)'
   eyebrow:
-    textColor: '{colors.muted-light}'
+    textColor: '{colors.ink-soft}'
     typography: '{typography.label}'
   mosaic-tile:
     backgroundColor: '{colors.paper}'
     textColor: '{colors.ink}'
-    rounded: '{rounded.card}'
-    padding: '28px'
+    rounded: '{rounded.none}'
+    padding: '1.5rem'
+    border: '{spacing.hairline-thick} solid {colors.hairline-light}'
+    transition: 'transform 300ms cubic-bezier(0.4, 0, 0.2, 1), border-color 300ms cubic-bezier(0.4, 0, 0.2, 1)'
+  mosaic-tile-hover:
+    transform: 'translateY(-8px)'
+    borderColor: '{colors.accent}'
 ---
 
-# Design System: The Ascent
+# Design System: The Ascent — Industrial Brutalist
 
 ## 1. Overview
 
-**Creative North Star: "The Quiet Cockpit"**
+**Creative North Star: "Swiss Industrial Print / Tactical Telemetry"**
 
-A cockpit at altitude is the whole system in one image: matte, disciplined
-surfaces; precise mono-spaced instruments reading real data; one warm signal light;
-and, beyond the glass, a sky that changes from day to night as you climb. The
-interface is calm and exact almost everywhere, so the one scenographic thing — the
-tonal flight that the background performs as you scroll — lands like a view, not a
-gimmick. This is Apple / Loro Piana restraint applied to a personal story: the
-luxury is space and precision, not ornament.
+This portfolio is a flight profile — scrolling climbs from ground (paper tones, daylight) to cruise (night) and descends back to daylight before the night landing. The visual language is **Industrial Brutalist**: mid-century Swiss Typographic design fused with retro-futuristic aerospace/military terminal interfaces. It rejects the generic AI-generator aesthetic (cream paper + humanist serif + terracotta) in favor of raw functionality, mechanical precision, and high data density.
 
-The system rejects two things explicitly. It is **not the generic AI-generator
-look** — the cream-paper-plus-humanist-serif-plus-terracotta aesthetic any
-generator now produces; the dark band is a deliberate blue-black (`#14161D`), never
-the default brown-black, precisely to step off that worn path. And it is **not a
-stock portfolio template** — no uniform card grid of identical tiles. The mosaic is
-a composed set of pieces under one roof, with hierarchy and editorial voice.
+**Archetype: Swiss Industrial Print** — applied consistently across both light (paper) and dark (night) substrates. This is a single-archetype commitment per the Industrial Brutalist skill; we do not mix Swiss Industrial Print with Tactical Telemetry.
 
-Depth comes from tone and atmosphere, not from drop shadows and glass. Layering is
-achieved by the background tone shifting beneath fixed content, by generous
-vertical rhythm, and by hairline rules — not by elevation cards stacked on cards.
+### Key Characteristics
 
-**Key Characteristics:**
-
-- One accent (orange), one scenographic effect (the tonal flight), everything else quiet.
-- Mono type carries _real_ data — coordinates, dates, altitude, stack — never decoration.
-- Editorial scale contrast: a large humanist serif against a precise grotesque body.
-- Atmosphere over elevation: depth from tonal layering and space, not shadows.
-- AA-or-better contrast is a hard floor; reduced motion is a first-class path.
+- **One accent only**: Aviation/Hazard Red (`#E61919`) — never diluted, never decorative. Used for structural hairlines, critical data highlights, and the final CTA.
+- **Extreme typographic contrast**: Macro (Archivo Black, massive, negative tracking, compressed leading, UPPERCASE) vs. Micro (JetBrains Mono, fixed small, generous tracking, UPPERCASE).
+- **Zero radius**: All corners 90° — mechanical rigidity, no softness.
+- **Visible compartmentalization**: Blueprint grid with 1px hairlines, ASCII framing (`[ ]`, `>>>`, corner markers), structural horizontal rules.
+- **Simulated analog degradation**: Global mechanical noise, halftone/dither overlays, CRT scanlines (night only), phosphor glow — all respecting `prefers-reduced-motion`.
+- **Flight-profile tonal bands**: Paper → Night → Paper → Night, driven by GSAP ScrollTrigger with equal-legibility flip lines (ADR-0012).
+- **AA-or-better contrast** at every blend instant; reduced motion is a first-class path.
 
 ## 2. Colors
 
-A warm, tailored daylight palette that flies up into a cool blue-black night, with a single warm accent threading the whole climb.
+A **Swiss Industrial Print** palette: matte newsprint daylight, deactivated CRT night, pure hazard red.
 
-### Primary
+### Light Substrate (Paper Bands)
 
-- **Signal Orange** (`#E9622E`): The sole accent and the heartbeat of the page —
-  links, the final CTA, hover edges on tiles, and the one functional use: marking
-  the current position on the altitude gauge. It is never diluted into decorative
-  fills or used as small body text.
+| Role             | Token                    | Value       | Notes                                        |
+| ---------------- | ------------------------ | ----------- | -------------------------------------------- |
+| Background       | `--color-paper`          | `#F4F4F0`   | Matte, unbleached documentation paper        |
+| Elevated surface | `--color-paper-elevated` | `#FFFFFF`   | Cards, modals on paper                       |
+| Primary text     | `--color-ink`            | `#000000`   | Carbon ink — full black for maximum contrast |
+| Muted text       | `--color-ink-soft`       | `#48453F`   | Captions, metadata on paper (8.3:1)          |
+| General muted    | `--color-muted`          | `#8A8377`   | Legacy, being phased out                     |
+| Hairline         | `--color-hairline-light` | `#0000001A` | 1px structural lines on paper                |
 
-### Secondary
+### Dark Substrate (Night Bands)
 
-- **Field Olive** (`#5E6B4F`): A muted natural green used **rarely** — only in the
-  outdoor/sport material (aviation, MTB, tennis). It breathes alongside orange in
-  the descent band; it never competes with it elsewhere.
+| Role             | Token                    | Value       | Notes                                    |
+| ---------------- | ------------------------ | ----------- | ---------------------------------------- |
+| Background       | `--color-night`          | `#0A0A0A`   | Deactivated CRT — deeper than blue-black |
+| Elevated surface | `--color-night-elevated` | `#121212`   | Cards, modals on night                   |
+| Primary text     | `--color-phosphor`       | `#FFFFFF`   | White phosphor emission                  |
+| Muted text       | `--color-phosphor-dim`   | `#9E9E9E`   | Captions, metadata on night (4.8:1)      |
+| Hairline         | `--color-hairline-dark`  | `#FFFFFF1A` | 1px structural lines on night            |
 
-### Neutral
+### Accent (Universal)
 
-- **Tailored Paper** (`#F4EFE6`): Background of the light bands (ground, descent) —
-  warm and sartorial, the daylight surface.
-- **Cruise Night** (`#14161D`): Background of the dark bands (cruise, night
-  landing). A blue-black sky above the cloud deck — deliberately _not_ brown.
-- **Cartographer's Ink** (`#2A2722`): Body text on Paper; also the label color on
-  the orange button (contrast: 4.42:1 vs orange).
-- **Instrument Cream** (`#FBF8F2`): Text and light surfaces on Night.
-- **Day Muted** (`#8A8377`): Captions and metadata on light bands.
-- **Night Muted** (`#7B8190`): Captions and metadata on dark bands.
+| Role         | Token                  | Value     | Notes                             |
+| ------------ | ---------------------- | --------- | --------------------------------- |
+| Accent       | `--color-accent`       | `#E61919` | Aviation/Hazard Red — sole accent |
+| Accent hover | `--color-accent-hover` | `#CC1515` | Slightly darker for active state  |
 
 ### Named Rules
 
-**The Single Voice Rule.** Orange appears on a small fraction of any screen and is
-never diluted. Its rarity is the signal. If orange is doing decoration, remove it.
+**The Single Accent Rule.** Red appears on a small fraction of any view; its rarity is the signal. If red is doing decoration, remove it. No olive, no second accent.
 
-**The Blue-Black Rule.** The dark surface is `#14161D` (a cool blue-black sky),
-never a warm brown-black. The warm-brown night is the AI-generator tell this system
-exists to avoid.
+**The True Black Rule.** Night is `#0A0A0A` (deactivated CRT), not blue-black (`#14161D`). Paper is `#F4F4F0` (newsprint), not warm cream (`#F4EFE6`). The generic AI palette is explicitly avoided.
+
+**The Phosphor Rule.** Text on night is white phosphor (`#FFFFFF`), never cream (`#FBF8F2`). The flip lines (ADR-0012) are computed against these exact values.
 
 ## 3. Typography
 
-**Display Font:** Fraunces (with `ui-serif, Georgia, serif`)
-**Body Font:** Geist Sans (with `ui-sans-serif, system-ui, sans-serif`)
-**Label/Mono Font:** Geist Mono (with `ui-monospace, monospace`)
-
-**Character:** A humanist serif with soft optics and real warmth (Fraunces, with
-its optical-size axis live) set against a neutral modern grotesque (Geist) — a true
-contrast-axis pairing, serif against sans, never two similar sans. Geist Mono adds
-the technical, dev/cockpit register. Deliberately _not_ Playfair, _not_ Inter.
+**Macro: Archivo Black** — heavy industrial sans, wide glyphs hold at negative tracking, OFL license.
+**Body: Geist Sans** — neutral grotesque, variable, already self-hosted.
+**Micro: JetBrains Mono** — technical monospace, purpose-built for telemetry, OFL license.
 
 ### Hierarchy
 
-- **Display** (Fraunces, 500, `clamp(3rem, 1rem + 7vw, 6rem)`, line-height 1.02,
-  tracking -0.02em): the hero name and nothing else at this scale. Optical sizing is
-  on, so the large cut tightens naturally; `text-wrap: balance`.
-- **Headline** (Fraunces, 500, `clamp(2.25rem, 1.5rem + 2.5vw, 3.5rem)`, 1.1):
-  section titles (H2). One per band.
-- **Title** (Geist Sans, 600, `clamp(1.375rem, 1.2rem + 0.6vw, 1.625rem)`, 1.3):
-  sub-headings, mosaic tile titles, case-study sub-heads.
-- **Body** (Geist Sans, 400, `clamp(1.0625rem, 1rem + 0.25vw, 1.1875rem)`, 1.6):
-  prose. Cap measure at 65–75ch (`max-w-3xl` ≈ 65ch).
-- **Label** (Geist Mono, 500, 0.8125rem, tracking 0.18em, UPPERCASE): the eyebrow.
+| Role            | Family         | Scale                                    | Weight | Leading | Tracking | Case   |
+| --------------- | -------------- | ---------------------------------------- | ------ | ------- | -------- | ------ |
+| Macro Hero      | Archivo Black  | `clamp(4rem, 10vw, 15rem)`               | 900    | 0.85    | -0.06em  | UPPER  |
+| Sector (H2)     | Archivo Black  | `clamp(2.5rem, 4vw, 5rem)`               | 900    | 0.95    | -0.04em  | UPPER  |
+| Headline (H3)   | Archivo Black  | `clamp(2rem, 3vw, 3.5rem)`               | 900    | 1.1     | -0.02em  | UPPER  |
+| Title           | Geist Sans     | `clamp(1.25rem, 1.1rem + 0.5vw, 1.5rem)` | 600    | 1.1     | 0        | Normal |
+| Body            | Geist Sans     | `clamp(0.9375rem, 0.9rem + 0.2vw, 1rem)` | 400    | 1.5     | 0        | Normal |
+| Label/Eyebrow   | JetBrains Mono | 0.75rem                                  | 500    | 1.4     | 0.1em    | UPPER  |
+| Micro/Telemetry | JetBrains Mono | 0.75rem                                  | 400    | 1.4     | 0.1em    | UPPER  |
+
+### Tracking Scale
+
+- `--tracking-tight: -0.06em` — Macro headlines
+- `--tracking-tight-sm: -0.04em` — Sector / H2
+- `--tracking-normal: 0` — Body
+- `--tracking-wide: 0.05em` — Links, buttons
+- `--tracking-wider: 0.1em` — Micro telemetry
+- `--tracking-widest: 0.15em` — Dense data clusters
+
+### Leading Scale
+
+- `--leading-none: 0.85` — Macro
+- `--leading-tight: 0.95` — Sector
+- `--leading-snug: 1.1` — H2/H3
+- `--leading-normal: 1.4` — Micro
+- `--leading-relaxed: 1.5` — Body
 
 ### Named Rules
 
-**The Real-Data Rule.** The mono label carries true information — `45.6306° N ·
-8.7281° E — VDS`, a date, an altitude, a stack — never a decorative "ABOUT" kicker.
-If the eyebrow doesn't say something true, it doesn't ship.
+**The Real-Data Rule.** The mono label carries true information — `45.6306° N · 8.7281° E — VDS`, a date, an altitude, a stack, a revision — never a decorative "ABOUT" kicker. If the eyebrow doesn't say something true, it doesn't ship.
 
-## 4. Elevation
+**The Semantic Element Rule.** Eyebrows use `<data>`, `<samp>`, `<kbd>` per content type — never generic `<span>`. This is machine-readable telemetry.
 
-This system is **flat by tone, not by shadow.** There is no ambient drop-shadow
-vocabulary. Depth is built three ways: (1) the background tone crossfading beneath
-fixed content as you fly the profile; (2) generous section rhythm
-(`--space-section`, `clamp(6rem, 4rem + 6vw, 10rem)`) that lets bands breathe; and
-(3) 1px hairline rules in the muted neutrals to separate without shouting.
+**The Extreme Contrast Rule.** Macro and Micro exist at opposite ends of the scale. No intermediate "display" sizes that dilute the contrast. The gap _is_ the hierarchy.
 
-### Named Rules
+## 4. Layout & Spatial Engineering
 
-**The No-Shadow Rule.** Surfaces are flat at rest. Tiles lift on hover with a small
-`translateY` and an orange hairline edge — a response to state, not a resting
-elevation. If you reach for `box-shadow` to create hierarchy, use space or tone
-instead.
+**Blueprint Grid** — 12-column CSS Grid with 1px gap trick (`gap: var(--grid-gap)` on parent with contrasting background) generating mathematically perfect hairlines without complex borders.
 
-## 5. Components
+### Principles
+
+- **Visible compartmentalization**: Every zone delineated by solid hairlines (`1px` or `2px`). Horizontal rules (`<hr>`) span full container width.
+- **Bimodal density**: Extreme data density (tight monospace clusters) alternating with vast negative space framing macro type.
+- **Zero radius**: `--radius-none: 0`. All corners exactly 90°.
+- **Grid determinism**: `display: grid; gap: 1px;` with parent/child background contrast for razor-thin dividing lines.
+
+### Spacing
+
+- `--space-section: clamp(8rem, 6rem + 8vw, 14rem)` — Extreme vertical rhythm between bands
+- `--space-unit: 4px` — Base unit
+- `--container-page: 75rem` — Max content width
+- `--grid-columns: 12` — Blueprint columns
+- `--grid-gap: 1px` — Visible grid lines
+
+## 5. UI Components & Symbology
+
+### Syntax Decoration (ASCII Framing)
+
+- **Section eyebrows**: `[ SECTOR 01 · CHARACTER · ENTERPRISING ]` — `<data>` element
+- **Ghost links**: `>>> CONTACT` — prepended on hover via `::before`
+- **Card corners**: ASCII corner markers via `::before`/`::after` (top-left, bottom-right)
+- **Directional**: `>>>`, `///`, `\\\\` for flow indication
+
+### Industrial Markers
+
+- Registration (`®`), copyright (`©`), trademark (`™`) as structural glyphs
+- Crosshairs (`+`) at grid intersections
+- Repeating vertical lines (barcode patterns)
+- Thick horizontal warning stripes (accent red)
+- Randomized technical strings: `REV 2.6`, `UNIT / D-01`, `CHKSUM A7F3`
 
 ### Buttons
 
-- **Shape:** softly rounded (8px, `--radius-soft`).
-- **Primary:** solid Signal Orange (`#E9622E`) with a Cartographer's Ink (`#2A2722`)
-  label in tracked mono — 4.42:1, AA-safe. Reserved for the **final CTA only**.
-- **Hover / Focus:** a small lift (`translateY(-2px)`) and slight darken on press;
-  focus shows the 2px orange ring with 2px offset.
+- **Shape**: Zero radius (`rounded-none`)
+- **Primary**: Solid hazard red (`#E61919`) with ink (`#000000`) label in tracked mono — 4.83:1, AA-safe. Reserved for **final CTA only**.
+- **Border**: 2px transparent at rest; reveals ink border on hover
+- **Hover**: `-translate-y-1` + ink border
+- **Active**: `scale-[0.98] translate-y-[1px]` — mechanical press
 
-### Mosaic tile (signature)
+### Mosaic Tile (Signature)
 
-- **Corner Style:** 12px (`--radius-card`).
-- **Background:** the band's own tone (Paper on light bands, Night on dark).
-- **Border:** 1px hairline at rest; turns Signal Orange on hover for tiles that link
-  to a case study.
-- **Hover:** micro-lift (`translateY`), orange edge. No shadow.
-- **Internal Padding:** generous (~28px), so tiles read as composed pieces, not a
-  dense CMS grid.
+- **Corner Style**: Zero radius, ASCII corners
+- **Background**: Band's own tone (paper on light, night on dark) at 80% opacity
+- **Border**: 2px hairline at rest (`ink/10` or `phosphor/10`); turns hazard red on hover
+- **Hover**: `-translate-y-2` + accent edge. No shadow.
+- **Internal Padding**: 1.5rem — composed piece, not dense CMS grid
 
-### Ghost link
+### Ghost Link
 
-- The standard link: Ink/Cream text with an orange underline that _draws in from the
-  left_ on hover (animated `::after` scale-x). The accent enters on interaction.
+- Mono, uppercase, generous tracking (`0.1em`)
+- Prepends `>>> ` on hover (opacity transition)
+- Current text color (`text-current`) — tone-aware
 
-### Inputs / Fields
+### Navigation — Altitude Gauge (Signature)
 
-- Minimal hairline-stroked fields on Paper; focus shifts to the 2px orange ring.
-  (Not heavily used yet; forms arrive with Contact.)
+- Fixed vertical bar (desktop) / top progress bar (mobile)
+- Labels: `GROUND · CLIMB · CRUISE · DESCENT · NIGHT` in mono
+- Orange marks current band; labels are smooth-scroll anchors
+- Tracks flight profile (rises and falls — ADR-0010)
 
-### Navigation — the Altitude Gauge (signature)
+## 6. Textural & Post-Processing Effects
 
-- A thin fixed vertical bar on the right (desktop), labelled in mono `GROUND ·
-CLIMB · CRUISE · DESCENT · NIGHT`, tracking the **flight profile** (it rises and
-  falls — see ADR-0010). Orange marks the current band; labels are smooth-scroll
-  anchors. No hamburger, no classic menu. On mobile it collapses to a thin top
-  progress bar plus a _tappable_ band label.
+All effects respect `prefers-reduced-motion: reduce` — disabled entirely when set.
 
-## 6. Do's and Don'ts
+### Global Mechanical Noise
+
+- Low-opacity SVG fractal noise overlay on `<html>` (`opacity: 0.025`)
+- Unified physical grain across both light and dark modes
+
+### Halftone / 1-Bit Dither Overlay
+
+- CSS-only radial dot pattern (`mix-blend-mode: multiply`)
+- Applied via `.halftone-overlay` / `.halftone-overlay-light` / `.halftone-overlay-dark`
+- For images and large serif typography (textural juxtaposition)
+
+### CRT Scanlines (Night Bands Only)
+
+- `repeating-linear-gradient` simulating horizontal electron beam sweeps
+- Subtle flicker animation (8s cycle) — `.scanlines` class
+- Applied to night-band sections and night-only components
+
+### Phosphor Glow
+
+- `text-shadow` layers for macro text on night — `.phosphor-glow` class
+- Simulates CRT phosphor bloom
+
+### Vignette
+
+- Subtle radial edge darkening — `.vignette` class
+- Different for light/dark modes
+
+## 7. Motion
+
+**Mechanical, not springy.** Sharp easing, abrupt reveals, staggered mechanical entry.
+
+### Easing
+
+- `--ease-sharp: cubic-bezier(0.4, 0, 0.2, 1)` — Primary (mechanical)
+- `--ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1)` — Legacy, being phased out
+
+### Durations
+
+- `--duration-fast: 150ms` — Micro interactions (hover, press)
+- `--duration-normal: 300ms` — Standard transitions (tile hover, border flash)
+- `--duration-slow: 600ms` — Macro reveals (section entry, tonal crossfade)
+
+### Reveal Pattern
+
+- Staggered mechanical entry: sequential, not springy
+- Reduced offset — brutalist reveals are abrupt
+- `prefers-reduced-motion`: instant, no stagger
+
+### Tonal Crossfade
+
+- GSAP ScrollTrigger drives backdrop blend (paper ↔ night)
+- Equal-legibility flip lines per transition (ADR-0012)
+- Body text flips at ~4.54:1; muted text at ~1.57:1 (documented floor)
+- Reduced motion: discrete switch at body flip line
+
+## 8. Web Engineering Directives
+
+1. **Grid Determinism**: `display: grid; gap: 1px;` with contrasting parent/child backgrounds for mathematically perfect hairlines.
+2. **Semantic Rigor**: `<data>`, `<samp>`, `<kbd>`, `<output>`, `<dl>` for telemetry — never generic `<div>`/`<span>`.
+3. **Typography Clamping**: `clamp()` exclusively for macro typography; micro is fixed.
+4. **Font Loading**: Variable WOFF2 subsetted; `font-display: optional`; preload macro + body.
+5. **Token Contract**: `src/lib/tokens.test.ts` guards CSS↔JS token parity.
+6. **Tone Context**: Scene bands consume `SceneToneContext` (ADR-0011) — never hardcode band tones in scene.
+
+## 9. Do's and Don'ts
 
 ### Do:
 
-- **Do** keep orange to a small fraction of any view; let its rarity be the signal.
-- **Do** make every mono eyebrow carry true data (coordinates, dates, altitude, stack).
+- **Do** keep hazard red to a small fraction of any view; let its rarity be the signal.
+- **Do** make every mono eyebrow carry true data (coordinates, dates, altitude, stack, rev).
 - **Do** build depth from tone, space, and 1px hairlines — atmosphere over elevation.
-- **Do** pair on the contrast axis: Fraunces serif against Geist grotesque.
-- **Do** give `prefers-reduced-motion` a real path: tonal shifts become instant, reveals off.
-- **Do** verify every text/background pair against AA; bump toward ink if it's even close.
+- **Do** pair on the contrast axis: Archivo Black macro against Geist Sans body against JetBrains Mono micro.
+- **Do** give `prefers-reduced-motion` a real path: tonal shifts instant, reveals off, textures off.
+- **Do** verify every text/background pair against AA at every blend instant.
+- **Do** use the blueprint grid (`grid-blueprint`) for all major layouts.
+- **Do** use ASCII framing (`[ ]`, `>>>`, corners) for structural decoration.
 
 ### Don't:
 
-- **Don't** ship the **generic AI-generator look** — cream paper + humanist serif +
-  terracotta accent. The blue-black night exists to avoid exactly this.
-- **Don't** ship a **stock portfolio template** — uniform identical-tile card grids
-  with no hierarchy or voice.
-- **Don't** build the template SaaS hero (big-number metric + gradient blob + generic
-  CTA). The hero is a name + a one-line manifesto.
-- **Don't** add a dark/light toggle. Tone follows altitude; the journey is the theme.
-- **Don't** dilute orange into decorative fills, or use it as small body text.
+- **Don't** ship the **generic AI-generator look** — cream paper + humanist serif + terracotta accent.
+- **Don't** use `border-radius` — ever. Corners are 90°.
 - **Don't** use `box-shadow` or glassmorphism to fake depth. Use tone and space.
-- **Don't** use cream text on the orange button (3.14:1, fails AA). Use ink.
+- **Don't** dilute red into decorative fills, or use it as small body text.
+- **Don't** add a dark/light toggle. Tone follows altitude; the journey is the theme.
+- **Don't** use cream (`#FBF8F2`) or olive (`#5E6B4F`) — both deprecated.
+- **Don't** use Fraunces — replaced by Archivo Black.
+- **Don't** mix Swiss Industrial Print with Tactical Telemetry — pick one archetype.
+- **Don't** use Geist Mono for micro — replaced by JetBrains Mono.
+
+---
+
+**Reference ADRs**: ADR-0021 (Palette Shift), ADR-0022 (Typography Overhaul), ADR-0010 (Flight Profile), ADR-0012 (Equal-Legibility Flip Lines), ADR-0003 (Scroll Engine), ADR-0009 (A11y Floor).

@@ -146,7 +146,7 @@ describe('TopBar', () => {
     );
     const header = container.querySelector('header')!;
     expect(header.className).toContain('bg-night/70');
-    expect(header.className).toContain('text-cream');
+    expect(header.className).toContain('text-phosphor');
   });
 
   it('keeps explicit solid-night sections dark even when the scene reads paper', () => {
@@ -158,6 +158,6 @@ describe('TopBar', () => {
     );
     const header = container.querySelector('header')!;
     expect(header.className).toContain('bg-night/70');
-    expect(header.className).toContain('text-cream');
+    expect(header.className).toContain('text-phosphor');
   });
 });

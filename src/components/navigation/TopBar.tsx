@@ -58,7 +58,9 @@ export function TopBar(): ReactElement {
         'fixed inset-x-0 top-0 z-30',
         'border-b backdrop-blur-sm transition-[transform,color,background-color,border-color] duration-[var(--duration-slow)]',
         visible ? 'translate-y-0' : '-translate-y-full',
-        inDark ? 'border-white/5 bg-night/70 text-cream' : 'border-black/5 bg-paper/70 text-ink',
+        inDark
+          ? 'border-phosphor/10 bg-night/70 text-phosphor'
+          : 'border-ink/10 bg-paper/70 text-ink',
       )}
     >
       <div className="mx-auto flex max-w-page items-center justify-between px-6 py-4">
@@ -66,7 +68,7 @@ export function TopBar(): ReactElement {
           href="#hero"
           className={cn(
             'font-display text-base no-underline transition-colors active:scale-[0.98]',
-            inDark ? 'text-cream' : 'text-ink',
+            inDark ? 'text-phosphor' : 'text-ink',
           )}
         >
           Alessio Brillo
@@ -75,7 +77,7 @@ export function TopBar(): ReactElement {
           href="#contact"
           className={cn(
             'font-mono text-xs uppercase tracking-widest no-underline transition-colors active:scale-[0.98]',
-            inDark ? 'text-cream' : 'text-ink',
+            inDark ? 'text-phosphor' : 'text-ink',
           )}
         >
           Contact
