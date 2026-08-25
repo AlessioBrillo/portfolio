@@ -42,7 +42,7 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
           <p className="max-w-md text-ink-soft">{message}</p>
           <Link
             to="/"
-            className="font-mono text-xs uppercase tracking-widest text-orange no-underline"
+            className="font-mono text-xs uppercase tracking-widest text-accent no-underline"
             onClick={() => this.setState({ hasError: false, error: null })}
           >
             Return to ground &rarr;

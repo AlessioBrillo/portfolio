@@ -41,7 +41,7 @@ export class CaseStudyErrorBoundary extends Component<
       return (
         <div
           role="alert"
-          className="flex flex-col items-start gap-4 rounded-[var(--radius-card)] border border-black/10 bg-black/5 p-6"
+          className="flex flex-col items-start gap-4 rounded-[var(--radius-card)] border border-ink/10 bg-ink/5 p-6"
         >
           <Eyebrow>Error</Eyebrow>
           <h2 className="font-display text-[length:var(--text-h3)] font-medium text-ink">
@@ -53,7 +53,7 @@ export class CaseStudyErrorBoundary extends Component<
           <button
             type="button"
             onClick={this.retry}
-            className="font-mono text-xs uppercase tracking-widest text-orange"
+            className="font-mono text-xs uppercase tracking-widest text-accent"
           >
             Try again
           </button>
