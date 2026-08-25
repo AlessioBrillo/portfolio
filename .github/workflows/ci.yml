@@ -12,38 +12,7 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  filter:
-    runs-on: ubuntu-latest
-    timeout-minutes: 2
-    outputs:
-      code: ${{ steps.filter.outputs.code }}
-    steps:
-      - uses: actions/checkout@v7
-        with:
-          fetch-depth: 0
-
-      - name: Detect code changes
-        uses: dorny/paths-filter@v3
-        id: filter
-        with:
-          filters: |
-            code:
-              - 'src/**'
-              - 'scripts/**'
-              - 'public/**'
-              - '*.ts'
-              - '*.tsx'
-              - '*.css'
-              - '*.html'
-              - '*.json'
-              - 'vercel.json'
-              - '.github/**'
-              - '!docs/**'
-              - '!*.md'
-
   ci:
-    needs: filter
-    if: needs.filter.outputs.code == 'true' || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     timeout-minutes: 8
 

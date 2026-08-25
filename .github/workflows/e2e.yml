@@ -12,43 +12,7 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  filter:
-    runs-on: ubuntu-latest
-    timeout-minutes: 2
-    outputs:
-      tonal: ${{ steps.filter.outputs.tonal }}
-    steps:
-      - uses: actions/checkout@v7
-        with:
-          fetch-depth: 0
-
-      - name: Detect tonal-surface changes
-        uses: dorny/paths-filter@v3
-        id: filter
-        with:
-          filters: |
-            tonal:
-              - 'src/components/ascent/**'
-              - 'src/components/navigation/**'
-              - 'src/components/ui/**'
-              - 'src/pages/**'
-              - 'src/content/**'
-              - 'src/router.tsx'
-              - 'src/hooks/useScrollProgress.ts'
-              - 'src/hooks/useCurrentSection.ts'
-              - 'src/hooks/useAltitudeProfile.ts'
-              - 'src/hooks/useDocumentMeta.ts'
-              - 'src/lib/tone.ts'
-              - 'src/lib/section-tone.ts'
-              - 'src/lib/altitude.ts'
-              - 'e2e/**'
-              - 'playwright.config.ts'
-              - 'playwright.config.preview.ts'
-              - '.github/workflows/e2e.yml'
-
   e2e:
-    needs: filter
-    if: needs.filter.outputs.tonal == 'true' || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     timeout-minutes: 15
     strategy:
