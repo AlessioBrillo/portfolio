@@ -56,7 +56,7 @@ vi.mock('gsap/ScrollTrigger', () => ({
   ScrollTrigger: { create: mocks.create, refresh: mocks.refresh },
 }));
 
-function setReducedMotion(reduced: boolean) {
+function setReducedMotion(reduced: boolean): void {
   vi.stubGlobal(
     'matchMedia',
     vi.fn((query: string) => ({

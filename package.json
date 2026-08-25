@@ -33,19 +33,26 @@
     "prepare": "husky"
   },
   "dependencies": {
+    "@fontsource/archivo": "5.3.0",
+    "@fontsource/jetbrains-mono": "5.3.0",
     "@mdx-js/react": "^3.1.0",
+    "adm-zip": "0.6.0",
     "clsx": "^2.1.1",
     "framer-motion": "13.1.0",
     "gsap": "3.15.0",
     "react": "^19.2.8",
     "react-dom": "^19.2.8",
     "react-router-dom": "^7.18.2",
-    "tailwind-merge": "^3.6.0"
+    "tailwind-merge": "^3.6.0",
+    "woff2": "1.0.0"
   },
   "devDependencies": {
     "@commitlint/cli": "^21.2.2",
     "@commitlint/config-conventional": "^21.2.2",
     "@eslint/js": "^10.0.1",
+    "@fontsource-variable/archivo": "5.3.0",
+    "@fontsource-variable/geist": "5.3.0",
+    "@fontsource-variable/jetbrains-mono": "5.3.0",
     "@mdx-js/rollup": "^3.1.0",
     "@playwright/test": "1.62.1",
     "@tailwindcss/postcss": "^4.3.3",
