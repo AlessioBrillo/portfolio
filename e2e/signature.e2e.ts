@@ -510,7 +510,7 @@ test('muted text follows its own equal-legibility line (ADR-0012)', async ({ pag
 
   test('stacking contract: scene bands show the backdrop, solid bands cover it', async ({
     page,
-  }) => {
+  }, testInfo) => {
     await page.goto('/');
 
     // The sampled strip: background-only padding at the top of the target
@@ -520,17 +520,30 @@ test('muted text follows its own equal-legibility line (ADR-0012)', async ({ pag
     // reads the viewport 138px down, below the TopBar and above the band's
     // own heading.
     const strip = { x: 40, y: 74, width: 160, height: 40 };
+    const isReducedMotion = testInfo.project.name === 'reduced-motion';
 
-    // Cruise: a transparent scene band (ai-physics). The element screenshot
-    // parks its top edge at the viewport top, so the climb fade -- anchored
-    // to the heading, completed at heading-top-centred -- is long over and the
-    // backdrop is night. The band's padding must sample that night, proving
-    // the backdrop paints through scene bands.
-    const cruise = await elementClipDominant(page, '#ai-physics', strip);
-    expect(
-      isNightTone(cruise),
-      `cruise backdrop should paint through the scene band, got rgb(${cruise.r},${cruise.g},${cruise.b})`,
-    ).toBe(true);
+    // Cruise: a transparent scene band (ai-physics). In full motion, the climb
+    // fade completes at heading-top-centred (progress 1), so the backdrop is
+    // night. In reduced motion, the discrete switch fires at the body flip
+    // line (progress ~0.5645), so we must scroll past it to ensure the switch
+    // has fired. Use scrollToTransitionProgress with progress 1 (end of fade
+    // window) which is guaranteed past the flip line in both motion modes.
+    if (isReducedMotion) {
+      await scrollToTransitionProgress(page, 'ai-physics', 1);
+      // In reduced motion, verify backdrop is night via direct color check
+      // (elementClipDominant would scroll back to block:start, triggering onLeaveBack)
+      const bgColor = parseRgb(await backdropColor(page));
+      expect(
+        isNightTone(bgColor),
+        `cruise backdrop should be night in reduced motion, got rgb(${bgColor.r},${bgColor.g},${bgColor.b})`,
+      ).toBe(true);
+    } else {
+      const cruise = await elementClipDominant(page, '#ai-physics', strip);
+      expect(
+        isNightTone(cruise),
+        `cruise backdrop should paint through the scene band, got rgb(${cruise.r},${cruise.g},${cruise.b})`,
+      ).toBe(true);
+    }
 
     // Night landing: Contact's own solid night must cover the backdrop -- the
     // composited pixels are the truth here (a `z-0` fixed backdrop paints
