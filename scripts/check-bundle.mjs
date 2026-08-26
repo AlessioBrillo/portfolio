@@ -41,7 +41,8 @@ const DIST_DIR = join(ROOT, 'dist');
 const INDEX_HTML = join(DIST_DIR, 'index.html');
 const BASELINE_PATH = join(ROOT, 'bundle-baseline.json');
 const REPORT_ONLY = process.argv.includes('--report');
-const FAIL_ON_INCREASE = process.argv.includes('--fail-on-increase');
+const FAIL_ON_INCREASE =
+  process.argv.includes('--fail-on-increase') || process.argv.includes('--ci');
 const UPDATE_BASELINE = process.argv.includes('--update-baseline');
 
 const toKb = (bytes) => bytes / 1024;
