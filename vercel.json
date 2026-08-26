@@ -32,14 +32,6 @@
   ],
   "rewrites": [
     {
-      "source": "/js/script.js",
-      "destination": "https://plausible.io/js/script.js"
-    },
-    {
-      "source": "/api/event",
-      "destination": "https://plausible.io/api/event"
-    },
-    {
       "source": "/((?!assets/|photos/|fonts/|favicon\\.svg|og-image\\.png|robots\\.txt|sitemap\\.xml|apple-touch-icon\\.png|.*\\.pdf|.*\\.webmanifest).*)",
       "destination": "/index.html"
     }

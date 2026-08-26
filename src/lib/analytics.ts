@@ -1,6 +1,6 @@
 /**
- * Privacy-first analytics bootstrap (ADR-0013). Loads the Plausible script —
- * ideally self-proxied through the site's own origin — only when the
+ * Privacy-first analytics bootstrap (ADR-0013, ADR-0020). Loads the Plausible script —
+ * self-proxied through the site's own origin via Edge Middleware — only when the
  * deployment sets `VITE_PLAUSIBLE_SRC` + `VITE_PLAUSIBLE_DOMAIN`.
  *
  * Without the env pair (dev, tests, pre-domain deploys) this module is a
@@ -8,10 +8,15 @@
  * lands. The strict CSP in `vercel.json` keeps working unchanged: the
  * self-proxied script and beacon are same-origin (`script-src 'self'`,
  * `connect-src 'self'`), and an optional SRI hash hardens the script itself.
+ *
+ * The Edge Middleware (`middleware.ts`) conditionally rewrites:
+ *   - /js/script.js -> plausible.io/js/script.js (from VITE_PLAUSIBLE_SRC)
+ *   - /api/event    -> plausible.io/api/event
+ * only when VITE_PLAUSIBLE_SRC and VITE_PLAUSIBLE_DOMAIN are both set.
  */
 export function initAnalytics(): void {
-  const scriptSrc = import.meta.env.VITE_PLAUSIBLE_SRC;
   const dataDomain = import.meta.env.VITE_PLAUSIBLE_DOMAIN;
+  const scriptSrc = import.meta.env.VITE_PLAUSIBLE_SRC;
   if (!scriptSrc || !dataDomain) return;
   if (typeof document === 'undefined') return;
 
@@ -21,13 +26,14 @@ export function initAnalytics(): void {
   if (existing) return;
 
   const script = document.createElement('script');
-  script.src = scriptSrc;
+  // The middleware rewrites /js/script.js to the plausible.io URL from VITE_PLAUSIBLE_SRC
+  script.src = '/js/script.js';
   script.setAttribute('async', '');
   script.setAttribute('defer', '');
   script.dataset.domain = dataDomain;
 
-  const api = import.meta.env.VITE_PLAUSIBLE_API;
-  if (api) script.dataset.api = api;
+  // The middleware rewrites /api/event to plausible.io/api/event
+  script.dataset.api = '/api/event';
 
   const integrity = import.meta.env.VITE_PLAUSIBLE_INTEGRITY;
   if (integrity) {
