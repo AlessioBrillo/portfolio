@@ -1,60 +1,178 @@
-# Domain Runbook
+# Domain Deployment Runbook — The Ascent
 
-The day the real domain lands. Everything below is already built and
-gated — this checklist is the order of operations to activate it, nothing
-here is new code.
+**Purpose**: Zero-surprise deployment checklist for the production domain.
+**Trigger**: Domain purchased and ready to configure.
+**Authority**: This runbook is the _only_ source of truth for deploy order. No step is optional.
 
-## Prereq: the interim deployment
+---
 
-The site is deployable on an interim `*.vercel.app` origin today. The
-architecture already keeps that origin honest: no canonical links
-(`canonicalOrigin` returns `''` while `VITE_SITE_URL` is unset), no
-sitemap (the postbuild step skips), `og:image` stays relative. Deploying
-interim is the first production validation of the CSP headers, the
-immutable asset caching, the SPA fallback and the tonal signature on a
-real device — do it before the domain, not after.
+## Prerequisites (Verify Before Starting)
 
-## The day of the domain
+- [ ] Domain purchased and DNS control available
+- [ ] Vercel account with project connected to `main` branch
+- [ ] Plausible account created, site added (domain registered in Plausible)
+- [ ] Local `main` branch clean, all gates green:
+  ```bash
+  npm run typecheck && npm run lint && npm run format:check && npm test && npm run build && npm run photos:check && npm run bundle:check
+  ```
 
-1. **Set `VITE_SITE_URL`** to the canonical origin (e.g. `https://example.com`).
-   - Canonical links appear on every case-study route (`canonicalStudyUrl`).
-   - `dist/sitemap.xml` is emitted by `postbuild` (`scripts/generate-sitemap.mjs`).
-   - Verify: `curl -s https://<domain>/sitemap.xml | head` — every published
-     study URL present.
-2. **Make `og:image` absolute** in `index.html` (`https://<domain>/og-image.png`).
-   Relative `og:image` URLs are dropped by LinkedIn/WhatsApp/iMessage.
-   Regenerate the card source `docs/design/og-image.svg` first if it is stale.
-3. **Add the `Sitemap:` line to `robots.txt`** (`https://<domain>/sitemap.xml`).
-4. **Activate analytics** (ADR-0013, ADR-0020) in the deployment env:
-   - `VITE_PLAUSIBLE_SRC=https://<domain>/js/script.js`
-   - `VITE_PLAUSIBLE_DOMAIN=<domain>`
-   - Optional `VITE_PLAUSIBLE_API=https://<domain>/api/event`, plus an
-     `VITE_PLAUSIBLE_INTEGRITY` SRI hash of the script (`sha384-...`).
-   - Register `<domain>` in Plausible — the proxy drops beacons for
-     unregistered domains server-side.
-   - Verify: load the site, confirm one request to `/js/script.js` and one
-     `/api/event` in the network tab; then confirm the event appears in the
-     Plausible dashboard.
-5. **Verify social cards**: paste the homepage URL into LinkedIn and a
-   WhatsApp/iMessage chat — card image, title and description must render.
-6. **Re-verify the strict headers** on the production origin:
-   `curl -sI https://<domain>/` → CSP, HSTS, X-Content-Type-Options,
-   Referrer-Policy, Permissions-Policy all present.
-7. **Re-run the full gate** against the production build:
-   `npm run e2e:preview` (the production-build harness) plus
-   `npm run deploy:check` and `npm run photos:check`.
+---
 
-## Signing decision
+## Step 1: DNS Configuration
 
-`SITE` in `src/lib/site.ts` owns the identity: full name, tagline, email,
-LinkedIn, GitHub. Sign as the full name or a small personal brand — the
-change is one file. The JSON-LD `sameAs` block in `index.html` mirrors
-`SITE.linkedinUrl` and must be updated in the same commit (documented
-exception to `SITE`'s data ownership).
+| Record | Type  | Value                  | TTL  | Notes             |
+| ------ | ----- | ---------------------- | ---- | ----------------- |
+| `@`    | A     | `76.76.21.21`          | 3600 | Vercel Anycast IP |
+| `www`  | CNAME | `cname.vercel-dns.com` | 3600 | Vercel managed    |
 
-## Post-activation hygiene
+**Verify**: `dig +short @1.1.1.1 <domain>` returns `76.76.21.21`
 
-- `docs/roadmap.md` is the truth ledger: close Phase 6, move the analytics
-  activation note from "waits on the domain" to "live".
-- The interim-origin canonical policy (no canonical, no sitemap) must never
-  be relaxed before the domain lands.
+---
+
+## Step 2: Vercel Domain Add
+
+1. Vercel Dashboard → Project → Settings → Domains
+2. Add `<domain>` and `www.<domain>`
+3. Wait for "Valid Configuration" (green checkmark)
+4. **Do not** enable "Redirect www to apex" — let Vercel handle canonicalization via headers
+
+---
+
+## Step 3: Environment Variables (Vercel Project Settings → Environment Variables)
+
+Set **all** variables for **Production** and **Preview** environments:
+
+| Variable                   | Value                               | Example                     | Scope                |
+| -------------------------- | ----------------------------------- | --------------------------- | -------------------- |
+| `VITE_SITE_URL`            | `https://<domain>`                  | `https://alessiobrillo.com` | Production           |
+| `VITE_PLAUSIBLE_SRC`       | `https://plausible.io/js/script.js` | (fixed)                     | Production + Preview |
+| `VITE_PLAUSIBLE_DOMAIN`    | `<domain>`                          | `alessiobrillo.com`         | Production + Preview |
+| `VITE_PLAUSIBLE_INTEGRITY` | `sha384-<hash>`                     | See Step 3.1                | Production           |
+
+### Step 3.1: Generate SRI Hash (Production Only)
+
+```bash
+# Fetch the exact script Plausible will serve
+curl -sL "https://plausible.io/js/script.js" -o /tmp/plausible-script.js
+
+# Generate sha384 SRI hash
+openssl dgst -sha384 -binary /tmp/plausible-script.js | base64
+
+# Output format: sha384-<base64>
+# Paste into VITE_PLAUSIBLE_INTEGRITY in Vercel (Production only)
+```
+
+**Why**: Hardens the self-proxied script against supply-chain compromise (ADR-0013).
+
+---
+
+## Step 4: Local Verification Build
+
+```bash
+# Ensure clean state
+git status  # should be clean
+
+# Full gate (must pass)
+npm run typecheck && npm run lint && npm run format:check && npm test && npm run build && npm run photos:check && npm run bundle:check
+```
+
+**If `bundle:check` FAILS** (expected on next case study per roadmap):
+
+1. Measure actual sizes: `npm run bundle:report`
+2. Identify offending chunk(s)
+3. Either:
+   - **Shave**: Inline tables, remove unused deps, code-split heavier sections
+   - **Accept regression deliberately**: `npm run bundle:check -- --update-baseline`
+     - This updates `bundle-baseline.json` with new measurements
+     - **Mandatory**: Update `origin` field with reason (e.g., "Added physics-of-flight case study, +12 kB entry chunk")
+     - Commit `bundle-baseline.json` with message: `chore: re-baseline bundle budget after <study> (ADR-0018)`
+4. Re-run full gate until green
+
+---
+
+## Step 5: Push & Verify Preview Deploy
+
+```bash
+git push origin main
+```
+
+1. Wait for Vercel Preview deploy (auto-triggered on push)
+2. Open preview URL
+3. Verify:
+   - [ ] Hero loads, name visible
+   - [ ] Tonal crossfade works (scroll through ai-physics → sky-sport)
+   - [ ] Contact section renders solid night
+   - [ ] Footer renders solid night
+   - [ ] No console errors
+   - [ ] Network tab: **No requests to plausible.io** (middleware inactive on preview since VITE_PLAUSIBLE_DOMAIN not set for preview? Actually it IS set for preview — verify beacon fires to `/api/event` which rewrites to plausible.io)
+
+---
+
+## Step 6: Production Deploy & Domain Verification
+
+1. Vercel Dashboard → Deployments → Promote Preview to Production
+   OR merge PR to `main` (auto-deploys to production)
+2. Wait for production deploy (green checkmark)
+3. Open `https://<domain>`
+4. Verify **all** of the above PLUS:
+   - [ ] Canonical links present on case-study routes (`<link rel="canonical" href="https://<domain>/ai/transformer-italian-corpus">`)
+   - [ ] `sitemap.xml` served at `https://<domain>/sitemap.xml` with correct URLs
+   - [ ] `robots.txt` served with `Sitemap: https://<domain>/sitemap.xml`
+   - [ ] OG image loads: `https://<domain>/og-image.png`
+   - [ ] Plausible beacon fires: Network tab → `/api/event` → 200 OK → response from plausible.io
+   - [ ] CSP headers correct: `script-src 'self'` (no third-party), `style-src 'self' 'unsafe-inline'`
+
+---
+
+## Step 7: Post-Deploy Smoke Tests
+
+```bash
+# Run E2E suite against production (optional but recommended)
+BASE_URL=https://<domain> npm run e2e
+```
+
+**If any E2E test fails**: Rollback via Vercel (Previous Deployment → Promote to Production) and investigate.
+
+---
+
+## Step 8: Monitoring Setup (Optional, Phase 7)
+
+- [ ] Plausible dashboard shows real-time visitors
+- [ ] Vercel Analytics enabled (free, no config)
+- [ ] Uptime monitor (e.g., UptimeRobot) on `https://<domain>`
+
+---
+
+## Rollback Procedure
+
+If critical issue discovered post-deploy:
+
+1. Vercel Dashboard → Deployments → Find last known-good deployment
+2. Click "..." → "Promote to Production"
+3. DNS TTL (3600s) means traffic shifts within ~1 hour
+4. Create hotfix branch from `main`, fix, PR, merge
+
+---
+
+## Reference: File Changes This Deploy Enables
+
+| File                   | Change                                                      | ADR      |
+| ---------------------- | ----------------------------------------------------------- | -------- |
+| `middleware.ts`        | Edge Middleware for conditional Plausible proxy             | ADR-0020 |
+| `vercel.json`          | Removed static Plausible rewrites; SPA fallback only        | ADR-0020 |
+| `src/lib/analytics.ts` | Uses `/js/script.js` + `/api/event` (proxied by middleware) | ADR-0013 |
+| `.env.example`         | Documents all 5 deploy-time variables                       | —        |
+| `bundle-baseline.json` | Updated if regression accepted (Step 4)                     | ADR-0018 |
+
+---
+
+## Emergency Contacts
+
+- **Vercel Support**: Dashboard → Help
+- **Plausible Support**: Settings → Help
+- **DNS Provider**: Your registrar's support
+
+---
+
+**Last Updated**: 2026-08-26
+**Next Review**: After first production deploy
