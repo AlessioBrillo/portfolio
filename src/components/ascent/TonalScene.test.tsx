@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 import type { ReactElement } from 'react';
 import { TonalScene } from '@/components/ascent/TonalScene';
@@ -85,5 +85,42 @@ describe('TonalScene', () => {
     // mount, so a state flip must never snap it back to a React-driven value.
     const backdrop = container.querySelector('.pointer-events-none.fixed.inset-0.-z-10');
     expect(backdrop).toHaveStyle({ backgroundColor: TONE.paper });
+  });
+
+  it('handles tonal engine error event and sets error state', async () => {
+    render(
+      <TonalScene>
+        <span>content</span>
+      </TonalScene>,
+    );
+
+    // Dispatch the tonal-engine-error event to trigger the error handler
+    window.dispatchEvent(
+      new CustomEvent('tonal-engine-error', {
+        detail: { message: 'GSAP failed', cause: new Error('test'), stack: 'stack' },
+      }),
+    );
+
+    // The error boundary toast should be rendered
+    await waitFor(() => {
+      expect(screen.getByText('Animation unavailable — static view active')).toBeInTheDocument();
+    });
+  });
+
+  it('renders scanlines hidden when prefers-reduced-motion is true', () => {
+    // Mock prefersReducedMotion to return true
+    vi.mock('@/hooks/useReducedMotion', () => ({
+      useReducedMotion: () => true,
+    }));
+
+    render(
+      <TonalScene>
+        <span>content</span>
+      </TonalScene>,
+    );
+
+    // The scanline layer should have display: none
+    const scanlineLayer = document.querySelector('.pointer-events-none.fixed.inset-0.-z-4');
+    expect(scanlineLayer).toHaveStyle({ display: 'none' });
   });
 });

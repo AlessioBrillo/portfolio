@@ -1,6 +1,7 @@
 import { Suspense, lazy, useEffect, useMemo, useRef, type ReactElement } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { CaseStudyErrorBoundary } from '@/components/CaseStudyErrorBoundary';
+import { ChunkErrorBoundary } from '@/components/ChunkErrorBoundary';
 import {
   getCaseStudy,
   getPublishedCaseStudies,
@@ -130,11 +131,13 @@ export function CaseStudyPage(): ReactElement {
           </h1>
         </header>
         <article className="mt-12 flex flex-col gap-6 text-[length:var(--text-body)] leading-relaxed">
-          <CaseStudyErrorBoundary key={`${entry.meta.domain}/${entry.meta.slug}`}>
-            <Suspense fallback={<Skeleton />}>
-              <Body />
-            </Suspense>
-          </CaseStudyErrorBoundary>
+          <ChunkErrorBoundary key={`${entry.meta.domain}/${entry.meta.slug}`}>
+            <CaseStudyErrorBoundary>
+              <Suspense fallback={<Skeleton />}>
+                <Body />
+              </Suspense>
+            </CaseStudyErrorBoundary>
+          </ChunkErrorBoundary>
         </article>
         {nav.prev || nav.next ? (
           <nav
