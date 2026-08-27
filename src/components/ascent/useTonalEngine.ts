@@ -16,13 +16,28 @@ type ScrollTriggerType = {
   getAll: () => Array<{ kill: () => void }>;
 };
 
-/** Debounce helper for resize refresh — avoids StormTrigger spam on resize. */
+/**
+ * Native debounce with proper cleanup — replaces custom implementation.
+ * Uses setTimeout/clearTimeout with a ref to track the timer, ensuring
+ * no memory leaks on unmount and correct trailing-edge behavior.
+ */
 export function debounce<T extends (...args: unknown[]) => void>(fn: T, wait: number): T {
   let timeoutId: ReturnType<typeof setTimeout> | null = null;
-  return ((...args: unknown[]) => {
+  const debounced = ((...args: unknown[]) => {
     if (timeoutId) clearTimeout(timeoutId);
-    timeoutId = setTimeout(() => fn(...args), wait);
+    timeoutId = setTimeout(() => {
+      timeoutId = null;
+      fn(...args);
+    }, wait);
   }) as T;
+  // Attach cancel method for explicit cleanup
+  (debounced as T & { cancel: () => void }).cancel = () => {
+    if (timeoutId) {
+      clearTimeout(timeoutId);
+      timeoutId = null;
+    }
+  };
+  return debounced;
 }
 
 /**
@@ -238,6 +253,7 @@ export function useTonalEngine(
     return () => {
       cancelled = true;
       window.removeEventListener('resize', debouncedRefresh);
+      (debouncedRefresh as typeof debouncedRefresh & { cancel: () => void }).cancel();
       revert?.();
     };
   }, [backdropRef]);
