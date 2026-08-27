@@ -1,0 +1,210 @@
+#!/usr/bin/env python3
+"""
+Font Subsetting Pipeline (Production)
+
+Subsets existing variable fonts in public/fonts/ to portfolio's exact
+character set, creates Archivo Black variant, downloads OFL licenses,
+and updates typography.css with optimized @font-face declarations.
+
+Run: npm run fonts:subset
+Requires: Python + fonttools (pip install fonttools brotli)
+"""
+
+import sys
+import os
+import shutil
+import urllib.request
+from fontTools.subset import Subsetter, Options
+from fontTools.ttLib import TTFont
+
+SRC_DIR = os.path.join(os.path.dirname(__file__), '..', 'public', 'fonts')
+OUT_DIR = os.path.join(os.path.dirname(__file__), '..', 'public', 'fonts')
+LICENSE_DIR = os.path.join(os.path.dirname(__file__), '..', 'src', 'assets', 'fonts')
+TYPOGRAPHY_CSS = os.path.join(os.path.dirname(__file__), '..', 'src', 'styles', 'typography.css')
+
+UNICODE_RANGES = [
+    (0x0020, 0x007E),   # Basic Latin
+    (0x00A0, 0x00FF),   # Latin-1 Supplement
+    (0x0100, 0x017F),   # Latin Extended-A
+    (0x0180, 0x024F),   # Latin Extended-B
+    (0x2000, 0x206F),   # General Punctuation
+    (0x2070, 0x209F),   # Superscripts and Subscripts
+    (0x20A0, 0x20CF),   # Currency Symbols
+    (0x2100, 0x214F),   # Letterlike Symbols
+    (0x2190, 0x21FF),   # Arrows
+    (0x2200, 0x22FF),   # Mathematical Operators
+    (0x2500, 0x257F),   # Box Drawing
+    (0x25A0, 0x25FF),   # Geometric Shapes
+    (0x2600, 0x26FF),   # Miscellaneous Symbols
+    (0x2700, 0x27BF),   # Dingbats
+]
+
+CODEPOINTS = []
+for start, end in UNICODE_RANGES:
+    CODEPOINTS.extend(range(start, end + 1))
+
+UNICODE_RANGE_STR = 'U+0020-007E, U+00A0-00FF, U+0100-017F, U+0180-024F, U+2000-206F, U+2070-209F, U+20A0-20CF, U+2100-214F, U+2190-21FF, U+2200-22FF, U+2500-257F, U+25A0-25FF, U+2600-26FF, U+2700-27BF'
+
+FONTS = [
+    {
+        'family': 'Archivo',
+        'source_file': 'Archivo.woff2',
+        'output_name': 'Archivo.woff2',
+        'license_url': 'https://raw.githubusercontent.com/google/fonts/main/ofl/archivo/OFL.txt',
+        'license_name': 'Archivo.OFL.txt',
+        'font_face': {
+            'family': 'Archivo',
+            'weight': '400 900',
+            'stretch': '75% 125%',
+        },
+    },
+    {
+        'family': 'Archivo Black',
+        'source_file': 'Archivo.woff2',
+        'output_name': 'Archivo-Black.woff2',
+        'license_url': 'https://raw.githubusercontent.com/google/fonts/main/ofl/archivo/OFL.txt',
+        'license_name': 'Archivo-Black.OFL.txt',
+        'font_face': {
+            'family': 'Archivo Black',
+            'weight': '900',
+            'stretch': '75% 125%',
+        },
+    },
+    {
+        'family': 'Geist Sans',
+        'source_file': 'Geist.woff2',
+        'output_name': 'Geist.woff2',
+        'license_url': 'https://raw.githubusercontent.com/googlefonts/geist/main/OFL.txt',
+        'license_name': 'Geist.OFL.txt',
+        'font_face': {
+            'family': 'Geist Sans',
+            'weight': '100 900',
+            'stretch': '100%',
+        },
+    },
+    {
+        'family': 'JetBrains Mono',
+        'source_file': 'JetBrainsMono.woff2',
+        'output_name': 'JetBrainsMono.woff2',
+        'license_url': 'https://raw.githubusercontent.com/JetBrains/JetBrainsMono/master/OFL.txt',
+        'license_name': 'JetBrainsMono.OFL.txt',
+        'font_face': {
+            'family': 'JetBrains Mono',
+            'weight': '100 800',
+            'stretch': '100%',
+        },
+    },
+]
+
+def subset_font(input_path, output_path):
+    """Subset a font using the Python API"""
+    font = TTFont(input_path)
+    
+    options = Options()
+    options.flavor = 'woff2'
+    options.unicodes = CODEPOINTS
+    options.layout_features = ['*']
+    options.hinting = False
+    options.desubroutinize = True
+    options.drop_tables = ['JSTF', 'DSIG', 'EBDT', 'EBLC', 'EBSC', 'PCLT', 'LTSH', 'Feat', 'Glat', 'Gloc', 'Silf', 'Sill']
+    options.passthrough_tables = True
+    options.name_IDs = [0, 1, 2, 3, 4, 5, 6]
+    options.name_legacy = False
+    options.name_languages = ['0x0409']
+    options.recalc_bounds = False
+    options.recalc_timestamp = False
+    options.canonical_order = False
+    options.prune_unicode_ranges = True
+    options.prune_codepage_ranges = True
+    options.no_subset_tables = ['gasp', 'head', 'hhea', 'maxp', 'vhea', 'OS/2', 'loca', 'name', 'cvt ', 'fpgm', 'prep', 'VMDX', 'DSIG', 'CPAL', 'MVAR', 'cvar', 'STAT']
+    
+    subsetter = Subsetter(options=options)
+    subsetter.populate(unicodes=CODEPOINTS)
+    subsetter.subset(font)
+    font.save(output_path)
+    print(f"  Subsetted: {os.path.basename(input_path)} -> {os.path.basename(output_path)}")
+
+def download_license(url, dest):
+    """Download license file"""
+    print(f"  Downloading license...")
+    urllib.request.urlretrieve(url, dest)
+
+def generate_typography_css(font_results):
+    """Generate typography.css with @font-face declarations"""
+    lines = [
+        '/*',
+        ' * Typography — Auto-generated by scripts/subset-fonts.py',
+        ' * DO NOT EDIT MANUALLY — run `npm run fonts:subset` to regenerate',
+        ' */',
+        '',
+    ]
+    for font in font_results:
+        ff = font['font_face']
+        lines.append('@font-face {')
+        lines.append(f"  font-family: '{ff['family']}';")
+        lines.append(f"  src: url('/fonts/{font['output_name']}') format('woff2-variations');")
+        lines.append(f"  font-weight: {ff['weight']};")
+        lines.append(f"  font-stretch: {ff['stretch']};")
+        lines.append("  font-style: normal;")
+        lines.append("  font-display: optional;")
+        lines.append(f"  unicode-range: {UNICODE_RANGE_STR};")
+        lines.append('}')
+        lines.append('')
+    return '\n'.join(lines)
+
+def main():
+    print('Font Subsetting Pipeline (Production)')
+    print('=====================================')
+    
+    os.makedirs(OUT_DIR, exist_ok=True)
+    os.makedirs(LICENSE_DIR, exist_ok=True)
+    
+    results = []
+    for font in FONTS:
+        print(f"\nProcessing {font['family']}...")
+        input_font = os.path.join(SRC_DIR, font['source_file'])
+        temp_output = os.path.join(OUT_DIR, '.' + font['output_name'] + '.tmp')
+        output_font = os.path.join(OUT_DIR, font['output_name'])
+        
+        if not os.path.exists(input_font):
+            print(f"  Source font not found: {input_font}")
+            sys.exit(1)
+        
+        src_size = os.path.getsize(input_font)
+        print(f"  Source: {font['source_file']} ({src_size / 1024:.1f} KB)")
+        
+        subset_font(input_font, temp_output)
+        
+        # Replace original with subsetted
+        if os.path.exists(output_font):
+            os.remove(output_font)
+        shutil.move(temp_output, output_font)
+        
+        download_license(font['license_url'], os.path.join(LICENSE_DIR, font['license_name']))
+        
+        out_size = os.path.getsize(output_font)
+        reduction = ((1 - out_size / src_size) * 100)
+        print(f"  {font['output_name']}: {out_size / 1024:.1f} KB (-{reduction:.1f}%)")
+        
+        results.append({**font, 'output_size': out_size, 'source_size': src_size})
+    
+    # Generate typography.css
+    print('\nGenerating src/styles/typography.css...')
+    css = generate_typography_css(results)
+    with open(TYPOGRAPHY_CSS, 'w') as f:
+        f.write(css)
+    print('  typography.css updated')
+    
+    # Summary
+    print('\nSummary:')
+    total_src = sum(r['source_size'] for r in results)
+    total_out = sum(r['output_size'] for r in results)
+    for r in results:
+        print(f"  {r['output_name']}: {r['source_size'] / 1024:.1f} KB -> {r['output_size'] / 1024:.1f} KB")
+    print(f"  Total: {total_src / 1024:.1f} KB -> {total_out / 1024:.1f} KB (-{(1 - total_out / total_src) * 100:.1f}%)")
+    
+    print('\nFont subsetting complete!')
+    print('Run `npm run build` to verify')
+
+if __name__ == '__main__':
+    main()
