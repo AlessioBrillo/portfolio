@@ -35,6 +35,8 @@ export const SITE = {
   siteUrl: import.meta.env.VITE_SITE_URL ?? '',
 } as const;
 
+export { validateSiteUrl } from './validate-site-url';
+
 /**
  * The origin used for `rel=canonical` links. Returns the configured domain
  * when one exists; while it is unset (pre-domain) the origin is empty and the

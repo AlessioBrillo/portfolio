@@ -11,7 +11,7 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc --noEmit && vite build",
-    "postbuild": "node scripts/generate-sitemap.mjs",
+    "postbuild": "node scripts/validate-site-url.mjs && node scripts/generate-sitemap.mjs",
     "bundle:check": "node scripts/check-bundle.mjs",
     "bundle:report": "node scripts/check-bundle.mjs --report",
     "bundle:check:ci": "node scripts/check-bundle.mjs --ci",
