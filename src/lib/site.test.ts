@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import { canonicalOrigin, canonicalStudyUrl, SITE } from '@/lib/site';
+import { canonicalOrigin, canonicalStudyUrl, SITE, validateSiteUrl } from '@/lib/site';
 
 describe('site identity', () => {
   it('names the author', () => {
@@ -21,6 +21,53 @@ describe('site identity', () => {
 
   it('offers the resume-on-request hook as a pre-filled mailto', () => {
     expect(SITE.resumeUrl).toMatch(/^mailto:alessio@ilcassero\.it\?subject=/);
+  });
+});
+
+describe('validateSiteUrl', () => {
+  it('accepts empty string (pre-domain)', () => {
+    expect(validateSiteUrl('')).toEqual({ valid: true });
+  });
+
+  it('accepts valid HTTPS origin without path', () => {
+    expect(validateSiteUrl('https://example.com')).toEqual({ valid: true });
+    expect(validateSiteUrl('https://portfolio.example.com')).toEqual({ valid: true });
+    expect(validateSiteUrl('https://my-domain.io')).toEqual({ valid: true });
+  });
+
+  it('rejects HTTP protocol', () => {
+    expect(validateSiteUrl('http://example.com')).toEqual({
+      valid: false,
+      error: 'must use https://',
+    });
+  });
+
+  it('rejects URLs with path', () => {
+    // URL constructor normalizes bare origins to '/', so this is accepted
+    expect(validateSiteUrl('https://example.com/')).toEqual({ valid: true });
+    expect(validateSiteUrl('https://example.com/path')).toEqual({
+      valid: false,
+      error: 'must not include a path',
+    });
+  });
+
+  it('rejects URLs with query parameters', () => {
+    expect(validateSiteUrl('https://example.com?foo=bar')).toEqual({
+      valid: false,
+      error: 'must not include query parameters',
+    });
+  });
+
+  it('rejects URLs with fragment', () => {
+    expect(validateSiteUrl('https://example.com#section')).toEqual({
+      valid: false,
+      error: 'must not include a fragment',
+    });
+  });
+
+  it('rejects invalid URL format', () => {
+    expect(validateSiteUrl('not-a-url')).toEqual({ valid: false, error: 'invalid URL format' });
+    expect(validateSiteUrl('https://')).toEqual({ valid: false, error: 'invalid URL format' });
   });
 });
 
