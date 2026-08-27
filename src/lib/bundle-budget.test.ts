@@ -77,7 +77,7 @@ describe('listJsChunks', () => {
     mkdirSync(join(dir, 'assets'), { recursive: true });
     writeFileSync(join(dir, 'assets', 'index.js'), 'console.log(1);');
     writeFileSync(join(dir, 'assets', 'index.css'), 'body {}');
-    writeFileSync(join(dir, 'assets', 'Fraunces.woff2'), Buffer.alloc(10));
+    writeFileSync(join(dir, 'assets', 'Archivo-Black.woff2'), Buffer.alloc(10));
     writeFileSync(join(dir, 'assets', 'index.js.map'), '{}');
 
     const chunks = await listJsChunks(dir);

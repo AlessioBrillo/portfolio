@@ -48,8 +48,10 @@ journey, not a toggle (see `docs/adr/`, esp. ADR-0001, ADR-0004, ADR-0010).
 
 - **The generic AI-generator look** — cream background + humanist serif +
   terracotta accent, the "Anthropic-clone" aesthetic any generator now produces.
-  The night band is deliberately blue-black (`#14161D`), not the default
-  brown-black, to step away from this.
+  The night band is deliberately **deactivated CRT black** (`#0A0A0A`), not the
+  default blue-black, and the accent is **aviation/hazard red** (`#E61919`), not
+  terracotta — the brutalist palette (ADR-0021) steps away from the generator
+  default entirely.
 - **Stock portfolio template** — uniform project-card grids, identical tiles, no
   hierarchy, no editorial voice. The mosaic must read as composed pieces under one
   roof, not a CMS grid.

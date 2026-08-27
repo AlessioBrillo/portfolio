@@ -36,7 +36,7 @@
   /* Sans: Geist Sans — neutral grotesque for body */
   --font-sans: 'Geist Sans', ui-sans-serif, system-ui, -apple-system, sans-serif;
   /* Mono: JetBrains Mono — technical monospace for telemetry */
-  --font-mono: 'JetBrains Mono', 'Geist Mono', ui-monospace, 'SFMono-Regular', monospace;
+  --font-mono: 'JetBrains Mono', ui-monospace, 'SFMono-Regular', monospace;
 
   /* ===== SPACING — Extreme vertical rhythm ===== */
   --space-section: clamp(8rem, 6rem + 8vw, 14rem);

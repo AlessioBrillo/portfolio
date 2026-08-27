@@ -11,8 +11,8 @@ import { TONE } from '@/lib/tone';
  *   --duration-normal: 300ms   →  DURATION.normal = 300
  *   --duration-slow: 600ms     →  DURATION.slow = 600
  *   --ease-out-expo: 0.16,1,0.3,1  →  EASE_OUT_EXPO = [0.16, 1, 0.3, 1]
- *   --color-paper: #F4EFE6     →  TONE.paper = '#F4EFE6'
- *   --color-night: #14161D     →  TONE.night = '#14161D'
+ *   --color-paper: #F4F4F0     →  TONE.paper = '#F4F4F0'
+ *   --color-night: #0A0A0A     →  TONE.night = '#0A0A0A'
  */
 describe('design token sync (JS internal consistency)', () => {
   it('animation durations are positive', () => {
