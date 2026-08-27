@@ -1,10 +1,10 @@
 {
   "entryChunkKb": 165,
   "totalJsKb": 225,
-  "origin": "Measured 2026-08-18 from the production build at commit 3e6e205 with this gate's own method (whole-file zlib gzip of dist/): entry chunk 143.71 kB, total JS 196.95 kB. Budgets are baseline +10%, rounded up. Raise a budget only with a deliberate ADR or an accepted, measured regression. | Updated 2026-08-24 via --update-baseline",
+  "origin": "Measured 2026-08-18 from the production build at commit 3e6e205 with this gate's own method (whole-file zlib gzip of dist/): entry chunk 143.71 kB, total JS 196.95 kB. Budgets are baseline +10%, rounded up. Raise a budget only with a deliberate ADR or an accepted, measured regression. | Updated 2026-08-24 via --update-baseline | Updated 2026-08-27: Test baseline update with origin note",
   "chunks": [
     {
-      "name": "assets/grokking-modular-addition-C63cM6JP.js",
+      "name": "assets/grokking-modular-addition-BYgUb_kl.js",
       "gzipKb": 3.8
     },
     {
@@ -12,11 +12,11 @@
       "gzipKb": 26.5
     },
     {
-      "name": "assets/index-CqcyrgMk.js",
-      "gzipKb": 146.2
+      "name": "assets/index-DHqZCsFM.js",
+      "gzipKb": 146.6
     },
     {
-      "name": "assets/physics-of-flight-x474nVrU.js",
+      "name": "assets/physics-of-flight-BmcgQWJa.js",
       "gzipKb": 3.5
     },
     {
@@ -24,15 +24,15 @@
       "gzipKb": 17
     },
     {
-      "name": "assets/transformer-italian-corpus-o4zvx9th.js",
+      "name": "assets/transformer-italian-corpus-BNXqISfV.js",
       "gzipKb": 2.8
     },
     {
-      "name": "assets/vds-licence-CV9Sb5aJ.js",
+      "name": "assets/vds-licence-JLZhzHQL.js",
       "gzipKb": 2.6
     },
     {
-      "name": "assets/work-the-ascent-DxfrmQig.js",
+      "name": "assets/work-the-ascent-Br3gTw0c.js",
       "gzipKb": 3.6
     }
   ]

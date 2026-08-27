@@ -11,8 +11,10 @@
  *   npm run bundle:check                      gate mode — exit 1 when over budget
  *   npm run bundle:check -- --fail-on-increase  gate mode — also fail if any
  *                                     individual chunk exceeds baseline total
- *   npm run bundle:check -- --update-baseline   update baseline with per-chunk
- *                                     data from current build (local use)
+ *   npm run bundle:check -- --ci                CI mode — alias for --fail-on-increase
+ *   npm run bundle:check -- --update-baseline --origin "<reason>"
+ *                                     update baseline with per-chunk data; requires
+ *                                     a meaningful --origin note (ADR-0018)
  *   npm run bundle:report                     report mode — prints the per-chunk
  *                                     breakdown and never fails (local review)
  *
@@ -44,6 +46,8 @@ const REPORT_ONLY = process.argv.includes('--report');
 const FAIL_ON_INCREASE =
   process.argv.includes('--fail-on-increase') || process.argv.includes('--ci');
 const UPDATE_BASELINE = process.argv.includes('--update-baseline');
+const ORIGIN_INDEX = process.argv.indexOf('--origin');
+const ORIGIN_NOTE = ORIGIN_INDEX !== -1 ? process.argv[ORIGIN_INDEX + 1] : '';
 
 const toKb = (bytes) => bytes / 1024;
 
@@ -86,6 +90,14 @@ if (result.violations.length > 0) {
 console.log('[bundle] within budget');
 
 if (UPDATE_BASELINE) {
+  if (!ORIGIN_NOTE) {
+    console.error('[bundle] --update-baseline requires --origin "<reason>" (see ADR-0018)');
+    process.exit(2);
+  }
+  if (ORIGIN_NOTE.length < 10) {
+    console.error('[bundle] --origin note too short; provide a meaningful reason (min 10 chars)');
+    process.exit(2);
+  }
   const chunkBaselines = gzip.map((chunk) => ({
     name: chunk.name,
     gzipKb: Math.round(toKb(chunk.gzipBytes) * 10) / 10, // round to 0.1 kB
@@ -95,7 +107,7 @@ if (UPDATE_BASELINE) {
     entryChunkKb: baseline.entryChunkKb,
     totalJsKb: baseline.totalJsKb,
     chunks: chunkBaselines,
-    origin: `${baseline.origin} | Updated ${new Date().toISOString().split('T')[0]} via --update-baseline`,
+    origin: `${baseline.origin} | Updated ${new Date().toISOString().split('T')[0]}: ${ORIGIN_NOTE}`,
   };
   writeFileSync(BASELINE_PATH, JSON.stringify(updatedBaseline, null, 2) + '\n');
   console.log('[bundle] baseline updated with per-chunk data');
