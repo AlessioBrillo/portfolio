@@ -1,4 +1,4 @@
-import React, { Component, type ErrorInfo, type ReactNode } from 'react';
+import { Component, type ErrorInfo, type ReactNode } from 'react';
 import { Eyebrow } from '@/components/ui/Eyebrow';
 
 interface ChunkErrorBoundaryProps {
@@ -64,50 +64,4 @@ export class ChunkErrorBoundary extends Component<
 
     return this.props.children;
   }
-}
-
-/**
- * Creates a safe lazy component that handles chunk load errors gracefully.
- * The returned component can be used directly in JSX and will work with
- * ChunkErrorBoundary to show a user-friendly fallback.
- */
-export function safeLazy(
-  importFn: () => Promise<{ default: React.ComponentType<Record<string, unknown>> }>,
-): React.FC<Record<string, unknown>> {
-  // Wrapper component that catches chunk load errors via the lazy import promise
-  const SafeLazyComponent: React.FC<Record<string, unknown>> = (props) => {
-    const [error, setError] = React.useState<Error | null>(null);
-    const mountedRef = React.useRef(true);
-
-    React.useEffect(() => {
-      mountedRef.current = true;
-      return () => {
-        mountedRef.current = false;
-      };
-    }, []);
-
-    // Create a stable lazy component that wraps the import with error handling
-    const WrappedLazy = React.useMemo(() => {
-      return React.lazy(async () => {
-        try {
-          const module = await importFn();
-          return module;
-        } catch (err) {
-          const error = err instanceof Error ? err : new Error(String(err));
-          error.name = 'ChunkLoadError';
-          if (mountedRef.current) {
-            setError(error);
-          }
-          throw error;
-        }
-      });
-    }, [importFn]);
-
-    if (error) throw error;
-
-    return <WrappedLazy {...props} />;
-  };
-
-  SafeLazyComponent.displayName = 'SafeLazyComponent';
-  return SafeLazyComponent;
 }

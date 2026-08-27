@@ -24,7 +24,8 @@ test.describe('case study routes', () => {
       await expect(page.getByRole('heading', { level: 1 })).toContainText(study.title);
       await expect(page).toHaveTitle(new RegExp(escapeRegExp(study.title)));
       await expect(page.getByRole('link', { name: /Back to the ascent/ })).toBeVisible();
-      await expect(page.getByRole('heading', { level: 2 }).first()).toBeVisible();
+      // The MDX content loads lazily via Suspense; wait for the first h2 to appear
+      await expect(page.getByRole('heading', { level: 2 }).first()).toBeVisible({ timeout: 15000 });
       await expect(page.locator('meta[name="robots"][content="noindex"]')).toHaveCount(0);
       // Canonical policy (src/lib/site.ts): the link appears exactly when the
       // deployment set VITE_SITE_URL — never an empty link on a preview, and

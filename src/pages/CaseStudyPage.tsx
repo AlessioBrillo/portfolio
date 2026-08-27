@@ -1,7 +1,7 @@
-import { Suspense, useEffect, useMemo, useRef, type ReactElement } from 'react';
+import { Suspense, lazy, useEffect, useMemo, useRef, type ReactElement } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { CaseStudyErrorBoundary } from '@/components/CaseStudyErrorBoundary';
-import { ChunkErrorBoundary, safeLazy } from '@/components/ChunkErrorBoundary';
+import { ChunkErrorBoundary } from '@/components/ChunkErrorBoundary';
 import {
   getCaseStudy,
   getPublishedCaseStudies,
@@ -76,7 +76,7 @@ export function CaseStudyPage(): ReactElement {
   // a returned entry is by construction the study for this route (ADR-0005).
   const entry = domain && slug ? getCaseStudy(domain, slug) : undefined;
   const valid = entry !== undefined;
-  const Body = useMemo(() => (entry ? safeLazy(entry.load) : null), [entry]);
+  const Body = useMemo(() => (entry ? lazy(entry.load) : null), [entry]);
   const nav = useMemo(() => (valid && slug ? studyNavigation(slug) : {}), [valid, slug]);
   const origin = canonicalOrigin();
 

@@ -1,7 +1,7 @@
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
-import { describe, expect, it, vi } from 'vitest';
+import { render, screen, fireEvent } from '@testing-library/react';
+import { describe, expect, it } from 'vitest';
 import type { ReactElement } from 'react';
-import { ChunkErrorBoundary, safeLazy } from '@/components/ChunkErrorBoundary';
+import { ChunkErrorBoundary } from '@/components/ChunkErrorBoundary';
 import { CaseStudyErrorBoundary } from '@/components/CaseStudyErrorBoundary';
 
 function ThrowError({ shouldThrow }: { shouldThrow: boolean }): ReactElement {
@@ -96,27 +96,5 @@ describe('ChunkErrorBoundary', () => {
     );
     // CaseStudyErrorBoundary catches first, shows its fallback
     expect(screen.getByText('This case study failed to load.')).toBeInTheDocument();
-  });
-});
-
-describe('safeLazy', () => {
-  it('wraps a lazy import function and returns a component', () => {
-    const importFn = vi.fn().mockResolvedValue({ default: () => <div>Loaded</div> });
-    const SafeComponent = safeLazy(importFn);
-    expect(typeof SafeComponent).toBe('function');
-    expect(SafeComponent.displayName).toBe('SafeLazyComponent');
-  });
-
-  it('throws ChunkLoadError when import fails', async () => {
-    const importFn = vi.fn().mockRejectedValue(new Error('Network error'));
-    const SafeComponent = safeLazy(importFn);
-
-    const { unmount } = render(<SafeComponent />);
-
-    await waitFor(() => {
-      expect(importFn).toHaveBeenCalled();
-    });
-
-    unmount();
   });
 });
