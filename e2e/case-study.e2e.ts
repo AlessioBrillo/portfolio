@@ -47,6 +47,39 @@ test.describe('case study routes', () => {
     await expect(page.locator('script[data-domain]')).toHaveCount(hasAnalytics ? 1 : 0);
   });
 
+  test('preview deploy without env vars makes no requests to plausible.io (ADR-0020)', async ({ page }) => {
+    test.skip(hasAnalytics, 'Only meaningful on pre-domain deployments (no Plausible env vars).');
+
+    const plausibleRequests: string[] = [];
+    page.on('request', (request) => {
+      const url = request.url();
+      if (url.includes('plausible.io')) {
+        plausibleRequests.push(url);
+      }
+    });
+
+    await page.goto('/');
+    await page.waitForLoadState('networkidle');
+
+    // Verify GET /js/script.js falls through to SPA fallback (dev HTML in dev, index.html in prod)
+    // Not to plausible.io. In dev mode, Vite serves the dev HTML for unmatched routes.
+    const scriptResponse = await page.request.get('/js/script.js');
+    expect(scriptResponse.status()).toBe(200);
+    const scriptContent = await scriptResponse.text();
+    expect(scriptContent.toLowerCase()).toContain('<!doctype html>');
+
+    // POST /api/event: in dev mode Vite returns 404 (no route), in production Vercel middleware handles it.
+    // Either way, it must NOT reach plausible.io. Accept 200 (prod) or 404 (dev).
+    const eventResponse = await page.request.post('/api/event', { data: {} });
+    expect([200, 404]).toContain(eventResponse.status());
+    if (eventResponse.status() === 200) {
+      const eventContent = await eventResponse.text();
+      expect(eventContent.toLowerCase()).toContain('<!doctype html>');
+    }
+
+    expect(plausibleRequests, 'No requests to plausible.io should be made on preview').toHaveLength(0);
+  });
+
   test('prev/next navigation walks the curated order end to end', async ({ page }, testInfo) => {
     test.skip(
       testInfo.project.name !== 'desktop-1440',
