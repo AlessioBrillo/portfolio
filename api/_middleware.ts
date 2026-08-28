@@ -1,8 +1,5 @@
-import { NextResponse } from 'next/server';
-import type { NextRequest } from 'next/server';
-
 /**
- * Edge Middleware for conditional Plausible Analytics proxy (ADR-0013, ADR-0020).
+ * Vercel Edge Middleware for conditional Plausible Analytics proxy (ADR-0013, ADR-0020).
  *
  * Replaces static vercel.json rewrites with runtime evaluation of
  * VITE_PLAUSIBLE_DOMAIN. This ensures zero third-party surface on preview
@@ -13,39 +10,46 @@ import type { NextRequest } from 'next/server';
  * When inactive, requests to /js/script.js and /api/event 404 naturally —
  * no beacon is emitted, no external connection is made.
  */
-export function middleware(request: NextRequest) {
+
+export const config = {
+  runtime: 'edge',
+  matcher: ['/js/script.js', '/api/event'],
+};
+
+export default async function middleware(request: Request): Promise<Response> {
   const plausibleSrc = process.env.VITE_PLAUSIBLE_SRC;
   const plausibleDomain = process.env.VITE_PLAUSIBLE_DOMAIN;
 
   // Analytics not configured — let the request fall through to 404
   // (or be handled by the SPA fallback in vercel.json)
   if (!plausibleSrc || !plausibleDomain) {
-    return NextResponse.next();
+    return new Response(null, { status: 404 });
   }
 
-  const url = request.nextUrl.clone();
+  const url = new URL(request.url);
 
   // Proxy /js/script.js -> plausible.io/js/script.js
   if (url.pathname === '/js/script.js') {
-    url.hostname = new URL(plausibleSrc).hostname;
-    url.protocol = new URL(plausibleSrc).protocol;
-    url.port = new URL(plausibleSrc).port;
-    return NextResponse.rewrite(url);
+    const targetUrl = new URL(plausibleSrc);
+    targetUrl.pathname = '/js/script.js';
+    return fetch(targetUrl, {
+      method: request.method,
+      headers: request.headers,
+      body: request.body,
+    });
   }
 
   // Proxy /api/event -> plausible.io/api/event
   if (url.pathname === '/api/event') {
-    const target = `${new URL(plausibleSrc).protocol}//${new URL(plausibleSrc).hostname}`;
-    url.hostname = new URL(target).hostname;
-    url.protocol = new URL(target).protocol;
-    url.port = new URL(target).port;
-    url.pathname = '/api/event';
-    return NextResponse.rewrite(url);
+    const targetUrl = new URL(plausibleSrc);
+    targetUrl.pathname = '/api/event';
+    return fetch(targetUrl, {
+      method: request.method,
+      headers: request.headers,
+      body: request.body,
+    });
   }
 
-  return NextResponse.next();
+  // Not a proxied path — continue to next middleware or SPA fallback
+  return new Response(null, { status: 404 });
 }
-
-export const config = {
-  matcher: ['/js/script.js', '/api/event'],
-};
