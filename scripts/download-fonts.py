@@ -18,6 +18,11 @@ FONTS = [
         "woff2_name": "Archivo.woff2",
     },
     {
+        "family": "geist",
+        "ttf_name": "Geist%5Bwght%5D.ttf",
+        "woff2_name": "Geist.woff2",
+    },
+    {
         "family": "jetbrainsmono",
         "ttf_name": "JetBrainsMono%5Bwght%5D.ttf",
         "woff2_name": "JetBrainsMono.woff2",

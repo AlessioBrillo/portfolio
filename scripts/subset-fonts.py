@@ -74,7 +74,7 @@ FONTS = [
         'family': 'Geist Sans',
         'source_file': 'Geist.woff2',
         'output_name': 'Geist.woff2',
-        'license_url': 'https://raw.githubusercontent.com/googlefonts/geist/main/OFL.txt',
+        'license_url': 'https://raw.githubusercontent.com/google/fonts/main/ofl/geist/OFL.txt',
         'license_name': 'Geist.OFL.txt',
         'font_face': {
             'family': 'Geist Sans',
