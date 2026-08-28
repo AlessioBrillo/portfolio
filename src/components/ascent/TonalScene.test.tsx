@@ -1,5 +1,5 @@
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
-import { describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi, beforeEach } from 'vitest';
 import type { ReactElement } from 'react';
 import { TonalScene } from '@/components/ascent/TonalScene';
 import { useSceneTone, useSceneToneSetter } from '@/components/ascent/tone-context';
@@ -10,6 +10,13 @@ import { TONE } from '@/lib/tone';
 vi.mock('@/components/ascent/useTonalEngine', () => ({
   useTonalEngine: vi.fn(),
 }));
+
+// useReducedMotion is mocked at top level; tests control its return value
+vi.mock('@/hooks/useReducedMotion', () => ({
+  useReducedMotion: vi.fn(() => false),
+}));
+
+import { useReducedMotion } from '@/hooks/useReducedMotion';
 
 function ToneProbe(): ReactElement {
   const { tone } = useSceneTone();
@@ -22,6 +29,9 @@ function ToneProbe(): ReactElement {
 }
 
 describe('TonalScene', () => {
+  beforeEach(() => {
+    vi.mocked(useReducedMotion).mockReturnValue(false);
+  });
   it('renders children', () => {
     render(
       <TonalScene>
@@ -109,9 +119,7 @@ describe('TonalScene', () => {
 
   it('renders scanlines hidden when prefers-reduced-motion is true', () => {
     // Mock prefersReducedMotion to return true
-    vi.mock('@/hooks/useReducedMotion', () => ({
-      useReducedMotion: () => true,
-    }));
+    vi.mocked(useReducedMotion).mockReturnValue(true);
 
     render(
       <TonalScene>
