@@ -54,11 +54,18 @@ Not part of the commit-time gate; run it after touching `TonalScene`,
 
 ## Current state
 
-Phase 4 is closed; Phase 5 (content) is in progress — the structure of every
-phase is live and validated; the author's content is the remaining input. The
-tonal engine (`useTonalEngine` + `TonalScene`) is implemented, unit-tested,
-and validated
-end-to-end by the Playwright harness — both crossfades (climb paper→night,
+**Phase 6 complete (code). Deploy waits on domain.**
+
+All five phases of structure and content are live and validated:
+
+- **Phase 0–2**: Foundations, Hero, tonal signature (climb paper→night, descent night→paper) — validated by Playwright E2E harness
+- **Phase 3**: Full ascent — all 8 bands, altitude gauge, scroll engine (GSAP ScrollTrigger)
+- **Phase 4**: Mosaic + case study routes (MDX, lazy, code-split, error-bounded) — 5 studies published
+- **Phase 5**: Content complete — 5 long-form studies (`transformer-italian-corpus`, `grokking-modular-addition`, `physics-of-flight`, `work-the-ascent`, `vds-licence`), experiences archive (`/archive`), photo pipeline (8 optimized derivatives), all `KNOWN_DEBT` resolved
+- **Phase 6**: Finishing gates live — bundle budget (ADR-0018), SPA fallback contract (ADR-0005), photo asset contract, CSP, HSTS, OG card, sitemap (domain-gated), Plausible proxy staged (ADR-0020), Lighthouse 100 a11y
+
+The tonal engine (`useTonalEngine` + `TonalScene`) is implemented, unit-tested,
+and validated end-to-end by the Playwright harness — both crossfades (climb paper→night,
 descent night→paper) render and hold under `prefers-reduced-motion`. Scene
 text follows the live backdrop tone (ADR-0011): `TonalScene` publishes the
 engine's flips through `tone-context`, and scene bands, eyebrows, and muted
@@ -69,16 +76,18 @@ document head via `useDocumentMeta`, returns to the exact scroll position via
 the layout's `ScrollRestoration`, and contains lazy-MDX failures behind a
 route-level error boundary so one broken study never crashes the app. Five
 long-form studies are published as real routes: `transformer-italian-corpus`
-(AI, carries a professional draft), `grokking-modular-addition` (AI),
-`physics-of-flight` (AI, the flight manual derived from first principles —
-its POH figures and logbook example remain tracked author markers under the
-`KNOWN_DEBT` ledger), `work-the-ascent` (work) and `vds-licence` (sky); the
+(AI), `grokking-modular-addition` (AI),
+`physics-of-flight` (AI, the flight manual derived from first principles),
+`work-the-ascent` (work) and `vds-licence` (sky); the
 mosaic index and its tiles are backed by a tested content module.
 Small-text contrast is AA-safe on every surface. All eight bands — Hero, Who,
 Mosaic, AI & Physics, Work & School, Sky & Sport, Experiences, and Contact —
 are implemented, content-driven sections backed by tested content modules;
 Contact is complete (email + LinkedIn CTAs sourced from `lib/site.ts`) and
-paints its own solid night outside `TonalScene`. What remains for Phase 5 is
-content, not structure: real photos, real copy, and the author data tracked
-in the `KNOWN_DEBT` ledger (the corpus study's run-log numbers, the physics
-study's POH figures and logbook example).
+paints its own solid night outside `TonalScene`. The experiences archive
+(`/archive`, ADR-0019) is a real route with reverse-chronological projection
+and automatic dedupe.
+
+**Only the domain remains.** All code, content, assets, and gates are ready.
+The domain-landing checklist lives in `docs/domain-runbook.md` — every gated
+step is already built, the runbook is only the order of operations.
