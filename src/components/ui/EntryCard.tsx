@@ -13,7 +13,7 @@ interface EntryCardProps {
   /** Optional deep link to a case-study route. */
   href?: string;
   /**
-   * `light` sits on paper-family surfaces, `dark` on night-family ones. When
+   * `light` sits on carta-family surfaces, `dark` on notte-family ones. When
    * omitted the card takes its tone from the live scene's *muted* tone
    * (ADR-0012, `softTone`) so its meta line and copy stay legible while the
    * backdrop blends; outside a scene it defaults to `light`. Only
@@ -23,17 +23,17 @@ interface EntryCardProps {
 }
 
 /**
- * Brutalist telemetry card: zero radius, visible structural border, ASCII corners,
+ * Telemetry card: zero radius, visible structural border, ASCII corners,
  * macro title, micro meta/description. Hover reveals accent edge.
  */
 const CARD_SURFACE: Record<CardTone, string> = {
-  light: 'border-ink/10 bg-paper/80',
-  dark: 'border-phosphor/10 bg-night/80',
+  light: 'border-hairline-light bg-carta/80',
+  dark: 'border-hairline-dark bg-notte/80',
 };
 
 const META_COLOR: Record<CardTone, string> = {
   light: 'text-ink-soft',
-  dark: 'text-phosphor-dim',
+  dark: 'text-panna-dim',
 };
 
 const CARD_BASE = cn(
@@ -48,14 +48,14 @@ const CARD_BASE = cn(
 /** A project or study card in the cruise bands; links when a route exists. */
 export function EntryCard({ title, line, meta, href, tone }: EntryCardProps): ReactElement {
   const sceneTone = useSceneTone();
-  const effectiveTone: CardTone = tone ?? (sceneTone.softTone === 'night' ? 'dark' : 'light');
+  const effectiveTone: CardTone = tone ?? (sceneTone.softTone === 'notte' ? 'dark' : 'light');
   const classes = cn(CARD_BASE, CARD_SURFACE[effectiveTone]);
 
   const content = (
     <>
       <div className="flex flex-col gap-3">
         <div className="flex items-baseline justify-between gap-4">
-          <h3 className="font-display text-[length:var(--text-h3)] font-black leading-[1.1] tracking-[-0.02em] text-balance text-current">
+          <h3 className="font-display text-[length:var(--text-h3)] font-medium leading-[var(--leading-snug)] tracking-[var(--tracking-tight-sm)] text-balance text-current">
             {title}
           </h3>
           {meta ? (

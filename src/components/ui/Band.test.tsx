@@ -29,7 +29,7 @@ describe('Band', () => {
     expect(screen.getByText('hello')).toBeInTheDocument();
   });
 
-  it('applies ink text colour on paper tone (default)', () => {
+  it('applies ink text colour on carta tone (default)', () => {
     render(
       <Band id={testId} ariaLabel="Test">
         content
@@ -38,31 +38,31 @@ describe('Band', () => {
     expect(screen.getByRole('region')).toHaveClass('text-ink');
   });
 
-  it('applies phosphor text colour on night tone', () => {
+  it('applies panna text colour on notte tone', () => {
     render(
-      <Band id={testId} ariaLabel="Test" tone="night">
+      <Band id={testId} ariaLabel="Test" tone="notte">
         content
       </Band>,
     );
-    expect(screen.getByRole('region')).toHaveClass('text-phosphor');
+    expect(screen.getByRole('region')).toHaveClass('text-panna');
   });
 
-  it('applies paper background with solid surface (default)', () => {
+  it('applies carta background with solid surface (default)', () => {
     render(
       <Band id={testId} ariaLabel="Test">
         content
       </Band>,
     );
-    expect(screen.getByRole('region')).toHaveClass('bg-paper');
+    expect(screen.getByRole('region')).toHaveClass('bg-carta');
   });
 
-  it('applies night background with solid surface and night tone', () => {
+  it('applies notte background with solid surface and notte tone', () => {
     render(
-      <Band id={testId} ariaLabel="Test" tone="night">
+      <Band id={testId} ariaLabel="Test" tone="notte">
         content
       </Band>,
     );
-    expect(screen.getByRole('region')).toHaveClass('bg-night');
+    expect(screen.getByRole('region')).toHaveClass('bg-notte');
   });
 
   it('applies transparent background with scene surface', () => {
@@ -94,15 +94,15 @@ describe('Band', () => {
     expect(screen.getByRole('region')).toHaveClass('text-ink');
   });
 
-  it('flips to phosphor text on a night scene tone', () => {
+  it('flips to panna text on a notte scene tone', () => {
     render(
-      <ToneProvider initialTone="night">
+      <ToneProvider initialTone="notte">
         <Band id={testId} ariaLabel="Test" surface="scene">
           content
         </Band>
       </ToneProvider>,
     );
-    expect(screen.getByRole('region')).toHaveClass('text-phosphor');
+    expect(screen.getByRole('region')).toHaveClass('text-panna');
   });
 
   it('reacts to scene tone changes published by the tonal engine', () => {
@@ -110,7 +110,7 @@ describe('Band', () => {
       const { tone } = useSceneTone();
       const { setTone } = useSceneToneSetter();
       return (
-        <button type="button" onClick={() => setTone('night')}>
+        <button type="button" onClick={() => setTone('notte')}>
           probe:{tone}
         </button>
       );
@@ -127,18 +127,18 @@ describe('Band', () => {
 
     expect(screen.getByRole('region')).toHaveClass('text-ink');
     fireEvent.click(screen.getByRole('button'));
-    expect(screen.getByRole('region')).toHaveClass('text-phosphor');
+    expect(screen.getByRole('region')).toHaveClass('text-panna');
   });
 
   it('keeps its own tone prop for solid surfaces, ignoring the scene tone', () => {
     render(
-      <ToneProvider initialTone="night">
-        <Band id={testId} ariaLabel="Test" tone="paper">
+      <ToneProvider initialTone="notte">
+        <Band id={testId} ariaLabel="Test" tone="carta">
           content
         </Band>
       </ToneProvider>,
     );
     expect(screen.getByRole('region')).toHaveClass('text-ink');
-    expect(screen.getByRole('region')).toHaveClass('bg-paper');
+    expect(screen.getByRole('region')).toHaveClass('bg-carta');
   });
 });

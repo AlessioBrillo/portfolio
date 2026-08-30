@@ -24,8 +24,8 @@ function ReadTone(): ReactElement {
     <button
       type="button"
       onClick={() => {
-        setTone('night');
-        setSoftTone('night');
+        setTone('notte');
+        setSoftTone('notte');
       }}
     >
       tone:{tone} soft:{softTone}
@@ -35,33 +35,33 @@ function ReadTone(): ReactElement {
 
 describe('SCENE_SOFT_TEXT', () => {
   it('maps each tone to an AA-soft text utility class (ADR-0011)', () => {
-    expect(SCENE_SOFT_TEXT.paper).toBe('text-ink-soft');
-    expect(SCENE_SOFT_TEXT.night).toBe('text-phosphor-dim');
-    expect(SCENE_SOFT_TEXT.paper).not.toBe(SCENE_SOFT_TEXT.night);
+    expect(SCENE_SOFT_TEXT.carta).toBe('text-ink-soft');
+    expect(SCENE_SOFT_TEXT.notte).toBe('text-panna-dim');
+    expect(SCENE_SOFT_TEXT.carta).not.toBe(SCENE_SOFT_TEXT.notte);
   });
 });
 
 describe('useSceneTone', () => {
-  it('falls back to the paper default when no scene is mounted', () => {
+  it('falls back to the carta default when no scene is mounted', () => {
     render(<Probe />);
-    expect(screen.getByText(/tone:paper/)).toBeInTheDocument();
-    expect(screen.getByText(/soft:paper/)).toBeInTheDocument();
+    expect(screen.getByText(/tone:carta/)).toBeInTheDocument();
+    expect(screen.getByText(/soft:carta/)).toBeInTheDocument();
   });
 
   it('exposes default no-op setters outside a scene', () => {
     render(<ReadTone />);
     fireEvent.click(screen.getByRole('button'));
-    expect(screen.getByText(/tone:paper/)).toBeInTheDocument();
-    expect(screen.getByText(/soft:paper/)).toBeInTheDocument();
+    expect(screen.getByText(/tone:carta/)).toBeInTheDocument();
+    expect(screen.getByText(/soft:carta/)).toBeInTheDocument();
   });
 
   it('reads the tones published by the nearest SceneToneContext', () => {
     render(
-      <SceneToneContext.Provider value={{ tone: 'night', softTone: 'paper' }}>
+      <SceneToneContext.Provider value={{ tone: 'notte', softTone: 'carta' }}>
         <Probe />
       </SceneToneContext.Provider>,
     );
-    expect(screen.getByText(/tone:night/)).toBeInTheDocument();
-    expect(screen.getByText(/soft:paper/)).toBeInTheDocument();
+    expect(screen.getByText(/tone:notte/)).toBeInTheDocument();
+    expect(screen.getByText(/soft:carta/)).toBeInTheDocument();
   });
 });

@@ -3,8 +3,8 @@
 Font Subsetting Pipeline (Production)
 
 Subsets existing variable fonts in public/fonts/ to portfolio's exact
-character set, creates Archivo Black variant, downloads OFL licenses,
-and updates typography.css with optimized @font-face declarations.
+character set, downloads OFL licenses, and updates typography.css with optimized
+@font-face declarations.
 
 Run: npm run fonts:subset
 Requires: Python + fonttools (pip install fonttools brotli)
@@ -47,26 +47,14 @@ UNICODE_RANGE_STR = 'U+0020-007E, U+00A0-00FF, U+0100-017F, U+0180-024F, U+2000-
 
 FONTS = [
     {
-        'family': 'Archivo',
-        'source_file': 'Archivo.woff2',
-        'output_name': 'Archivo.woff2',
-        'license_url': 'https://raw.githubusercontent.com/google/fonts/main/ofl/archivo/OFL.txt',
-        'license_name': 'Archivo.OFL.txt',
+        'family': 'Fraunces',
+        'source_file': 'Fraunces.woff2',
+        'output_name': 'Fraunces.woff2',
+        'license_url': 'https://raw.githubusercontent.com/google/fonts/main/ofl/fraunces/OFL.txt',
+        'license_name': 'Fraunces.OFL.txt',
         'font_face': {
-            'family': 'Archivo',
-            'weight': '400 900',
-            'stretch': '75% 125%',
-        },
-    },
-    {
-        'family': 'Archivo Black',
-        'source_file': 'Archivo.woff2',
-        'output_name': 'Archivo-Black.woff2',
-        'license_url': 'https://raw.githubusercontent.com/google/fonts/main/ofl/archivo/OFL.txt',
-        'license_name': 'Archivo-Black.OFL.txt',
-        'font_face': {
-            'family': 'Archivo Black',
-            'weight': '900',
+            'family': 'Fraunces',
+            'weight': '100 900',
             'stretch': '75% 125%',
         },
     },
@@ -83,13 +71,13 @@ FONTS = [
         },
     },
     {
-        'family': 'JetBrains Mono',
-        'source_file': 'JetBrainsMono.woff2',
-        'output_name': 'JetBrainsMono.woff2',
-        'license_url': 'https://raw.githubusercontent.com/JetBrains/JetBrainsMono/master/OFL.txt',
-        'license_name': 'JetBrainsMono.OFL.txt',
+        'family': 'Geist Mono',
+        'source_file': 'GeistMono.woff2',
+        'output_name': 'GeistMono.woff2',
+        'license_url': 'https://raw.githubusercontent.com/google/fonts/main/ofl/geistmono/OFL.txt',
+        'license_name': 'GeistMono.OFL.txt',
         'font_face': {
-            'family': 'JetBrains Mono',
+            'family': 'Geist Mono',
             'weight': '100 800',
             'stretch': '100%',
         },

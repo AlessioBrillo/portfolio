@@ -47,19 +47,19 @@ describe('EntryCard', () => {
     expect(screen.getByText(base.line)).toHaveClass('text-ink-soft');
   });
 
-  it('defaults to the dark copy tone when the scene is on night (ADR-0011)', () => {
+  it('defaults to the dark copy tone when the scene is on notte (ADR-0011)', () => {
     render(
-      <ToneProvider initialTone="night">
+      <ToneProvider initialTone="notte">
         <MemoryRouter>
           <EntryCard {...base} meta="2026" />
         </MemoryRouter>
       </ToneProvider>,
     );
-    expect(screen.getByText(base.line)).toHaveClass('text-phosphor-dim');
+    expect(screen.getByText(base.line)).toHaveClass('text-panna-dim');
   });
 
   it('lets an explicit tone override the scene tone', () => {
     renderWithRouter(<EntryCard {...base} tone="dark" />);
-    expect(screen.getByText(base.line)).toHaveClass('text-phosphor-dim');
+    expect(screen.getByText(base.line)).toHaveClass('text-panna-dim');
   });
 });

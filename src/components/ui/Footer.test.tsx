@@ -18,9 +18,9 @@ describe('Footer', () => {
     vi.useRealTimers();
   });
 
-  it('sits on the night surface with phosphor text', () => {
+  it('sits on the notte surface with panna text', () => {
     render(<Footer />);
-    expect(screen.getByRole('contentinfo')).toHaveClass('bg-night', 'text-phosphor');
+    expect(screen.getByRole('contentinfo')).toHaveClass('bg-notte', 'text-panna');
   });
 
   it('links the public repository in a new tab with no referrer', () => {

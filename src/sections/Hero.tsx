@@ -27,15 +27,14 @@ const rise: Variants = {
  * in docs/content/sections.md.
  *
  * Contrast (measured): the eyebrow defaults to `ink-soft` (8.3:1) and the
- * manifesto is ink (~13:1) on paper — both clear AA. `muted-light` (3.3:1) and
- * translucent ink (~2.8-3.9:1) fail AA as small text on paper and are avoided.
+ * manifesto is ink (~13:1) on carta — both clear AA.
  */
-export function Hero({ surface = 'solid' }: HeroProps): ReactElement {
+export function Hero({ surface = 'scene' }: HeroProps): ReactElement {
   const prefersReducedMotion = useReducedMotion();
   const motionState = prefersReducedMotion ? 'shown' : undefined;
 
   return (
-    <Band id="hero" ariaLabel="Introduction" tone="paper" surface={surface}>
+    <Band id="hero" ariaLabel="Introduction" tone="carta" surface={surface}>
       <motion.div
         className="flex min-h-[80vh] flex-col justify-center gap-8"
         variants={container}
@@ -48,10 +47,10 @@ export function Hero({ surface = 'solid' }: HeroProps): ReactElement {
         </motion.p>
 
         <motion.h1
-          className="font-display text-[length:var(--text-macro)] font-black leading-[var(--leading-none)] tracking-[var(--tracking-tight)] text-balance uppercase"
+          className="font-display text-[length:var(--text-macro)] font-medium leading-[var(--leading-tight)] tracking-[var(--tracking-tight)] text-balance"
           variants={rise}
         >
-          {SITE.name.toUpperCase()}
+          {SITE.name}
         </motion.h1>
 
         <motion.p

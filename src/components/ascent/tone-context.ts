@@ -15,10 +15,10 @@ export interface SceneToneReadonly {
   softTone: ToneName;
 }
 
-/** Defaults to `paper` so scene bands outside a scene degrade to the ground tone. */
+/** Defaults to `carta` so scene bands outside a scene degrade to the ground tone. */
 export const SceneToneContext = createContext<SceneToneReadonly>({
-  tone: 'paper',
-  softTone: 'paper',
+  tone: 'carta',
+  softTone: 'carta',
 });
 
 /**
@@ -40,17 +40,17 @@ export const SceneToneSetterContext = createContext<SceneToneSetter>({
 
 /**
  * The muted-text colour class for each scene tone (ADR-0011): `ink-soft`
- * (8.3:1 on paper) on daylight, `phosphor-dim` (4.8:1 on night) after the
+ * (8.3:1 on carta) on daylight, `panna-dim` (4.8:1 on notte) after the
  * climb. Text that reads "secondary" while the backdrop blends uses this map
  * instead of a hardcoded class, so it never sits in an ink-family colour on a
- * night backdrop.
+ * notte backdrop.
  */
 export const SCENE_SOFT_TEXT: Record<ToneName, string> = {
-  paper: 'text-ink-soft',
-  night: 'text-phosphor-dim',
+  carta: 'text-ink-soft',
+  notte: 'text-panna-dim',
 };
 
-/** Reads the live scene tone (read-only); falls back to `paper` when no `TonalScene` is mounted. */
+/** Reads the live scene tone (read-only); falls back to `carta` when no `TonalScene` is mounted. */
 export function useSceneTone(): SceneToneReadonly {
   return useContext(SceneToneContext);
 }

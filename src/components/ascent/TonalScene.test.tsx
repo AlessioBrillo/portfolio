@@ -22,7 +22,7 @@ function ToneProbe(): ReactElement {
   const { tone } = useSceneTone();
   const { setTone } = useSceneToneSetter();
   return (
-    <button type="button" onClick={() => setTone('night')}>
+    <button type="button" onClick={() => setTone('notte')}>
       tone:{tone}
     </button>
   );
@@ -41,7 +41,7 @@ describe('TonalScene', () => {
     expect(screen.getByText('inside the scene')).toBeInTheDocument();
   });
 
-  it('renders a fixed, decorative backdrop seeded on the paper tone', () => {
+  it('renders a fixed, decorative backdrop seeded on the carta tone', () => {
     const { container } = render(
       <TonalScene>
         <span>content</span>
@@ -50,7 +50,7 @@ describe('TonalScene', () => {
     const backdrop = container.querySelector('.pointer-events-none.fixed.inset-0.-z-10');
     expect(backdrop).toBeInTheDocument();
     expect(backdrop).toHaveAttribute('aria-hidden');
-    expect(backdrop).toHaveStyle({ backgroundColor: TONE.paper });
+    expect(backdrop).toHaveStyle({ backgroundColor: TONE.carta });
   });
 
   it('paints the backdrop below all page content (negative z, no wrapper stacking context)', () => {
@@ -87,14 +87,14 @@ describe('TonalScene', () => {
       </TonalScene>,
     );
 
-    expect(screen.getByRole('button')).toHaveTextContent('tone:paper');
+    expect(screen.getByRole('button')).toHaveTextContent('tone:carta');
     fireEvent.click(screen.getByRole('button'));
-    expect(screen.getByRole('button')).toHaveTextContent('tone:night');
+    expect(screen.getByRole('button')).toHaveTextContent('tone:notte');
 
     // React owns the seed colour only; the engine paints the backdrop after
     // mount, so a state flip must never snap it back to a React-driven value.
     const backdrop = container.querySelector('.pointer-events-none.fixed.inset-0.-z-10');
-    expect(backdrop).toHaveStyle({ backgroundColor: TONE.paper });
+    expect(backdrop).toHaveStyle({ backgroundColor: TONE.carta });
   });
 
   it('handles tonal engine error event and sets error state', async () => {

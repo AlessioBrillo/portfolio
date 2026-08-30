@@ -7,7 +7,7 @@ describe('SectionHeader', () => {
     render(<SectionHeader eyebrow="03 · AI & Physics" title="Where the thinking shows" />);
     expect(screen.getByText('[03 · AI & Physics]')).toBeInTheDocument();
     expect(
-      screen.getByRole('heading', { level: 2, name: 'WHERE THE THINKING SHOWS' }),
+      screen.getByRole('heading', { level: 2, name: 'Where the thinking shows' }),
     ).toBeInTheDocument();
   });
 
@@ -28,6 +28,6 @@ describe('SectionHeader', () => {
 
   it('passes the dark tone to the eyebrow', () => {
     render(<SectionHeader eyebrow="Cruise" title="Night" tone="dark" />);
-    expect(screen.getByText('[Cruise]')).toHaveClass('text-phosphor-dim');
+    expect(screen.getByText('[Cruise]')).toHaveClass('text-panna-dim');
   });
 });

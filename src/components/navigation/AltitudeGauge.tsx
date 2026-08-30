@@ -5,14 +5,14 @@ import { useCurrentSection } from '@/hooks/useCurrentSection';
 import { useReducedMotion } from '@/hooks/useReducedMotion';
 import { useAltitudeProfile } from '@/hooks/useAltitudeProfile';
 import { useScrollProgress } from '@/hooks/useScrollProgress';
-import { isNightSection } from '@/lib/section-tone';
+import { isNotteSection } from '@/lib/section-tone';
 import { cn } from '@/lib/utils';
 import type { SectionId } from '@/types/domain';
 
 /**
- * Brutalist flight instrument: vertical gauge with structural track, mono labels,
+ * Flight instrument: vertical gauge with structural track, mono labels,
  * accent position marker. Mobile: top progress bar with visible grid ticks.
- * Uses ADR-0021/0022 token system via sceneTone context.
+ * Uses design tokens via sceneTone context.
  */
 const TARGETS: readonly SectionId[] = ALTITUDE_STOPS.map((s) => s.target);
 
@@ -23,13 +23,13 @@ export function AltitudeGauge(): ReactElement {
   const progress = useScrollProgress();
   const { tone: sceneTone } = useSceneTone();
   const activeIndex = resolveGaugeStop(currentSection, TARGETS, SECTION_ORDER);
-  const inDark = isNightSection(currentSection) || sceneTone === 'night';
-  const trackColor = inDark ? 'bg-phosphor/10' : 'bg-ink/10';
-  const labelColor = inDark ? 'text-phosphor-dim' : 'text-ink-soft';
-  const labelHover = inDark ? 'hover:text-phosphor' : 'hover:text-ink';
+  const inDark = isNotteSection(currentSection) || sceneTone === 'notte';
+  const trackColor = inDark ? 'bg-panna/10' : 'bg-ink/10';
+  const labelColor = inDark ? 'text-panna-dim' : 'text-ink-soft';
+  const labelHover = inDark ? 'hover:text-panna' : 'hover:text-ink';
   const activeColor = 'text-accent';
 
-  const borderClass = inDark ? 'border-phosphor/10' : 'border-ink/10';
+  const borderClass = inDark ? 'border-panna/10' : 'border-ink/10';
 
   const goTo = (sectionId: string): void => {
     document.getElementById(sectionId)?.scrollIntoView({
@@ -72,7 +72,7 @@ export function AltitudeGauge(): ReactElement {
           <div className="flex flex-col items-end gap-6">
             {ALTITUDE_STOPS.map((stop, index) => (
               <button
-                key={stop.band}
+                key={stop.target}
                 type="button"
                 onClick={() => goTo(stop.target)}
                 aria-current={index === activeIndex ? 'step' : undefined}

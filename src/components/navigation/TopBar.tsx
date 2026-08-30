@@ -3,7 +3,7 @@ import type { ReactElement } from 'react';
 import { useSceneTone } from '@/components/ascent/tone-context';
 import { useCurrentSection } from '@/hooks/useCurrentSection';
 import { useReducedMotion } from '@/hooks/useReducedMotion';
-import { isNightSection } from '@/lib/section-tone';
+import { isNotteSection } from '@/lib/section-tone';
 import { cn } from '@/lib/utils';
 
 /** Minimum scroll delta (px) between ticks before the bar hides/shows. */
@@ -14,16 +14,16 @@ const DIRECTION_THRESHOLD_PX = 8;
  *
  * The bar's dark/light mode follows the *live* scene tone (ADR-0011) so the
  * chrome stays on the correct tone during the tonal blends, with explicit
- * solid-night sections (Contact) forcing night even when the scene reads
- * paper — `isNightSection` covers those, the scene tone covers everything
- * else. Outside a `TonalScene` the context defaults to paper, so the bar
+ * solid-notte sections (Contact) forcing notte even when the scene reads
+ * carta — `isNotteSection` covers those, the scene tone covers everything
+ * else. Outside a `TonalScene` the context defaults to carta, so the bar
  * degrades to the ground tone on static pages.
  *
  * Hides on scroll-down and reveals on scroll-up to preserve immersion
  * (ADR-0006); under reduced motion it stays permanently visible (ADR-0009).
  * Movement is a compositor-friendly CSS transform, no animation library.
- * Uses ADR-0021/0022 token system: --color-ink, --color-phosphor, --color-paper,
- * --color-night, --color-hairline-light, --color-hairline-dark.
+ * Uses design tokens: --color-ink, --color-panna, --color-carta, --color-notte,
+ * --color-hairline-light, --color-hairline-dark.
  */
 export function TopBar(): ReactElement {
   const currentSection = useCurrentSection();
@@ -51,12 +51,12 @@ export function TopBar(): ReactElement {
     };
   }, []);
 
-  const inDark = isNightSection(currentSection) || sceneTone === 'night';
+  const inDark = isNotteSection(currentSection) || sceneTone === 'notte';
   const visible = prefersReducedMotion || !hidden;
 
-  const borderClass = inDark ? 'border-phosphor/10' : 'border-ink/10';
-  const bgClass = inDark ? 'bg-night/70' : 'bg-paper/70';
-  const textClass = inDark ? 'text-phosphor' : 'text-ink';
+  const borderClass = inDark ? 'border-panna/10' : 'border-ink/10';
+  const bgClass = inDark ? 'bg-notte/70' : 'bg-carta/70';
+  const textClass = inDark ? 'text-panna' : 'text-ink';
 
   return (
     <header

@@ -10,14 +10,14 @@ interface MosaicProps {
 }
 
 /** 02 — The mosaic: the visual index of the puzzle. Each tile opens a case study. */
-export function Mosaic({ surface = 'solid' }: MosaicProps): ReactElement {
+export function Mosaic({ surface = 'scene' }: MosaicProps): ReactElement {
   const entries = getMosaicEntries();
 
   return (
-    <Band id="mosaic" ariaLabel="The mosaic" tone="paper" surface={surface}>
+    <Band id="mosaic" ariaLabel="The mosaic" tone="carta" surface={surface}>
       <SectionHeader
         eyebrow="SECTOR 02 · MOSAIC INDEX · 6 PIECES"
-        title="PUZZLE INDEX: PIECES UNDER ONE ROOF"
+        title="Puzzle Index: Pieces Under One Roof"
       />
       <ul className="mt-12 grid list-none p-0 gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 lg:grid-rows-[auto_auto_auto_auto_auto_auto]">
         {entries.map((entry, index) => (

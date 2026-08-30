@@ -1,15 +1,15 @@
 import type { ReactElement } from 'react';
 import { SITE } from '@/lib/site';
 
-/** Minimal footer on the night band: name, one line, essential links, year. */
+/** Minimal footer on the notte band: name, one line, essential links, year. */
 export function Footer(): ReactElement {
   const year = new Date().getFullYear();
 
   return (
-    <footer className="bg-night text-phosphor">
+    <footer className="bg-notte text-panna">
       <div className="mx-auto flex max-w-page flex-col gap-2 px-6 py-12">
         <span className="font-display text-lg">{SITE.name}</span>
-        <span className="text-sm text-phosphor-dim">{SITE.tagline}</span>
+        <span className="text-sm text-panna-dim">{SITE.tagline}</span>
         <nav
           aria-label="External links"
           className="mt-4 flex flex-wrap items-center gap-x-6 gap-y-2"
@@ -18,18 +18,18 @@ export function Footer(): ReactElement {
             href={SITE.githubUrl}
             target="_blank"
             rel="noreferrer"
-            className="font-mono text-xs uppercase tracking-widest text-phosphor-dim no-underline transition-colors hover:text-phosphor"
+            className="font-mono text-xs uppercase tracking-widest text-panna-dim no-underline transition-colors hover:text-panna"
           >
             GitHub
           </a>
           <a
             href={SITE.resumeUrl}
-            className="font-mono text-xs uppercase tracking-widest text-phosphor-dim no-underline transition-colors hover:text-phosphor"
+            className="font-mono text-xs uppercase tracking-widest text-panna-dim no-underline transition-colors hover:text-panna"
           >
             Resume &mdash; on request
           </a>
         </nav>
-        <span className="mt-4 font-mono text-xs uppercase tracking-widest text-phosphor-dim">
+        <span className="mt-4 font-mono text-xs uppercase tracking-widest text-panna-dim">
           &copy; {year}
         </span>
       </div>

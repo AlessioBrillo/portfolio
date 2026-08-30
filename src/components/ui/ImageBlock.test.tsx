@@ -86,12 +86,12 @@ describe('ImageBlock', () => {
     expect(container.querySelector('figcaption')).not.toBeInTheDocument();
   });
 
-  it('uses the night muted tone for captions when the scene is on night', () => {
+  it('uses the notte muted tone for captions when the scene is on notte', () => {
     render(
-      <ToneProvider initialTone="night">
+      <ToneProvider initialTone="notte">
         <ImageBlock alt="Photo" caption="A night view" />
       </ToneProvider>,
     );
-    expect(screen.getByText('A night view')).toHaveClass('text-phosphor-dim');
+    expect(screen.getByText('A night view')).toHaveClass('text-panna-dim');
   });
 });

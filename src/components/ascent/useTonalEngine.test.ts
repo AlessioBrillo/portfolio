@@ -8,7 +8,7 @@ import {
   SOFT_TEXT_TONE,
   TEXT_TONE,
   TONAL_TRANSITIONS,
-  TONE,
+  BACKDROP_TONES,
   type ToneName,
 } from '@/lib/tone';
 
@@ -117,9 +117,9 @@ describe('useTonalEngine', () => {
       if (!climb) throw new Error('expected a climb transition');
       expect(mocks.fromTo).toHaveBeenCalledWith(
         expect.any(HTMLElement),
-        { backgroundColor: TONE[climb.from] },
+        { backgroundColor: BACKDROP_TONES[climb.from] },
         expect.objectContaining({
-          backgroundColor: TONE[climb.to],
+          backgroundColor: BACKDROP_TONES[climb.to],
           immediateRender: false,
           scrollTrigger: expect.objectContaining({
             start: climb.start,
@@ -163,11 +163,11 @@ describe('useTonalEngine', () => {
     });
 
     it('anchors fades to the explicit data-tone-trigger marker when present', async () => {
-      const section = document.getElementById('ai-physics');
+      const section = document.getElementById('who');
       const marker = document.createElement('h2');
       marker.setAttribute('data-tone-trigger', '');
       marker.textContent = 'Trigger heading';
-      if (!section) throw new Error('expected the ai-physics section');
+      if (!section) throw new Error('expected the who section');
       section.appendChild(marker);
 
       renderEngine();
@@ -178,8 +178,8 @@ describe('useTonalEngine', () => {
     });
 
     it('falls back to the heading query then the section when no marker exists', async () => {
-      const section = document.getElementById('sky-sport');
-      if (!section) throw new Error('expected the sky-sport section');
+      const section = document.getElementById('mosaic');
+      if (!section) throw new Error('expected the mosaic section');
       const h3 = document.createElement('h3');
       h3.textContent = 'Section title';
       section.appendChild(h3);
@@ -187,8 +187,8 @@ describe('useTonalEngine', () => {
       renderEngine();
       await waitFor(() => expect(mocks.fromTo).toHaveBeenCalled());
 
-      const descent = mocks.fromTo.mock.calls[1]?.[2] as FromToConfig;
-      expect(descent.scrollTrigger.trigger).toBe(section);
+      const secondTransition = mocks.fromTo.mock.calls[1]?.[2] as FromToConfig;
+      expect(secondTransition.scrollTrigger.trigger).toBe(section);
 
       h3.remove();
     });
@@ -355,12 +355,16 @@ describe('useTonalEngine', () => {
       expect(config.start).toBe(flipLineFor(TEXT_TONE, descent).position);
 
       config.onEnter();
-      expect(mocks.set).toHaveBeenCalledWith(ref.current, { backgroundColor: TONE[descent.to] });
+      expect(mocks.set).toHaveBeenCalledWith(ref.current, {
+        backgroundColor: BACKDROP_TONES[descent.to],
+      });
       expect(onToneChange).toHaveBeenLastCalledWith(descent.to);
       expect(onSoftToneChange).toHaveBeenLastCalledWith(descent.to);
 
       config.onLeaveBack();
-      expect(mocks.set).toHaveBeenCalledWith(ref.current, { backgroundColor: TONE[descent.from] });
+      expect(mocks.set).toHaveBeenCalledWith(ref.current, {
+        backgroundColor: BACKDROP_TONES[descent.from],
+      });
       expect(onToneChange).toHaveBeenLastCalledWith(descent.from);
       expect(onSoftToneChange).toHaveBeenLastCalledWith(descent.from);
     });

@@ -11,8 +11,8 @@ function ReadTone(): ReactElement {
     <button
       type="button"
       onClick={() => {
-        setTone('night');
-        setSoftTone('night');
+        setTone('notte');
+        setSoftTone('notte');
       }}
     >
       tone:{tone} soft:{softTone}
@@ -21,31 +21,31 @@ function ReadTone(): ReactElement {
 }
 
 describe('ToneProvider', () => {
-  it('seeds children with the initial tone and defaults to paper', () => {
+  it('seeds children with the initial tone and defaults to carta', () => {
     render(
       <ToneProvider>
         <ReadTone />
       </ToneProvider>,
     );
-    expect(screen.getByRole('button')).toHaveTextContent('tone:paper soft:paper');
+    expect(screen.getByRole('button')).toHaveTextContent('tone:carta soft:carta');
   });
 
   it('honours an explicit initial tone', () => {
     render(
-      <ToneProvider initialTone="night">
+      <ToneProvider initialTone="notte">
         <ReadTone />
       </ToneProvider>,
     );
-    expect(screen.getByRole('button')).toHaveTextContent('tone:night soft:night');
+    expect(screen.getByRole('button')).toHaveTextContent('tone:notte soft:notte');
   });
 
   it('seeds the muted tone independently when requested', () => {
     render(
-      <ToneProvider initialTone="night" initialSoftTone="paper">
+      <ToneProvider initialTone="notte" initialSoftTone="carta">
         <ReadTone />
       </ToneProvider>,
     );
-    expect(screen.getByRole('button')).toHaveTextContent('tone:night soft:paper');
+    expect(screen.getByRole('button')).toHaveTextContent('tone:notte soft:carta');
   });
 
   it('publishes tone changes to all descendants', () => {
@@ -58,7 +58,7 @@ describe('ToneProvider', () => {
     screen.getAllByRole('button').forEach((button) => fireEvent.click(button));
     expect(screen.getAllByRole('button')).toHaveLength(2);
     for (const button of screen.getAllByRole('button')) {
-      expect(button).toHaveTextContent('tone:night soft:night');
+      expect(button).toHaveTextContent('tone:notte soft:notte');
     }
   });
 });

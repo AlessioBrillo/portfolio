@@ -8,9 +8,12 @@ import type { AltitudeStop, SectionId } from '@/types/domain';
  */
 export const ALTITUDE_STOPS: readonly AltitudeStop[] = [
   { band: 'ground', label: 'GROUND', target: 'hero' },
-  { band: 'climb', label: 'CLIMB', target: 'mosaic' },
+  { band: 'climb', label: 'CLIMB', target: 'who' },
+  { band: 'climb', label: 'MOSAIC', target: 'mosaic' },
   { band: 'cruise', label: 'CRUISE', target: 'ai-physics' },
+  { band: 'cruise', label: 'OPS LOG', target: 'work-school' },
   { band: 'descent', label: 'DESCENT', target: 'sky-sport' },
+  { band: 'descent', label: 'ARCHIVE', target: 'experiences' },
   { band: 'night', label: 'NIGHT', target: 'contact' },
 ];
 

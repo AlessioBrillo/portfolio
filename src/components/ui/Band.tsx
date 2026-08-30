@@ -3,7 +3,7 @@ import type { SectionId } from '@/types/domain';
 import { useSceneTone } from '@/components/ascent/tone-context';
 import { cn } from '@/lib/utils';
 
-type Tone = 'paper' | 'night';
+type Tone = 'carta' | 'notte';
 
 /**
  * `solid` paints its own background tone (the default, used by bands outside an
@@ -28,23 +28,22 @@ interface BandProps {
  * on scroll (ADR-0003, ADR-0010), and reads the live scene tone for its text
  * colour (ADR-0011).
  *
- * Brutalist: visible compartmentalization, zero radius, structural hairlines.
- * Uses ADR-0021/0022 token system: --color-ink, --color-phosphor, --color-paper,
- * --color-night, --color-hairline-light, --color-hairline-dark.
+ * Uses design tokens: --color-ink, --color-panna, --color-carta, --color-notte,
+ * --color-hairline-light, --color-hairline-dark.
  */
 export function Band({
   id,
   ariaLabel,
   children,
-  tone = 'paper',
+  tone = 'carta',
   surface = 'solid',
 }: BandProps): ReactElement {
   const sceneTone = useSceneTone();
   const effectiveTone = surface === 'scene' ? sceneTone.tone : tone;
-  const isNight = effectiveTone === 'night';
-  const text = isNight ? 'text-phosphor' : 'text-ink';
-  const background = surface === 'scene' ? 'bg-transparent' : isNight ? 'bg-night' : 'bg-paper';
-  const hairline = isNight ? 'border-phosphor/10' : 'border-ink/10';
+  const isNotte = effectiveTone === 'notte';
+  const text = isNotte ? 'text-panna' : 'text-ink';
+  const background = surface === 'scene' ? 'bg-transparent' : isNotte ? 'bg-notte' : 'bg-carta';
+  const hairline = isNotte ? 'border-hairline-dark' : 'border-hairline-light';
 
   return (
     <section

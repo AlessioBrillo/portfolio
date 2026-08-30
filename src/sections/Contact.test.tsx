@@ -8,19 +8,19 @@ describe('Contact', () => {
     render(<Contact />);
     expect(screen.getByRole('region', { name: /contact/i })).toBeInTheDocument();
     expect(
-      screen.getByRole('heading', { name: 'LANDING PROTOCOL: ESTABLISH COMMUNICATIONS' }),
+      screen.getByRole('heading', { name: 'Landing Protocol: Establish Communications' }),
     ).toBeInTheDocument();
   });
 
   it('links the primary CTA to the public email address', () => {
     render(<Contact />);
-    const emailLink = screen.getByRole('link', { name: 'EMAIL ME' });
+    const emailLink = screen.getByRole('link', { name: 'Email Me' });
     expect(emailLink).toHaveAttribute('href', `mailto:${SITE.email}`);
   });
 
   it('links the ghost link to the LinkedIn profile in a new tab', () => {
     render(<Contact />);
-    const linkedin = screen.getByRole('link', { name: 'LINKEDIN' });
+    const linkedin = screen.getByRole('link', { name: 'LinkedIn' });
     expect(linkedin).toHaveAttribute('href', SITE.linkedinUrl);
     expect(linkedin).toHaveAttribute('target', '_blank');
   });

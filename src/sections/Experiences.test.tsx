@@ -32,22 +32,22 @@ describe('Experiences', () => {
 
   it('links "dig deeper" to the archive route (ADR-0019)', () => {
     renderExperiences();
-    expect(screen.getByRole('link', { name: 'DIG DEEPER — THE ARCHIVE' })).toHaveAttribute(
+    expect(screen.getByRole('link', { name: 'Dig Deeper — The Archive' })).toHaveAttribute(
       'href',
       '/archive',
     );
   });
 
-  it('uses the night muted tone for stories when the scene is on night', () => {
+  it('uses the notte muted tone for stories when the scene is on notte', () => {
     render(
       <MemoryRouter>
-        <ToneProvider initialTone="night">
+        <ToneProvider initialTone="notte">
           <Experiences surface="scene" />
         </ToneProvider>
       </MemoryRouter>,
     );
     const entry = getExperienceEntries()[0];
     if (!entry) return;
-    expect(screen.getByText(entry.line)).toHaveClass('text-phosphor-dim');
+    expect(screen.getByText(entry.line)).toHaveClass('text-panna-dim');
   });
 });

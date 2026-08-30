@@ -10,14 +10,14 @@ interface ExperiencesProps {
 }
 
 /** 06 — Curated storytelling; "dig deeper" opens the chronological archive (ADR-0019). */
-export function Experiences({ surface = 'solid' }: ExperiencesProps): ReactElement {
+export function Experiences({ surface = 'scene' }: ExperiencesProps): ReactElement {
   const { softTone } = useSceneTone();
   return (
-    <Band id="experiences" ariaLabel="Experiences" tone="paper" surface={surface}>
+    <Band id="experiences" ariaLabel="Experiences" tone="carta" surface={surface}>
       <SectionHeader
         eyebrow="SECTOR 06 · ARCHIVE ACCESS · N RECORDS"
-        title="ARCHIVE: CURATED STORYTELLING"
-        intro="WHAT I CHOOSE TO SHOW, TOLD SHORT — THE ARCHIVE HOLDS THE FULL RECORD."
+        title="Archive: Curated Storytelling"
+        intro="What I choose to show, told short — the archive holds the full record."
       />
       <ol className="mt-12 flex list-none flex-col divide-y divide-ink/10 p-0">
         {getExperienceEntries().map((entry) => (
@@ -30,7 +30,7 @@ export function Experiences({ surface = 'solid' }: ExperiencesProps): ReactEleme
               </span>
             ) : null}
             <div className="flex flex-col gap-1">
-              <h3 className="font-display text-[length:var(--text-h3)] font-black leading-[1.1] tracking-[-0.02em] text-balance">
+              <h3 className="font-display text-[length:var(--text-h3)] font-medium leading-[var(--leading-snug)] tracking-[var(--tracking-tight-sm)] text-balance">
                 {entry.title}
               </h3>
               <p
@@ -46,7 +46,7 @@ export function Experiences({ surface = 'solid' }: ExperiencesProps): ReactEleme
         to="/archive"
         className="group inline-flex items-center gap-1 mt-10 font-mono text-[length:var(--text-micro)] uppercase tracking-[var(--tracking-wide)] text-current no-underline hover:text-accent active:scale-[0.98] before:content-['»»»_'] before:opacity-0 before:transition-opacity before:duration-[var(--duration-fast)] hover:before:opacity-100"
       >
-        DIG DEEPER — THE ARCHIVE
+        Dig Deeper — The Archive
       </Link>
     </Band>
   );

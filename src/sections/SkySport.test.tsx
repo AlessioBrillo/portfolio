@@ -28,14 +28,14 @@ describe('SkySport', () => {
     }
   });
 
-  it('uses the night muted tone for entry lines when the scene is on night', () => {
+  it('uses the notte muted tone for entry lines when the scene is on notte', () => {
     render(
-      <ToneProvider initialTone="night">
+      <ToneProvider initialTone="notte">
         <SkySport surface="scene" />
       </ToneProvider>,
     );
     const entry = getSportEntries()[0];
     if (!entry) return;
-    expect(screen.getByText(entry.line)).toHaveClass('text-phosphor-dim');
+    expect(screen.getByText(entry.line)).toHaveClass('text-panna-dim');
   });
 });

@@ -13,9 +13,9 @@ GITHUB_RAW_BASE = "https://github.com/google/fonts/raw/main/ofl"
 
 FONTS = [
     {
-        "family": "archivo",
-        "ttf_name": "Archivo%5Bwdth%2Cwght%5D.ttf",
-        "woff2_name": "Archivo.woff2",
+        "family": "fraunces",
+        "ttf_name": "Fraunces%5BSOFT%2CWONK%2Copsz%2Cwght%5D.ttf",
+        "woff2_name": "Fraunces.woff2",
     },
     {
         "family": "geist",
@@ -23,9 +23,9 @@ FONTS = [
         "woff2_name": "Geist.woff2",
     },
     {
-        "family": "jetbrainsmono",
-        "ttf_name": "JetBrainsMono%5Bwght%5D.ttf",
-        "woff2_name": "JetBrainsMono.woff2",
+        "family": "geistmono",
+        "ttf_name": "GeistMono%5Bwght%5D.ttf",
+        "woff2_name": "GeistMono.woff2",
     },
 ]
 
@@ -51,14 +51,12 @@ def download_font(font):
     
     print(f"[fonts] Converting {font['ttf_name']} to WOFF2...")
     try:
-        # compress expects input file path and output file path
         compress(dest_ttf, dest_woff2)
         print(f"[fonts] OK {font['woff2_name']} created")
     except Exception as e:
         print(f"[fonts] Failed to convert {font['ttf_name']}: {e}")
         sys.exit(1)
     finally:
-        # Clean up TTF
         if os.path.exists(dest_ttf):
             os.remove(dest_ttf)
 

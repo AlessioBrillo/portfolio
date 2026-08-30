@@ -4,7 +4,7 @@ import {
   flipLineFor,
   SOFT_TEXT_TONE,
   TEXT_TONE,
-  TONE,
+  BACKDROP_TONES,
   TONAL_TRANSITIONS,
   type TonalTransition,
   type ToneName,
@@ -137,14 +137,16 @@ export function useTonalEngine(
                 trigger,
                 start: startPos,
                 onEnter: () => {
-                  gsap.set(el, { backgroundColor: TONE[transition.to] });
-                  onToneChangeRef.current?.(transition.to);
-                  onSoftToneChangeRef.current?.(transition.to);
+                  gsap.set(el, { backgroundColor: BACKDROP_TONES[transition.to] });
+                  const toneName = transition.to as ToneName;
+                  onToneChangeRef.current?.(toneName);
+                  onSoftToneChangeRef.current?.(toneName);
                 },
                 onLeaveBack: () => {
-                  gsap.set(el, { backgroundColor: TONE[transition.from] });
-                  onToneChangeRef.current?.(transition.from);
-                  onSoftToneChangeRef.current?.(transition.from);
+                  gsap.set(el, { backgroundColor: BACKDROP_TONES[transition.from] });
+                  const toneName = transition.from as ToneName;
+                  onToneChangeRef.current?.(toneName);
+                  onSoftToneChangeRef.current?.(toneName);
                 },
               });
             }
@@ -161,9 +163,9 @@ export function useTonalEngine(
 
               const tween = gsap.fromTo(
                 el,
-                { backgroundColor: TONE[transition.from] },
+                { backgroundColor: BACKDROP_TONES[transition.from] },
                 {
-                  backgroundColor: TONE[transition.to],
+                  backgroundColor: BACKDROP_TONES[transition.to],
                   ease: 'none',
                   immediateRender: false,
                   scrollTrigger: {
@@ -178,16 +180,20 @@ export function useTonalEngine(
 
                       // Body flip: fire when crossing the body equal-legibility line
                       if (prevProgress < lines.body && progress >= lines.body) {
-                        onToneChangeRef.current?.(transition.to);
+                        const toneName = transition.to as ToneName;
+                        onToneChangeRef.current?.(toneName);
                       } else if (prevProgress >= lines.body && progress < lines.body) {
-                        onToneChangeRef.current?.(transition.from);
+                        const toneName = transition.from as ToneName;
+                        onToneChangeRef.current?.(toneName);
                       }
 
                       // Soft flip: fire when crossing the soft equal-legibility line
                       if (prevProgress < lines.soft && progress >= lines.soft) {
-                        onSoftToneChangeRef.current?.(transition.to);
+                        const toneName = transition.to as ToneName;
+                        onSoftToneChangeRef.current?.(toneName);
                       } else if (prevProgress >= lines.soft && progress < lines.soft) {
-                        onSoftToneChangeRef.current?.(transition.from);
+                        const toneName = transition.from as ToneName;
+                        onSoftToneChangeRef.current?.(toneName);
                       }
                     },
                   },
@@ -212,18 +218,18 @@ export function useTonalEngine(
         console.error('Tonal engine: GSAP failed to load; applying degraded static gradient.', err);
         if (el && typeof window !== 'undefined') {
           // Degraded static gradient representing the flight profile:
-          // paper (ground) -> night (cruise) -> paper (descent) -> night (contact)
+          // carta (ground) -> foschia -> notte (cruise) -> alba -> carta (descent) -> notte (contact)
           el.style.backgroundImage = `
             linear-gradient(
               to bottom,
-              ${TONE.paper} 0%,
-              ${TONE.paper} 25%,
-              ${TONE.night} 25%,
-              ${TONE.night} 50%,
-              ${TONE.paper} 50%,
-              ${TONE.paper} 75%,
-              ${TONE.night} 75%,
-              ${TONE.night} 100%
+              ${BACKDROP_TONES.carta} 0%,
+              ${BACKDROP_TONES.carta} 15%,
+              ${BACKDROP_TONES.notte} 15%,
+              ${BACKDROP_TONES.notte} 45%,
+              ${BACKDROP_TONES.carta} 45%,
+              ${BACKDROP_TONES.carta} 75%,
+              ${BACKDROP_TONES.notte} 75%,
+              ${BACKDROP_TONES.notte} 100%
             )
           `
             .replace(/\s+/g, ' ')

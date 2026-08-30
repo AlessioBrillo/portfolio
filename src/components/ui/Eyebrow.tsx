@@ -7,7 +7,7 @@ export type EyebrowTone = 'light' | 'dark';
 interface EyebrowProps extends ComponentPropsWithoutRef<'span'> {
   children: ReactNode;
   /**
-   * `light` sits on paper-family surfaces, `dark` on night-family ones. When
+   * `light` sits on carta-family surfaces, `dark` on notte-family ones. When
    * omitted, the label takes its tone from the live scene's *muted* tone
    * (ADR-0012, `softTone` — the muted family flips at its own
    * equal-legibility line, later than the body) so it stays legible while
@@ -19,7 +19,7 @@ interface EyebrowProps extends ComponentPropsWithoutRef<'span'> {
 }
 
 /**
- * Brutalist telemetry label: mono, uppercase, generous tracking, semantic element.
+ * Editorial telemetry label: mono, uppercase, generous tracking, semantic element.
  * Carries real data (coordinates, dates, altitude, stack) — never decoration.
  */
 export function Eyebrow({
@@ -30,8 +30,8 @@ export function Eyebrow({
   ...props
 }: EyebrowProps): ReactElement {
   const sceneTone = useSceneTone();
-  const effectiveTone: EyebrowTone = tone ?? (sceneTone.softTone === 'night' ? 'dark' : 'light');
-  const textClass = effectiveTone === 'light' ? 'text-ink-soft' : 'text-phosphor-dim';
+  const effectiveTone: EyebrowTone = tone ?? (sceneTone.softTone === 'notte' ? 'dark' : 'light');
+  const textClass = effectiveTone === 'light' ? 'text-ink-soft' : 'text-panna-dim';
   return (
     <Component
       className={cn(

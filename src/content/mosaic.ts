@@ -19,7 +19,7 @@ const MOSAIC_ENTRIES: readonly MosaicEntry[] = [
     id: 'projects',
     title: 'Projects',
     line: 'Work and school, built end to end.',
-    href: '#work-school',
+    href: '/work/the-ascent',
   },
   {
     id: 'sky',

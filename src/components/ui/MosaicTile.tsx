@@ -9,20 +9,20 @@ interface MosaicTileProps {
 }
 
 /**
- * Brutalist puzzle cell: zero radius, visible structural border, ASCII corners,
+ * Puzzle cell: zero radius, visible structural border, ASCII corners,
  * macro title, micro description. Hover reveals accent edge.
- * Uses ADR-0021/0022 token system via sceneTone context.
+ * Uses design tokens via sceneTone context.
  */
 export function MosaicTile({ entry }: MosaicTileProps): ReactElement {
   const sceneTone = useSceneTone();
-  const isNight = sceneTone.tone === 'night';
+  const isNotte = sceneTone.tone === 'notte';
 
   const cardBase = cn(
     'relative flex h-full flex-col justify-between gap-4 p-6',
     'rounded-none',
     'border-[var(--hairline-thick)]',
-    isNight ? 'border-phosphor/10' : 'border-ink/10',
-    isNight ? 'bg-night/80' : 'bg-paper/80',
+    isNotte ? 'border-hairline-dark' : 'border-hairline-light',
+    isNotte ? 'bg-notte/80' : 'bg-carta/80',
     'transition-[transform,border-color] duration-[var(--duration-normal)] ease-[var(--ease-sharp)]',
     'hover:-translate-y-2 hover:border-accent active:scale-[0.98] active:translate-y-[1px]',
     'ascii-corners',
@@ -32,13 +32,13 @@ export function MosaicTile({ entry }: MosaicTileProps): ReactElement {
 
   const content = (
     <>
-      <h3 className="font-display text-[length:var(--text-h3)] font-black leading-[1.1] tracking-[-0.02em] text-balance">
+      <h3 className="font-display text-[length:var(--text-h3)] font-medium leading-[var(--leading-snug)] tracking-[var(--tracking-tight-sm)] text-balance">
         {entry.title}
       </h3>
       <p
         className={cn(
           'font-sans text-[length:var(--text-body-sm)] leading-[var(--leading-relaxed)]',
-          isNight ? 'text-phosphor-dim' : 'text-ink-soft',
+          isNotte ? 'text-panna-dim' : 'text-ink-soft',
         )}
       >
         {entry.line}

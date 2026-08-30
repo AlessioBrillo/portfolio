@@ -10,21 +10,21 @@ interface SkySportProps {
 }
 
 /** 05 — The adventurous side: aviation/VDS, tennis, MTB. Very visual. */
-export function SkySport({ surface = 'solid' }: SkySportProps): ReactElement {
+export function SkySport({ surface = 'scene' }: SkySportProps): ReactElement {
   const { softTone } = useSceneTone();
   return (
-    <Band id="sky-sport" ariaLabel="Sky and sport" tone="paper" surface={surface}>
+    <Band id="sky-sport" ariaLabel="Sky and sport" tone="notte" surface={surface}>
       <SectionHeader
         eyebrow="SECTOR 05 · DESCENT VECTOR · 3 DISCIPLINES"
-        title="DESCENT VECTOR: AVIATION · TENNIS · MOUNTAIN"
-        intro="AVIATION IS ALSO THE NARRATIVE THREAD OF THE WHOLE SITE — THE CIRCLE CLOSES HERE."
+        title="Descent Vector: Aviation · Tennis · Mountain"
+        intro="Aviation is also the narrative thread of the whole site — the circle closes here."
       />
       <ul className="mt-12 grid list-none grid-cols-1 gap-6 p-0 sm:grid-cols-2 lg:grid-cols-3">
         {getSportEntries().map((entry) => (
           <li key={entry.id}>
             <article className="flex h-full flex-col gap-4">
               <ImageBlock {...entry.image} />
-              <h3 className="font-display text-[length:var(--text-h3)] font-black leading-[1.1] tracking-[-0.02em] text-balance">
+              <h3 className="font-display text-[length:var(--text-h3)] font-medium leading-[var(--leading-snug)] tracking-[var(--tracking-tight-sm)] text-balance">
                 {entry.title}
               </h3>
               <p

@@ -22,7 +22,7 @@ interface ToneProviderProps {
  */
 export function ToneProvider({
   children,
-  initialTone = 'paper',
+  initialTone = 'carta',
   initialSoftTone,
 }: ToneProviderProps): ReactElement {
   const [tone, setTone] = useState<ToneName>(initialTone);

@@ -9,7 +9,7 @@ describe('Who', () => {
     render(<Who />);
     expect(screen.getByRole('region', { name: /who i am/i })).toBeInTheDocument();
     expect(screen.getByRole('heading', { level: 2 })).toHaveTextContent(
-      'CHARACTER: ENTERPRISING · ADVENTUROUS · CURIOUS',
+      'Character: Enterprising · Adventurous · Curious',
     );
   });
 
@@ -27,14 +27,14 @@ describe('Who', () => {
     expect(screen.getByAltText(getWhoPortrait().alt)).toBeInTheDocument();
   });
 
-  it('uses the night muted tone for statements when the scene is on night', () => {
+  it('uses the notte muted tone for statements when the scene is on notte', () => {
     render(
-      <ToneProvider initialTone="night">
+      <ToneProvider initialTone="notte">
         <Who surface="scene" />
       </ToneProvider>,
     );
     const statement = getWhoStatements()[0];
     if (!statement) return;
-    expect(screen.getByText(statement.line)).toHaveClass('text-phosphor-dim');
+    expect(screen.getByText(statement.line)).toHaveClass('text-panna-dim');
   });
 });
