@@ -131,4 +131,58 @@ describe('TonalScene', () => {
     const scanlineLayer = document.querySelector('.pointer-events-none.fixed.inset-0.-z-4');
     expect(scanlineLayer).toHaveStyle({ display: 'none' });
   });
+
+  it('shows constellation on ArrowUp keydown when tone is notte and reduced motion is false', async () => {
+    // Set tone to notte via setter
+    render(
+      <TonalScene>
+        <ToneProbe />
+      </TonalScene>,
+    );
+
+    // Set tone to notte
+    fireEvent.click(screen.getByRole('button'));
+    expect(screen.getByRole('button')).toHaveTextContent('tone:notte');
+
+    // Press ArrowUp key
+    fireEvent.keyDown(window, { key: 'ArrowUp' });
+
+    // Constellation layer should be visible (not display: none)
+    const constellationLayer = document.querySelector('.pointer-events-none.fixed.inset-0.-z-3');
+    expect(constellationLayer).not.toHaveStyle({ display: 'none' });
+  });
+
+  it('hides constellation on ArrowUp when prefers-reduced-motion is true', () => {
+    vi.mocked(useReducedMotion).mockReturnValue(true);
+
+    render(
+      <TonalScene>
+        <ToneProbe />
+      </TonalScene>,
+    );
+
+    fireEvent.click(screen.getByRole('button'));
+    expect(screen.getByRole('button')).toHaveTextContent('tone:notte');
+
+    fireEvent.keyDown(window, { key: 'ArrowUp' });
+
+    // Constellation layer should be hidden when reduced motion
+    const constellationLayer = document.querySelector('.pointer-events-none.fixed.inset-0.-z-3');
+    expect(constellationLayer).toHaveStyle({ display: 'none' });
+  });
+
+  it('hides constellation on ArrowUp when tone is not notte', () => {
+    // Tone stays at carta (default)
+    render(
+      <TonalScene>
+        <ToneProbe />
+      </TonalScene>,
+    );
+
+    fireEvent.keyDown(window, { key: 'ArrowUp' });
+
+    // Constellation layer should be hidden when tone is not notte
+    const constellationLayer = document.querySelector('.pointer-events-none.fixed.inset-0.-z-3');
+    expect(constellationLayer).toHaveStyle({ display: 'none' });
+  });
 });

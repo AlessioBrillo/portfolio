@@ -3,6 +3,7 @@ import { MemoryRouter } from 'react-router-dom';
 import { describe, expect, it } from 'vitest';
 import { MosaicTile } from '@/components/ui/MosaicTile';
 import type { MosaicEntry } from '@/types/domain';
+import { ToneProvider } from '@/components/ascent/ToneProvider';
 
 function renderWithRouter(element: React.ReactElement): RenderResult {
   return render(<MemoryRouter>{element}</MemoryRouter>);
@@ -62,5 +63,47 @@ describe('MosaicTile', () => {
     const link = screen.getByRole('link');
     expect(link).toHaveAttribute('href', '#sky-sport');
     expect(link).toContainElement(screen.getByRole('heading', { name: 'Sky' }));
+  });
+
+  it('uses carta background and border when scene tone is carta', () => {
+    renderWithRouter(
+      <ToneProvider initialTone="carta">
+        <MosaicTile entry={plainEntry} />
+      </ToneProvider>,
+    );
+    const card = screen.getByText('Projects').closest('article');
+    expect(card).toHaveClass('bg-carta/80');
+    expect(card).toHaveClass('border-hairline-light');
+  });
+
+  it('uses notte background and border when scene tone is notte', () => {
+    renderWithRouter(
+      <ToneProvider initialTone="notte">
+        <MosaicTile entry={plainEntry} />
+      </ToneProvider>,
+    );
+    const card = screen.getByText('Projects').closest('article');
+    expect(card).toHaveClass('bg-notte/80');
+    expect(card).toHaveClass('border-hairline-dark');
+  });
+
+  it('uses panna-dim text for line when scene tone is notte', () => {
+    renderWithRouter(
+      <ToneProvider initialTone="notte">
+        <MosaicTile entry={plainEntry} />
+      </ToneProvider>,
+    );
+    const line = screen.getByText('Work and school.');
+    expect(line).toHaveClass('text-panna-dim');
+  });
+
+  it('uses ink-soft text for line when scene tone is carta', () => {
+    renderWithRouter(
+      <ToneProvider initialTone="carta">
+        <MosaicTile entry={plainEntry} />
+      </ToneProvider>,
+    );
+    const line = screen.getByText('Work and school.');
+    expect(line).toHaveClass('text-ink-soft');
   });
 });

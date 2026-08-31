@@ -2,7 +2,7 @@ import { renderHook, waitFor } from '@testing-library/react';
 import { useRef } from 'react';
 import type { RefObject } from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { useTonalEngine } from '@/components/ascent/useTonalEngine';
+import { useTonalEngine, debounce } from '@/components/ascent/useTonalEngine';
 import {
   flipLineFor,
   SOFT_TEXT_TONE,
@@ -428,5 +428,45 @@ describe('useTonalEngine', () => {
     });
     await Promise.resolve();
     expect(mocks.registerPlugin).not.toHaveBeenCalled();
+  });
+
+  describe('debounce utility', () => {
+    beforeEach(() => {
+      vi.useFakeTimers();
+    });
+
+    afterEach(() => {
+      vi.useRealTimers();
+    });
+
+    it('delays function execution', () => {
+      const fn = vi.fn();
+      const debounced = debounce(fn, 100);
+      debounced();
+      expect(fn).not.toHaveBeenCalled();
+      vi.advanceTimersByTime(100);
+      expect(fn).toHaveBeenCalledTimes(1);
+    });
+
+    it('cancels pending execution', () => {
+      const fn = vi.fn();
+      const debounced = debounce(fn, 100);
+      debounced();
+      (debounced as typeof debounced & { cancel: () => void }).cancel();
+      vi.advanceTimersByTime(100);
+      expect(fn).not.toHaveBeenCalled();
+    });
+
+    it('resets timer on subsequent calls', () => {
+      const fn = vi.fn();
+      const debounced = debounce(fn, 100);
+      debounced();
+      vi.advanceTimersByTime(50);
+      debounced();
+      vi.advanceTimersByTime(50);
+      expect(fn).not.toHaveBeenCalled();
+      vi.advanceTimersByTime(50);
+      expect(fn).toHaveBeenCalledTimes(1);
+    });
   });
 });

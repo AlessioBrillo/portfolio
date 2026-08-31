@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react';
+import { fireEvent, render, screen } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
 import { ImageBlock } from '@/components/ui/ImageBlock';
 import { ToneProvider } from '@/components/ascent/ToneProvider';
@@ -93,5 +93,16 @@ describe('ImageBlock', () => {
       </ToneProvider>,
     );
     expect(screen.getByText('A night view')).toHaveClass('text-panna-dim');
+  });
+
+  it('shows the image with full opacity after onLoad fires', () => {
+    render(<ImageBlock alt="Photo" src="/photo.jpg" />);
+    const img = screen.getByRole('img');
+    // Initially opacity is 0 (image not loaded)
+    expect(img).toHaveClass('opacity-0');
+    // Fire onLoad
+    fireEvent.load(img);
+    // After load, opacity should be 100
+    expect(img).toHaveClass('opacity-100');
   });
 });
