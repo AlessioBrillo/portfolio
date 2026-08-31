@@ -2,7 +2,7 @@ import { renderHook, waitFor } from '@testing-library/react';
 import { useRef } from 'react';
 import type { RefObject } from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { useTonalEngine } from '@/components/ascent/useTonalEngine';
+import { useTonalEngine, debounce } from '@/components/ascent/useTonalEngine';
 import {
   flipLineFor,
   SOFT_TEXT_TONE,
@@ -205,13 +205,58 @@ describe('useTonalEngine', () => {
     });
 
     it('re-measures trigger geometry once the display fonts settle', async () => {
+      const variableFont = { family: 'GeistVariable', load: vi.fn().mockResolvedValue(undefined) };
+      const regularFont = { family: 'Geist', load: vi.fn().mockResolvedValue(undefined) };
+      const fontSet = {
+        ready: Promise.resolve(),
+        *[Symbol.iterator]() {
+          yield variableFont;
+          yield regularFont;
+        },
+      };
       Object.defineProperty(document, 'fonts', {
         configurable: true,
-        value: { ready: Promise.resolve() },
+        value: fontSet,
       });
 
       renderEngine();
       await waitFor(() => expect(mocks.refresh).toHaveBeenCalledTimes(1));
+      expect(variableFont.load).toHaveBeenCalled();
+      expect(regularFont.load).not.toHaveBeenCalled();
+    });
+
+    it('waits for variable fonts to load before ScrollTrigger.refresh', async () => {
+      let resolveVariableLoad: (() => void) | undefined;
+      const variableLoadPromise = new Promise<void>((resolve) => {
+        resolveVariableLoad = resolve;
+      });
+      const variableFont = {
+        family: 'GeistVariable',
+        load: vi.fn().mockReturnValue(variableLoadPromise),
+      };
+      const regularFont = { family: 'Geist', load: vi.fn().mockResolvedValue(undefined) };
+      const fontSet = {
+        ready: Promise.resolve(),
+        *[Symbol.iterator]() {
+          yield variableFont;
+          yield regularFont;
+        },
+      };
+      Object.defineProperty(document, 'fonts', {
+        configurable: true,
+        value: fontSet,
+      });
+
+      renderEngine();
+
+      // refresh should not be called until variable font loads
+      await Promise.resolve(); // let ready resolve
+      expect(mocks.refresh).not.toHaveBeenCalled();
+
+      // resolve variable font load
+      resolveVariableLoad?.();
+      await waitFor(() => expect(mocks.refresh).toHaveBeenCalledTimes(1));
+      expect(variableFont.load).toHaveBeenCalled();
     });
 
     it('skips the refresh when the engine is torn down before fonts settle', async () => {
@@ -383,5 +428,45 @@ describe('useTonalEngine', () => {
     });
     await Promise.resolve();
     expect(mocks.registerPlugin).not.toHaveBeenCalled();
+  });
+
+  describe('debounce utility', () => {
+    beforeEach(() => {
+      vi.useFakeTimers();
+    });
+
+    afterEach(() => {
+      vi.useRealTimers();
+    });
+
+    it('delays function execution', () => {
+      const fn = vi.fn();
+      const debounced = debounce(fn, 100);
+      debounced();
+      expect(fn).not.toHaveBeenCalled();
+      vi.advanceTimersByTime(100);
+      expect(fn).toHaveBeenCalledTimes(1);
+    });
+
+    it('cancels pending execution', () => {
+      const fn = vi.fn();
+      const debounced = debounce(fn, 100);
+      debounced();
+      (debounced as typeof debounced & { cancel: () => void }).cancel();
+      vi.advanceTimersByTime(100);
+      expect(fn).not.toHaveBeenCalled();
+    });
+
+    it('resets timer on subsequent calls', () => {
+      const fn = vi.fn();
+      const debounced = debounce(fn, 100);
+      debounced();
+      vi.advanceTimersByTime(50);
+      debounced();
+      vi.advanceTimersByTime(50);
+      expect(fn).not.toHaveBeenCalled();
+      vi.advanceTimersByTime(50);
+      expect(fn).toHaveBeenCalledTimes(1);
+    });
   });
 });

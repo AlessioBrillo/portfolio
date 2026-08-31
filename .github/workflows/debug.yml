@@ -1,0 +1,17 @@
+name: Debug Workflow
+
+on:
+  workflow_dispatch:
+
+jobs:
+  debug:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Print hello
+        run: echo "Hello from workflow"
+      - name: Check node
+        run: node --version
+      - name: Check npm
+        run: npm --version

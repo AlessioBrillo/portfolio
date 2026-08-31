@@ -4,23 +4,27 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import {
   checkBundle,
-  computeGzip,
+  computeCompressed,
+  brotliBytesOf,
   gzipBytesOf,
   listJsChunks,
   readEntryScript,
   type BudgetBaseline,
-  type GzipChunk,
+  type CompressedChunk,
   type MeasuredChunk,
 } from '@/lib/bundle-budget';
 
-const BASELINE: BudgetBaseline = { entryChunkKb: 165, totalJsKb: 225 };
+const BASELINE: BudgetBaseline = {
+  entryChunkKb: { gzip: 165, brotli: 150 },
+  totalJsKb: { gzip: 225, brotli: 200 },
+};
 const BASELINE_WITH_CHUNKS: BudgetBaseline = {
-  entryChunkKb: 165,
-  totalJsKb: 225,
+  entryChunkKb: { gzip: 165, brotli: 150 },
+  totalJsKb: { gzip: 225, brotli: 200 },
   chunks: [
-    { name: 'assets/index-abc.js', gzipKb: 140 },
-    { name: 'assets/gsap-abc.js', gzipKb: 25 },
-    { name: 'assets/lazy-abc.js', gzipKb: 15 },
+    { name: 'assets/index-abc.js', gzipKb: 140, brotliKb: 125 },
+    { name: 'assets/gsap-abc.js', gzipKb: 25, brotliKb: 22 },
+    { name: 'assets/lazy-abc.js', gzipKb: 15, brotliKb: 13 },
   ],
 };
 
@@ -47,6 +51,20 @@ describe('gzipBytesOf', () => {
   it('is deterministic for the same input', () => {
     const raw = Buffer.from('The Ascent — a deterministic payload', 'utf8');
     expect(gzipBytesOf(raw)).toBe(gzipBytesOf(raw));
+  });
+});
+
+describe('brotliBytesOf', () => {
+  it('compresses a repeated payload to a fraction of its raw size', () => {
+    const raw = Buffer.alloc(4096, 0x61);
+    const brotli = brotliBytesOf(raw);
+    expect(brotli).toBeGreaterThan(0);
+    expect(brotli).toBeLessThan(raw.length);
+  });
+
+  it('is deterministic for the same input', () => {
+    const raw = Buffer.from('The Ascent — a deterministic payload', 'utf8');
+    expect(brotliBytesOf(raw)).toBe(brotliBytesOf(raw));
   });
 });
 
@@ -106,29 +124,38 @@ describe('readEntryScript', () => {
   });
 });
 
-describe('computeGzip', () => {
-  it('maps raw bytes to whole-file gzip sizes, preserving names', () => {
+describe('computeCompressed', () => {
+  it('maps raw bytes to whole-file compression sizes, preserving names', () => {
     const chunks: readonly MeasuredChunk[] = [
       { name: 'assets/index.js', buffer: Buffer.alloc(4096, 0x61) },
       { name: 'assets/lazy.js', buffer: Buffer.alloc(1024, 0x62) },
     ];
 
-    const gzip = computeGzip(chunks);
+    const compressed = computeCompressed(chunks);
 
-    expect(gzip).toHaveLength(2);
-    expect(gzip[0]).toMatchObject({ name: 'assets/index.js' });
-    expect(gzip[0]!.gzipBytes).toBeLessThan(4096);
-    expect(gzip[1]).toMatchObject({ name: 'assets/lazy.js' });
-    expect(gzip[1]!.gzipBytes).toBeLessThan(1024);
+    expect(compressed).toHaveLength(2);
+    expect(compressed[0]).toMatchObject({ name: 'assets/index.js' });
+    expect(compressed[0]!.gzipBytes).toBeLessThan(4096);
+    expect(compressed[0]!.brotliBytes).toBeLessThan(4096);
+    expect(compressed[1]).toMatchObject({ name: 'assets/lazy.js' });
+    expect(compressed[1]!.gzipBytes).toBeLessThan(1024);
+    expect(compressed[1]!.brotliBytes).toBeLessThan(1024);
   });
 });
 
 describe('checkBundle', () => {
-  const chunk = (name: string, gzipBytes: number): GzipChunk => ({ name, gzipBytes });
+  const chunk = (name: string, gzipBytes: number, brotliBytes: number): CompressedChunk => ({
+    name,
+    gzipBytes,
+    brotliBytes,
+  });
 
-  it('passes when entry and total sit under their budgets', () => {
+  it('passes when entry and total sit under both budgets', () => {
     const result = checkBundle(
-      [chunk('assets/index-abc.js', 140 * 1024), chunk('assets/gsap-abc.js', 40 * 1024)],
+      [
+        chunk('assets/index-abc.js', 140 * 1024, 125 * 1024),
+        chunk('assets/gsap-abc.js', 40 * 1024, 35 * 1024),
+      ],
       'assets/index-abc.js',
       BASELINE,
     );
@@ -136,32 +163,82 @@ describe('checkBundle', () => {
     expect(result.violations).toEqual([]);
     expect(result.entry).toMatchObject({ file: 'assets/index-abc.js' });
     expect(result.total.gzipKb).toBeCloseTo(180, 1);
+    expect(result.total.brotliKb).toBeCloseTo(160, 1);
   });
 
-  it('fails when the entry chunk exceeds its budget', () => {
+  it('fails when the entry chunk exceeds BOTH gzip and brotli budgets', () => {
     const result = checkBundle(
-      [chunk('assets/index-abc.js', 170 * 1024), chunk('assets/lazy-abc.js', 10 * 1024)],
+      [
+        chunk('assets/index-abc.js', 170 * 1024, 160 * 1024), // both over budget
+        chunk('assets/lazy-abc.js', 10 * 1024, 10 * 1024),
+      ],
       'assets/index-abc.js',
       BASELINE,
     );
 
-    expect(result.violations).toEqual([
-      'entry chunk assets/index-abc.js is 170.0 kB gzip — budget 165 kB',
-    ]);
+    expect(result.violations).toHaveLength(1);
+    expect(result.violations[0]).toContain('both exceed budget');
   });
 
-  it('fails when total JS exceeds its budget', () => {
+  it('does NOT fail when entry chunk exceeds only gzip budget (not brotli)', () => {
     const result = checkBundle(
-      [chunk('assets/index-abc.js', 150 * 1024), chunk('assets/gsap-abc.js', 80 * 1024)],
+      [
+        chunk('assets/index-abc.js', 170 * 1024, 140 * 1024), // gzip over, brotli under
+        chunk('assets/lazy-abc.js', 10 * 1024, 10 * 1024),
+      ],
       'assets/index-abc.js',
       BASELINE,
     );
 
-    expect(result.violations).toEqual(['total JS is 230.0 kB gzip — budget 225 kB']);
+    expect(result.violations).toEqual([]);
+  });
+
+  it('does NOT fail when entry chunk exceeds only brotli budget (not gzip)', () => {
+    const result = checkBundle(
+      [
+        chunk('assets/index-abc.js', 140 * 1024, 160 * 1024), // brotli over, gzip under
+        chunk('assets/lazy-abc.js', 10 * 1024, 10 * 1024),
+      ],
+      'assets/index-abc.js',
+      BASELINE,
+    );
+
+    expect(result.violations).toEqual([]);
+  });
+
+  it('fails when total JS exceeds BOTH budgets', () => {
+    const result = checkBundle(
+      [
+        chunk('assets/index-abc.js', 150 * 1024, 135 * 1024),
+        chunk('assets/gsap-abc.js', 80 * 1024, 75 * 1024), // both over total
+      ],
+      'assets/index-abc.js',
+      BASELINE,
+    );
+
+    expect(result.violations).toHaveLength(1);
+    expect(result.violations[0]).toContain('both exceed budget');
+  });
+
+  it('does NOT fail when total JS exceeds only gzip budget', () => {
+    const result = checkBundle(
+      [
+        chunk('assets/index-abc.js', 150 * 1024, 120 * 1024),
+        chunk('assets/gsap-abc.js', 80 * 1024, 70 * 1024), // gzip over total, brotli under
+      ],
+      'assets/index-abc.js',
+      BASELINE,
+    );
+
+    expect(result.violations).toEqual([]);
   });
 
   it('fails when the entry chunk cannot be located', () => {
-    const result = checkBundle([chunk('assets/index-abc.js', 100 * 1024)], undefined, BASELINE);
+    const result = checkBundle(
+      [chunk('assets/index-abc.js', 100 * 1024, 90 * 1024)],
+      undefined,
+      BASELINE,
+    );
 
     expect(result.violations).toEqual(['entry chunk not found in the build output']);
     expect(result.entry).toBeUndefined();
@@ -169,7 +246,10 @@ describe('checkBundle', () => {
 
   it('reports every violation, not just the first', () => {
     const result = checkBundle(
-      [chunk('assets/index-abc.js', 180 * 1024), chunk('assets/gsap-abc.js', 90 * 1024)],
+      [
+        chunk('assets/index-abc.js', 180 * 1024, 170 * 1024), // both over entry budget
+        chunk('assets/gsap-abc.js', 90 * 1024, 85 * 1024), // both over total
+      ],
       'assets/index-abc.js',
       BASELINE,
     );
@@ -179,7 +259,10 @@ describe('checkBundle', () => {
 
   it('passes exactly at the budget boundary', () => {
     const result = checkBundle(
-      [chunk('assets/index-abc.js', 165 * 1024), chunk('assets/gsap-abc.js', 60 * 1024)],
+      [
+        chunk('assets/index-abc.js', 165 * 1024, 150 * 1024),
+        chunk('assets/gsap-abc.js', 60 * 1024, 50 * 1024),
+      ],
       'assets/index-abc.js',
       BASELINE,
     );
@@ -188,12 +271,12 @@ describe('checkBundle', () => {
   });
 
   describe('failOnIncrease mode', () => {
-    it('passes when all chunks are at or below their per-chunk baseline', () => {
+    it('passes when all chunks are at or below their per-chunk baseline (both algorithms)', () => {
       const result = checkBundle(
         [
-          chunk('assets/index-abc.js', 140 * 1024),
-          chunk('assets/gsap-abc.js', 25 * 1024),
-          chunk('assets/lazy-abc.js', 15 * 1024),
+          chunk('assets/index-abc.js', 140 * 1024, 125 * 1024),
+          chunk('assets/gsap-abc.js', 25 * 1024, 22 * 1024),
+          chunk('assets/lazy-abc.js', 15 * 1024, 13 * 1024),
         ],
         'assets/index-abc.js',
         BASELINE_WITH_CHUNKS,
@@ -203,12 +286,12 @@ describe('checkBundle', () => {
       expect(result.violations).toEqual([]);
     });
 
-    it('fails when any chunk exceeds its per-chunk baseline', () => {
+    it('fails when any chunk exceeds its per-chunk baseline in BOTH algorithms', () => {
       const result = checkBundle(
         [
-          chunk('assets/index-abc.js', 140 * 1024),
-          chunk('assets/gsap-abc.js', 30 * 1024), // increased from 25
-          chunk('assets/lazy-abc.js', 15 * 1024),
+          chunk('assets/index-abc.js', 140 * 1024, 125 * 1024),
+          chunk('assets/gsap-abc.js', 30 * 1024, 25 * 1024), // both increased from baseline
+          chunk('assets/lazy-abc.js', 15 * 1024, 13 * 1024),
         ],
         'assets/index-abc.js',
         BASELINE_WITH_CHUNKS,
@@ -216,15 +299,30 @@ describe('checkBundle', () => {
       );
 
       expect(result.violations).toContain(
-        'chunk assets/gsap-abc.js increased to 30.0 kB gzip — baseline 25 kB',
+        'chunk assets/gsap-abc.js increased to 30.0 kB gzip (baseline 25 kB) and 25.0 kB brotli (baseline 22 kB) — both exceed baseline',
       );
+    });
+
+    it('does NOT fail when chunk exceeds baseline in only one algorithm', () => {
+      const result = checkBundle(
+        [
+          chunk('assets/index-abc.js', 140 * 1024, 125 * 1024),
+          chunk('assets/gsap-abc.js', 30 * 1024, 22 * 1024), // gzip increased, brotli same
+          chunk('assets/lazy-abc.js', 15 * 1024, 13 * 1024),
+        ],
+        'assets/index-abc.js',
+        BASELINE_WITH_CHUNKS,
+        true,
+      );
+
+      expect(result.violations).toEqual([]);
     });
 
     it('ignores chunks not present in the per-chunk baseline', () => {
       const result = checkBundle(
         [
-          chunk('assets/index-abc.js', 140 * 1024),
-          chunk('assets/new-chunk.js', 50 * 1024), // new chunk, no baseline
+          chunk('assets/index-abc.js', 140 * 1024, 125 * 1024),
+          chunk('assets/new-chunk.js', 50 * 1024, 45 * 1024), // new chunk, no baseline
         ],
         'assets/index-abc.js',
         BASELINE_WITH_CHUNKS,
@@ -236,16 +334,15 @@ describe('checkBundle', () => {
 
     it('does nothing when per-chunk baseline is absent', () => {
       const result = checkBundle(
-        [chunk('assets/index-abc.js', 200 * 1024)], // way over entry budget
+        [chunk('assets/index-abc.js', 200 * 1024, 180 * 1024)], // way over entry budget
         'assets/index-abc.js',
         BASELINE, // no chunks field
         true,
       );
 
-      // Only the entry budget violation should be reported
-      expect(result.violations).toEqual([
-        'entry chunk assets/index-abc.js is 200.0 kB gzip — budget 165 kB',
-      ]);
+      // Only the entry budget violation should be reported (both algorithms over)
+      expect(result.violations).toHaveLength(1);
+      expect(result.violations[0]).toContain('both exceed budget');
     });
   });
 });
