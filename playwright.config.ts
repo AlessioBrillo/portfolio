@@ -57,5 +57,14 @@ export default defineConfig({
       },
       timeout: 90_000,
     },
+    {
+      name: 'forced-colors',
+      use: {
+        ...devices['Desktop Chrome'],
+        viewport: { width: 1440, height: 960 },
+        contextOptions: { forcedColors: 'active' },
+      },
+      timeout: 90_000,
+    },
   ],
 });

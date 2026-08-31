@@ -4,6 +4,7 @@ import { TONE, type ToneName } from '@/lib/tone';
 import { SceneToneContext, SceneToneSetterContext } from './tone-context';
 import { useTonalEngine } from './useTonalEngine';
 import { useReducedMotion } from '@/hooks/useReducedMotion';
+import { useForcedColors } from '@/hooks/useForcedColors';
 
 /** Subtle grain overlay (SVG noise, ~2.5% opacity) — breaks digital flatness without external assets. */
 const GRAIN_SVG = `data:image/svg+xml;base64,${btoa(
@@ -119,6 +120,7 @@ export function TonalScene({ children }: TonalSceneProps): ReactElement {
   const [engineError, setEngineError] = useState<Error | null>(null);
   const [showConstellation, setShowConstellation] = useState(false);
   const prefersReducedMotion = useReducedMotion();
+  const prefersForcedColors = useForcedColors();
   useTonalEngine(backdropRef, setTone, setSoftTone);
 
   useEffect(() => {
@@ -149,18 +151,19 @@ export function TonalScene({ children }: TonalSceneProps): ReactElement {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [handleKeyDown]);
 
-  const grainStyle = useMemo(
-    () => ({
+  const grainStyle = useMemo(() => {
+    if (prefersForcedColors) return { display: 'none' };
+    return {
       backgroundImage: `url("${GRAIN_SVG}")`,
       backgroundRepeat: 'repeat',
       backgroundSize: '400px 400px',
       opacity: 1,
-    }),
-    [],
-  );
+    };
+  }, [prefersForcedColors]);
 
   const scanlineStyle = useMemo(() => {
     if (prefersReducedMotion) return { display: 'none' };
+    if (prefersForcedColors) return { display: 'none' };
     if (tone !== 'notte') return { display: 'none' };
     return {
       backgroundImage: `url("${SCANLINE_SVG}")`,
@@ -168,11 +171,12 @@ export function TonalScene({ children }: TonalSceneProps): ReactElement {
       backgroundSize: '100% 4px',
       opacity: 0.5,
     };
-  }, [tone, prefersReducedMotion]);
+  }, [tone, prefersReducedMotion, prefersForcedColors]);
 
   const constellationStyle = useMemo(() => {
     if (!showConstellation) return { display: 'none' };
     if (prefersReducedMotion) return { display: 'none' };
+    if (prefersForcedColors) return { display: 'none' };
     if (tone !== 'notte') return { display: 'none' };
     return {
       backgroundImage: `url("${CONSTELLATION_SVG}")`,
@@ -182,7 +186,7 @@ export function TonalScene({ children }: TonalSceneProps): ReactElement {
       opacity: 0.15,
       animation: 'constellationFade 8s ease-out forwards',
     };
-  }, [showConstellation, tone, prefersReducedMotion]);
+  }, [showConstellation, tone, prefersReducedMotion, prefersForcedColors]);
 
   const readonlyValue = useMemo(() => ({ tone, softTone }), [tone, softTone]);
   const setterValue = useMemo(() => ({ setTone, setSoftTone }), [setTone, setSoftTone]);
@@ -219,18 +223,6 @@ export function TonalScene({ children }: TonalSceneProps): ReactElement {
               Animation unavailable — static view active
             </div>
           )}
-          <style
-            dangerouslySetInnerHTML={{
-              __html: `
-                @keyframes constellationFade {
-                  0% { opacity: 0; transform: scale(0.98); }
-                  10% { opacity: 0.15; transform: scale(1); }
-                  85% { opacity: 0.15; transform: scale(1); }
-                  100% { opacity: 0; transform: scale(1.02); }
-                }
-              `,
-            }}
-          />
         </div>
       </SceneToneContext.Provider>
     </SceneToneSetterContext.Provider>

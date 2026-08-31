@@ -602,4 +602,42 @@ test('muted text follows its own equal-legibility line (ADR-0012)', async ({ pag
       );
     }
   });
+
+  test('forced-colors mode uses system colors and disables textures', async ({ page }, testInfo) => {
+    test.skip(
+      testInfo.project.name !== 'forced-colors',
+      'only meaningful under forced-colors',
+    );
+    await page.goto('/');
+    await page.waitForLoadState('networkidle');
+
+    // In forced-colors mode, the backdrop should use system Canvas color
+    const bg = await backdropColor(page);
+    // System Canvas color (varies by theme) - just verify it's not our custom gradient
+    expect(bg).not.toContain('gradient');
+
+    // Text should use system CanvasText (high contrast)
+    const heading = await currentVisibleTextColor(page, 'h1, h2');
+    expect(heading).not.toBeNull();
+
+    // Texture layers should be disabled in forced-colors
+    const grainVisible = await page.evaluate(() => {
+      const el = document.querySelector('div[style*="400px 400px"]');
+      return el && getComputedStyle(el).display !== 'none';
+    });
+    expect(grainVisible).toBe(false);
+
+    const scanlinesVisible = await page.evaluate(() => {
+      const el = document.querySelector('div[style*="100% 4px"]');
+      return el && getComputedStyle(el).display !== 'none';
+    });
+    expect(scanlinesVisible).toBe(false);
+
+    // Constellation should be disabled
+    const constellationVisible = await page.evaluate(() => {
+      const el = document.querySelector('div[style*="constellationFade"]');
+      return el && getComputedStyle(el).display !== 'none';
+    });
+    expect(constellationVisible).toBe(false);
+  });
 });
