@@ -1,5 +1,5 @@
 import type { ComponentType } from 'react';
-import type { CaseStudyMeta } from '@/types/domain';
+import type { CaseStudyMeta, CaseStudyDomain } from '@/types/domain';
 
 interface CaseStudyEntry {
   readonly meta: CaseStudyMeta;
@@ -7,12 +7,15 @@ interface CaseStudyEntry {
   readonly load: () => Promise<{ default: ComponentType }>;
 }
 
+/** Type-safe registry key combining domain and slug. */
+type DomainKey = `${CaseStudyDomain}/${string}`;
+
 /**
  * The registry key is the route identity itself, `{domain}/{slug}` (ADR-0005),
  * so two studies can never collide on a slug across domains — the map key and
  * the URL stay in bijection.
  */
-function studyKey(meta: Pick<CaseStudyMeta, 'domain' | 'slug'>): string {
+function studyKey(meta: Pick<CaseStudyMeta, 'domain' | 'slug'>): DomainKey {
   return `${meta.domain}/${meta.slug}`;
 }
 
@@ -24,7 +27,7 @@ function studyKey(meta: Pick<CaseStudyMeta, 'domain' | 'slug'>): string {
  * draft — its route is resolvable for review, but it stays out of the mosaic,
  * the sitemap, and the prev/next navigation until it is added to the order.
  */
-export const CASE_STUDIES: Readonly<Record<string, CaseStudyEntry>> = {
+export const CASE_STUDIES: Readonly<Record<DomainKey, CaseStudyEntry>> = {
   'ai/transformer-italian-corpus': {
     meta: {
       slug: 'transformer-italian-corpus',
@@ -98,8 +101,8 @@ export const CASE_STUDIES: Readonly<Record<string, CaseStudyEntry>> = {
 };
 
 /** The entry for a route pair, or `undefined` when the route is unknown. */
-export function getCaseStudy(domain: string, slug: string): CaseStudyEntry | undefined {
-  return CASE_STUDIES[`${domain}/${slug}`];
+export function getCaseStudy(domain: CaseStudyDomain, slug: string): CaseStudyEntry | undefined {
+  return CASE_STUDIES[`${domain}/${slug}` as DomainKey];
 }
 
 /**
@@ -132,5 +135,5 @@ export function isPublishedStudy(meta: Pick<CaseStudyMeta, 'domain' | 'slug'>): 
 export function getPublishedCaseStudies(): readonly CaseStudyMeta[] {
   // The registry content contract test pins every PUBLISHED_ORDER key to a
   // registered entry, so the lookup below can never miss (ADR-0017).
-  return PUBLISHED_ORDER.map((key) => CASE_STUDIES[key]!.meta);
+  return PUBLISHED_ORDER.map((key) => CASE_STUDIES[key as DomainKey]!.meta);
 }

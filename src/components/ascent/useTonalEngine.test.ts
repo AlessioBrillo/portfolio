@@ -205,13 +205,58 @@ describe('useTonalEngine', () => {
     });
 
     it('re-measures trigger geometry once the display fonts settle', async () => {
+      const variableFont = { family: 'GeistVariable', load: vi.fn().mockResolvedValue(undefined) };
+      const regularFont = { family: 'Geist', load: vi.fn().mockResolvedValue(undefined) };
+      const fontSet = {
+        ready: Promise.resolve(),
+        *[Symbol.iterator]() {
+          yield variableFont;
+          yield regularFont;
+        },
+      };
       Object.defineProperty(document, 'fonts', {
         configurable: true,
-        value: { ready: Promise.resolve() },
+        value: fontSet,
       });
 
       renderEngine();
       await waitFor(() => expect(mocks.refresh).toHaveBeenCalledTimes(1));
+      expect(variableFont.load).toHaveBeenCalled();
+      expect(regularFont.load).not.toHaveBeenCalled();
+    });
+
+    it('waits for variable fonts to load before ScrollTrigger.refresh', async () => {
+      let resolveVariableLoad: (() => void) | undefined;
+      const variableLoadPromise = new Promise<void>((resolve) => {
+        resolveVariableLoad = resolve;
+      });
+      const variableFont = {
+        family: 'GeistVariable',
+        load: vi.fn().mockReturnValue(variableLoadPromise),
+      };
+      const regularFont = { family: 'Geist', load: vi.fn().mockResolvedValue(undefined) };
+      const fontSet = {
+        ready: Promise.resolve(),
+        *[Symbol.iterator]() {
+          yield variableFont;
+          yield regularFont;
+        },
+      };
+      Object.defineProperty(document, 'fonts', {
+        configurable: true,
+        value: fontSet,
+      });
+
+      renderEngine();
+
+      // refresh should not be called until variable font loads
+      await Promise.resolve(); // let ready resolve
+      expect(mocks.refresh).not.toHaveBeenCalled();
+
+      // resolve variable font load
+      resolveVariableLoad?.();
+      await waitFor(() => expect(mocks.refresh).toHaveBeenCalledTimes(1));
+      expect(variableFont.load).toHaveBeenCalled();
     });
 
     it('skips the refresh when the engine is torn down before fonts settle', async () => {

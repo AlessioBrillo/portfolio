@@ -12,7 +12,7 @@ import { canonicalOrigin, canonicalStudyUrl } from '@/lib/site';
 import { cn } from '@/lib/utils';
 import { Eyebrow } from '@/components/ui/Eyebrow';
 import { NotFoundPage } from '@/pages/NotFoundPage';
-import type { CaseStudyMeta } from '@/types/domain';
+import type { CaseStudyMeta, CaseStudyDomain } from '@/types/domain';
 
 function Skeleton(): ReactElement {
   return (
@@ -74,7 +74,8 @@ export function CaseStudyPage(): ReactElement {
   const previousSlug = useRef(slug);
   // The registry is keyed by the `{domain}/{slug}` route identity itself, so
   // a returned entry is by construction the study for this route (ADR-0005).
-  const entry = domain && slug ? getCaseStudy(domain, slug) : undefined;
+  const domainTyped = domain as CaseStudyDomain;
+  const entry = domain && slug ? getCaseStudy(domainTyped, slug) : undefined;
   const valid = entry !== undefined;
   const Body = useMemo(() => (entry ? lazy(entry.load) : null), [entry]);
   const nav = useMemo(() => (valid && slug ? studyNavigation(slug) : {}), [valid, slug]);

@@ -206,7 +206,14 @@ export function useTonalEngine(
         }, el);
 
         if (document.fonts) {
-          void document.fonts.ready.then(() => {
+          void document.fonts.ready.then(async () => {
+            if (cancelled) return;
+            // Variable fonts (GeistVariable, ArchivoVariable) need explicit load()
+            // because document.fonts.ready resolves before font-variation-settings settle.
+            const variableFonts = Array.from(document.fonts).filter((f) =>
+              f.family.includes('Variable'),
+            );
+            await Promise.all(variableFonts.map((f) => f.load()));
             if (cancelled) return;
             ScrollTrigger.refresh();
           });
@@ -217,18 +224,24 @@ export function useTonalEngine(
         const err = error instanceof Error ? error : new Error(String(error));
         console.error('Tonal engine: GSAP failed to load; applying degraded static gradient.', err);
         if (el && typeof window !== 'undefined') {
-          // Degraded static gradient representing the flight profile:
-          // carta (ground) -> foschia -> notte (cruise) -> alba -> carta (descent) -> notte (contact)
+          // Degraded static gradient representing the flight profile (ADR-0010):
+          // carta (ground/hero) -> foschia (climb/who) -> notte (cruise/mosaic,ai-physics,work-school)
+          // -> alba (descent/sky-sport) -> carta (descent/experiences) -> notte (contact)
+          // Approximate section boundaries: 8 sections ≈ 12.5% each
           el.style.backgroundImage = `
             linear-gradient(
               to bottom,
               ${BACKDROP_TONES.carta} 0%,
-              ${BACKDROP_TONES.carta} 15%,
-              ${BACKDROP_TONES.notte} 15%,
-              ${BACKDROP_TONES.notte} 45%,
-              ${BACKDROP_TONES.carta} 45%,
+              ${BACKDROP_TONES.carta} 12.5%,
+              ${BACKDROP_TONES.foschia} 12.5%,
+              ${BACKDROP_TONES.foschia} 25%,
+              ${BACKDROP_TONES.notte} 25%,
+              ${BACKDROP_TONES.notte} 62.5%,
+              ${BACKDROP_TONES.alba} 62.5%,
+              ${BACKDROP_TONES.alba} 75%,
               ${BACKDROP_TONES.carta} 75%,
-              ${BACKDROP_TONES.notte} 75%,
+              ${BACKDROP_TONES.carta} 87.5%,
+              ${BACKDROP_TONES.notte} 87.5%,
               ${BACKDROP_TONES.notte} 100%
             )
           `

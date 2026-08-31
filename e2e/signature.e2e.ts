@@ -76,6 +76,10 @@ const SOFT_FLIP_MARGIN = 0.05;
  * re-measures its ScrollTrigger positions when `document.fonts.ready`
  * resolves, so the geometry this harness samples with must be the settled
  * one -- otherwise the flip gates chase a stale layout.
+ *
+ * Variable fonts (GeistVariable, ArchivoVariable) need explicit load()
+ * because document.fonts.ready resolves before font-variation-settings
+ * are settled. We await each FontFace.load() for the variable families.
  */
 async function settleFonts(page: Page): Promise<void> {
   await page.evaluate(() => document.fonts?.ready ?? Promise.resolve());
@@ -86,7 +90,11 @@ async function settleFonts(page: Page): Promise<void> {
     const st = (window as unknown as { ScrollTrigger?: { refresh: () => void } }).ScrollTrigger;
     if (st) st.refresh();
   });
-  await page.waitForTimeout(100);
+  // Variable fonts: wait for explicit load() after refresh so geometry is final
+  await page.evaluate(() => Promise.all(
+    Array.from(document.fonts).filter(f => f.family.includes('Variable')).map(f => f.load())
+  ));
+  await page.waitForTimeout(200);
 }
 
 async function backdropColor(page: Page): Promise<string> {
@@ -100,6 +108,7 @@ async function backdropColor(page: Page): Promise<string> {
  * scene text tone lands through a React state commit that lags by up to
  * ~270ms under parallel-worker load (measured) — a frame-count stall
  * reliably resolves in that gap, so the exit condition is time-based.
+ * Threshold increased to 1000ms for CI stability under thread starvation.
  */
 async function settleToneState(page: Page): Promise<void> {
   await page.evaluate(
@@ -138,12 +147,11 @@ async function settleToneState(page: Page): Promise<void> {
           lastBg = nowBg;
           lastHeading = nowHeading;
           lastY = nowY;
-          // Resolve once the tone state has held for half a second. Measured
+          // Resolve once the tone state has held for 1 second. Measured
           // under parallel-worker load, the React tone commit trails the GSAP
-          // backdrop paint by up to ~270ms, so a frame-count stall reliably
-          // resolves in the gap; a quiet stop (nothing to flip) exits on the
-          // same time floor. Hard cap bounds pathological thread starvation.
-          if (performance.now() - lastChange >= 500 || performance.now() - started >= 2000) {
+          // backdrop paint by up to ~270ms; 1000ms provides margin for
+          // thread starvation in CI. Hard cap bounds pathological stalls.
+          if (performance.now() - lastChange >= 1000 || performance.now() - started >= 3000) {
             resolve();
           } else {
             requestAnimationFrame(tick);

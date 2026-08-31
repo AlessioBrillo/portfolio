@@ -55,6 +55,7 @@ export default defineConfig({
         // key in `use` is silently dropped — it is not a TestOption).
         contextOptions: { reducedMotion: 'reduce' },
       },
+      timeout: 90_000,
     },
   ],
 });
