@@ -2,10 +2,10 @@ import { useEffect, useRef } from 'react';
 import type { RefObject } from 'react';
 import {
   flipLineFor,
-  SOFT_TEXT_TONE,
   TEXT_TONE,
   BACKDROP_TONES,
   TONAL_TRANSITIONS,
+  FLIP_PROGRESS,
   type TonalTransition,
   type ToneName,
 } from '@/lib/tone';
@@ -72,21 +72,6 @@ function flipStart(
 ): string {
   return flipLineFor(textTone, transition).position;
 }
-
-/**
- * Progress thresholds (0..1) for body and soft flips per transition.
- * Computed once at module load from the declared palette.
- */
-const FLIP_PROGRESS: Record<string, { body: number; soft: number }> = (() => {
-  const out: Record<string, { body: number; soft: number }> = {};
-  for (const transition of TONAL_TRANSITIONS) {
-    out[transition.trigger] = {
-      body: flipLineFor(TEXT_TONE, transition).progress,
-      soft: flipLineFor(SOFT_TEXT_TONE, transition).progress,
-    };
-  }
-  return out;
-})();
 
 /** Detect reduced motion at runtime — avoids gsap.matchMedia flakiness. */
 function prefersReducedMotion(): boolean {

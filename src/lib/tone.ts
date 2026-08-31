@@ -84,6 +84,34 @@ export const TONAL_TRANSITIONS: readonly TonalTransition[] = [
   // Contact paints its own solid notte outside TonalScene
 ] as const;
 
+/**
+ * Progress thresholds (0..1) for body and soft flips per transition trigger.
+ * Computed once at module load from the declared palette.
+ * Keys are the transition triggers (section IDs that drive each crossfade).
+ */
+export const FLIP_PROGRESS: Record<string, { body: number; soft: number }> = (() => {
+  const out: Record<string, { body: number; soft: number }> = {};
+  for (const transition of TONAL_TRANSITIONS) {
+    out[transition.trigger] = {
+      body: flipLineFor(TEXT_TONE, transition).progress,
+      soft: flipLineFor(SOFT_TEXT_TONE, transition).progress,
+    };
+  }
+  return out;
+})();
+
+/**
+ * E2E verification map: maps the section ID scrolled to for verification
+ * to the transition trigger that governs the fade ending at that section.
+ * Used by the Playwright harness to look up the correct flip lines.
+ * - 'ai-physics' verifies the climb's final state (mosaic transition: foschia -> notte)
+ * - 'sky-sport' verifies the descent's final state (sky-sport transition: notte -> alba)
+ */
+export const E2E_FLIP_PROGRESS: Record<string, { body: number; soft: number }> = {
+  'ai-physics': FLIP_PROGRESS.mosaic!,
+  'sky-sport': FLIP_PROGRESS['sky-sport']!,
+} as const;
+
 /** The scroll position at which a scene text family flips while the backdrop blends. */
 export interface FlipLine {
   /** Blend fraction (0..1) of the fade window at which the flip fires. */

@@ -1,5 +1,9 @@
 import { expect, test, type Page } from '@playwright/test';
 import { contrastRatio, parseRgb } from './contrast';
+import {
+  E2E_FLIP_PROGRESS,
+  type TonalTransition,
+} from '@/lib/tone';
 
 /**
  * Validates the tonal signature (ADR-0003, ADR-0010, ADR-0011, ADR-0012,
@@ -20,9 +24,9 @@ import { contrastRatio, parseRgb } from './contrast';
  * text tone, and the body palette is tuned so the flip line itself clears
  * AA. Instead of diagnosing one sample, this suite *sweeps* every crossfade
  * at dense blend fractions (plus both flip lines, +/- 0.03) and gates the
- * results. The flip-line constants below mirror `BODY_FLIP_LINE` and
- * `SOFT_FLIP_LINE` in `src/lib/tone.ts`, which computes them by bisection
- * over the actual GSAP-blended backdrop colours.
+ * results. The flip-line constants are imported from `src/lib/tone.ts`
+ * (`E2E_FLIP_PROGRESS`), which computes them by bisection over the actual
+ * GSAP-blended backdrop colours.
  *
  * Pixel-diff visual regression is deliberately not asserted here: golden
  * screenshots need a rendering environment matched to CI (fonts, subpixel
@@ -36,24 +40,10 @@ const AA_LARGE_TEXT = 3;
 const AA_NORMAL_TEXT = 4.5;
 /** Bounded floor for the muted family at its own flip line (ADR-0012). */
 const MUTED_FLOOR = 1.5;
-/** Climb triggers on ai-physics, descent on sky-sport -- see src/lib/tone.ts. */
-const TRANSITION_TRIGGERS = ['ai-physics', 'sky-sport'];
-/**
- * Blend fractions where the scene flips text tones (ADR-0012) -- mirrors
- * `flipLineFor` in `src/lib/tone.ts` (bisection over the GSAP-blended
- * backdrop colours). The lines are per transition: the climb and the descent
- * run over the same scroll window in opposite directions, so at any shared
- * geometry the backdrop has blended *different* amounts and each direction
- * uses its own equal-legibility line (the descent's is the climb's mirror).
- * The e2e harness intentionally mirrors the constants: the unit suite locks
- * the exact values, and this sweep verifies the *rendered* contract around
- * them.
- * Values computed from the current palette (TEXT_TONE/SOFT_TEXT_TONE/TONE).
- */
-const FLIP_PROGRESS: Record<string, { body: number; soft: number }> = {
-  'ai-physics': { body: 0.5406, soft: 0.5705 },
-  'sky-sport': { body: 0.4594, soft: 0.4295 },
-};
+/** Verification sections: 'ai-physics' for climb, 'sky-sport' for descent. */
+const TRANSITION_TRIGGERS = ['ai-physics', 'sky-sport'] as const;
+/** Flip progress per verification section, sourced from tone.ts (single source of truth). */
+const FLIP_PROGRESS: Record<string, { body: number; soft: number }> = E2E_FLIP_PROGRESS;
 
 /** Actual rendered text tones (from CSS tokens / tone-context): ink on paper, phosphor (white) on night. */
 const RENDERED_TEXT_TONES = {
