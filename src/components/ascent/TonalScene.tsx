@@ -219,18 +219,6 @@ export function TonalScene({ children }: TonalSceneProps): ReactElement {
               Animation unavailable — static view active
             </div>
           )}
-          <style
-            dangerouslySetInnerHTML={{
-              __html: `
-                @keyframes constellationFade {
-                  0% { opacity: 0; transform: scale(0.98); }
-                  10% { opacity: 0.15; transform: scale(1); }
-                  85% { opacity: 0.15; transform: scale(1); }
-                  100% { opacity: 0; transform: scale(1.02); }
-                }
-              `,
-            }}
-          />
         </div>
       </SceneToneContext.Provider>
     </SceneToneSetterContext.Provider>
