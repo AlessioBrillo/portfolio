@@ -29,7 +29,7 @@ import { getSpaFallbackSource, isSpaFallbackRewrite } from '../src/lib/deploy-ro
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const VERCEL_JSON = join(ROOT, 'vercel.json');
 const PUBLIC_DIR = join(ROOT, 'public');
-const MIDDLEWARE_TS = join(ROOT, 'middleware.ts');
+const MIDDLEWARE_TS = join(ROOT, 'api/_middleware.ts');
 
 /** Every committed static file, as posix-style paths relative to `public/`. */
 function listPublicFiles(dir, prefix = '') {
