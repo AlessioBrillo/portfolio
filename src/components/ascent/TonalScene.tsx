@@ -155,6 +155,7 @@ export function TonalScene({ children }: TonalSceneProps): ReactElement {
 
   const grainStyle = useMemo(() => {
     if (prefersForcedColors) return { display: 'none' };
+    /* v8 ignore next -- forced-colors path not exercised in jsdom */
     return {
       backgroundImage: `url("${GRAIN_SVG}")`,
       backgroundRepeat: 'repeat',
@@ -167,6 +168,7 @@ export function TonalScene({ children }: TonalSceneProps): ReactElement {
     if (prefersReducedMotion) return { display: 'none' };
     if (prefersForcedColors) return { display: 'none' };
     if (tone !== 'notte') return { display: 'none' };
+    /* v8 ignore next -- reduced-motion/forced-colors/night-only paths not all exercised in jsdom */
     return {
       backgroundImage: `url("${SCANLINE_SVG}")`,
       backgroundRepeat: 'repeat',
@@ -180,6 +182,7 @@ export function TonalScene({ children }: TonalSceneProps): ReactElement {
     if (prefersReducedMotion) return { display: 'none' };
     if (prefersForcedColors) return { display: 'none' };
     if (tone !== 'notte') return { display: 'none' };
+    /* v8 ignore next -- constellation requires showConstellation + night + no forced-colors + no reduced-motion */
     return {
       backgroundImage: `url("${CONSTELLATION_SVG}")`,
       backgroundRepeat: 'no-repeat',

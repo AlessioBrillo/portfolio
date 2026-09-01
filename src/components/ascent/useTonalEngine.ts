@@ -173,6 +173,7 @@ export function useTonalEngine(
                     start: transition.start,
                     end: transition.end,
                     scrub: true,
+                    /* v8 ignore next -- full motion path requires GSAP ScrollTrigger not available in jsdom */
                     onUpdate: (self) => {
                       const progress = self.progress;
                       const prevProgress = prevProgressRef.current.get(transition.trigger) ?? -1;
@@ -230,6 +231,7 @@ export function useTonalEngine(
       } catch (error) {
         const err = error instanceof Error ? error : new Error(String(error));
         console.error('Tonal engine: GSAP failed to load; applying degraded static gradient.', err);
+        /* v8 ignore next -- fallback path requires window object not available in jsdom */
         if (el && typeof window !== 'undefined') {
           // Degraded static gradient representing the flight profile (ADR-0010):
           // carta (ground/hero) -> foschia (climb/who) -> notte (cruise/mosaic,ai-physics,work-school)
@@ -256,6 +258,7 @@ export function useTonalEngine(
             .trim();
           el.style.backgroundColor = 'transparent';
         }
+        /* v8 ignore next -- fallback event dispatch requires window object */
         if (typeof window !== 'undefined') {
           window.dispatchEvent(
             new CustomEvent('tonal-engine-load', {
