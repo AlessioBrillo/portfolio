@@ -144,4 +144,37 @@ describe('useTonalEngineHealth', () => {
       renderHook(() => useTonalEngineHealth());
     }).not.toThrow();
   });
+
+  it('skips effect setup on re-render when already reported', () => {
+    const addEventListenerSpy = vi.spyOn(window, 'addEventListener');
+    const sendBeaconSpy = vi.spyOn(navigator, 'sendBeacon');
+    let handler: EventListener;
+
+    vi.spyOn(window, 'addEventListener').mockImplementation((event, fn) => {
+      if (event === 'tonal-engine-load') handler = fn as EventListener;
+    });
+
+    const { rerender } = renderHook(
+      ({ endpoint, meta }) => useTonalEngineHealth({ endpoint, meta }),
+      { initialProps: { endpoint: '/api/tonal-health', meta: {} } },
+    );
+
+    // Fire event to mark as reported
+    act(() => {
+      handler?.(new CustomEvent('tonal-engine-load', { detail: { engine: 'gsap' } }));
+    });
+    expect(sendBeaconSpy).toHaveBeenCalledTimes(1);
+
+    // Re-render with different endpoint - effect re-runs but skips due to reportedRef
+    rerender({ endpoint: '/api/other-health', meta: { new: 'meta' } });
+
+    // Fire again - should not send another beacon
+    act(() => {
+      handler?.(new CustomEvent('tonal-engine-load', { detail: { engine: 'fallback' } }));
+    });
+    expect(sendBeaconSpy).toHaveBeenCalledTimes(1);
+
+    // addEventListener called once (original), cleanup called on re-render, but new effect returns early
+    expect(addEventListenerSpy).toHaveBeenCalledTimes(1);
+  });
 });
