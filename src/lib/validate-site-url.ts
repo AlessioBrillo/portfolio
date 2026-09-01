@@ -13,6 +13,7 @@ export function validateSiteUrl(siteUrl: string): { valid: boolean; error?: stri
       return { valid: false, error: 'must not include a path' };
     if (url.search) return { valid: false, error: 'must not include query parameters' };
     if (url.hash) return { valid: false, error: 'must not include a fragment' };
+    /* v8 ignore next -- URL constructor requires hostname, unreachable in practice */
     if (!url.hostname) return { valid: false, error: 'must include a hostname' };
     return { valid: true };
   } catch {

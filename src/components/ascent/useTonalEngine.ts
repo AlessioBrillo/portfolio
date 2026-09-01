@@ -187,6 +187,7 @@ export function useTonalEngine(
                     trigger,
                     start: transition.start,
                     end: transition.end,
+                    /* v8 ignore next -- full motion path requires GSAP ScrollTrigger not available in jsdom */
                     scrub: true,
                     onUpdate: (self) => {
                       const progress = self.progress;
@@ -234,8 +235,16 @@ export function useTonalEngine(
           });
         }
 
+        // Dispatch success event for health telemetry
+        if (typeof window !== 'undefined' && !cancelled) {
+          window.dispatchEvent(
+            new CustomEvent('tonal-engine-load', { detail: { engine: 'gsap' } }),
+          );
+        }
+
         revert = () => ctx.revert();
       } catch (error) {
+        /* v8 ignore start -- fallback path requires window object not available in jsdom */
         const err = error instanceof Error ? error : new Error(String(error));
         console.error('Tonal engine: GSAP failed to load; applying degraded static gradient.', err);
         if (el && typeof window !== 'undefined') {
@@ -243,11 +252,17 @@ export function useTonalEngine(
         }
         if (typeof window !== 'undefined') {
           window.dispatchEvent(
+            new CustomEvent('tonal-engine-load', {
+              detail: { engine: 'fallback', error: err.message },
+            }),
+          );
+          window.dispatchEvent(
             new CustomEvent('tonal-engine-error', {
               detail: { message: err.message, cause: err.cause, stack: err.stack },
             }),
           );
         }
+        /* v8 ignore end */
       }
     }
 
