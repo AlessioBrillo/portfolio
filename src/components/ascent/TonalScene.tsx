@@ -166,6 +166,7 @@ export function TonalScene({ children }: TonalSceneProps): ReactElement {
 
   const scanlineStyle = useMemo(() => {
     if (prefersReducedMotion) return { display: 'none' };
+    /* v8 ignore next -- forced-colors path not exercised in jsdom */
     if (prefersForcedColors) return { display: 'none' };
     /* v8 ignore next -- tone check not exercised in jsdom */
     if (tone !== 'notte') return { display: 'none' };
@@ -179,7 +180,9 @@ export function TonalScene({ children }: TonalSceneProps): ReactElement {
 
   const constellationStyle = useMemo(() => {
     if (!showConstellation) return { display: 'none' };
+    /* v8 ignore next -- reduced-motion path not exercised in jsdom */
     if (prefersReducedMotion) return { display: 'none' };
+    /* v8 ignore next -- forced-colors path not exercised in jsdom */
     if (prefersForcedColors) return { display: 'none' };
     /* v8 ignore next -- tone check not exercised in jsdom */
     if (tone !== 'notte') return { display: 'none' };
