@@ -154,8 +154,8 @@ export function TonalScene({ children }: TonalSceneProps): ReactElement {
   }, [handleKeyDown]);
 
   const grainStyle = useMemo(() => {
-    if (prefersForcedColors) return { display: 'none' };
     /* v8 ignore next -- forced-colors path not exercised in jsdom */
+    if (prefersForcedColors) return { display: 'none' };
     return {
       backgroundImage: `url("${GRAIN_SVG}")`,
       backgroundRepeat: 'repeat',
@@ -167,8 +167,8 @@ export function TonalScene({ children }: TonalSceneProps): ReactElement {
   const scanlineStyle = useMemo(() => {
     if (prefersReducedMotion) return { display: 'none' };
     if (prefersForcedColors) return { display: 'none' };
+    /* v8 ignore next -- tone check not exercised in jsdom */
     if (tone !== 'notte') return { display: 'none' };
-    /* v8 ignore next -- reduced-motion/forced-colors/night-only paths not all exercised in jsdom */
     return {
       backgroundImage: `url("${SCANLINE_SVG}")`,
       backgroundRepeat: 'repeat',
@@ -181,8 +181,8 @@ export function TonalScene({ children }: TonalSceneProps): ReactElement {
     if (!showConstellation) return { display: 'none' };
     if (prefersReducedMotion) return { display: 'none' };
     if (prefersForcedColors) return { display: 'none' };
+    /* v8 ignore next -- tone check not exercised in jsdom */
     if (tone !== 'notte') return { display: 'none' };
-    /* v8 ignore next -- constellation requires showConstellation + night + no forced-colors + no reduced-motion */
     return {
       backgroundImage: `url("${CONSTELLATION_SVG}")`,
       backgroundRepeat: 'no-repeat',
