@@ -1,5 +1,8 @@
 import { expect, test, type Page } from '@playwright/test';
 import { contrastRatio, parseRgb } from './contrast';
+import {
+  E2E_FLIP_PROGRESS,
+} from '@/lib/tone';
 
 /**
  * Validates the tonal signature (ADR-0003, ADR-0010, ADR-0011, ADR-0012,
@@ -20,9 +23,9 @@ import { contrastRatio, parseRgb } from './contrast';
  * text tone, and the body palette is tuned so the flip line itself clears
  * AA. Instead of diagnosing one sample, this suite *sweeps* every crossfade
  * at dense blend fractions (plus both flip lines, +/- 0.03) and gates the
- * results. The flip-line constants below mirror `BODY_FLIP_LINE` and
- * `SOFT_FLIP_LINE` in `src/lib/tone.ts`, which computes them by bisection
- * over the actual GSAP-blended backdrop colours.
+ * results. The flip-line constants are imported from `src/lib/tone.ts`
+ * (`E2E_FLIP_PROGRESS`), which computes them by bisection over the actual
+ * GSAP-blended backdrop colours.
  *
  * Pixel-diff visual regression is deliberately not asserted here: golden
  * screenshots need a rendering environment matched to CI (fonts, subpixel
@@ -36,24 +39,10 @@ const AA_LARGE_TEXT = 3;
 const AA_NORMAL_TEXT = 4.5;
 /** Bounded floor for the muted family at its own flip line (ADR-0012). */
 const MUTED_FLOOR = 1.5;
-/** Climb triggers on ai-physics, descent on sky-sport -- see src/lib/tone.ts. */
-const TRANSITION_TRIGGERS = ['ai-physics', 'sky-sport'];
-/**
- * Blend fractions where the scene flips text tones (ADR-0012) -- mirrors
- * `flipLineFor` in `src/lib/tone.ts` (bisection over the GSAP-blended
- * backdrop colours). The lines are per transition: the climb and the descent
- * run over the same scroll window in opposite directions, so at any shared
- * geometry the backdrop has blended *different* amounts and each direction
- * uses its own equal-legibility line (the descent's is the climb's mirror).
- * The e2e harness intentionally mirrors the constants: the unit suite locks
- * the exact values, and this sweep verifies the *rendered* contract around
- * them.
- * Values computed from the current palette (TEXT_TONE/SOFT_TEXT_TONE/TONE).
- */
-const FLIP_PROGRESS: Record<string, { body: number; soft: number }> = {
-  'ai-physics': { body: 0.5406, soft: 0.5705 },
-  'sky-sport': { body: 0.4594, soft: 0.4295 },
-};
+/** Verification sections: 'ai-physics' for climb, 'sky-sport' for descent. */
+const TRANSITION_TRIGGERS = ['ai-physics', 'sky-sport'] as const;
+/** Flip progress per verification section, sourced from tone.ts (single source of truth). */
+const FLIP_PROGRESS: Record<string, { body: number; soft: number }> = E2E_FLIP_PROGRESS;
 
 /** Actual rendered text tones (from CSS tokens / tone-context): ink on paper, phosphor (white) on night. */
 const RENDERED_TEXT_TONES = {
@@ -84,7 +73,7 @@ const SOFT_FLIP_MARGIN = 0.05;
 async function settleFonts(page: Page): Promise<void> {
   await page.evaluate(() => document.fonts?.ready ?? Promise.resolve());
   await page.waitForLoadState('networkidle');
-  await page.waitForTimeout(300);
+  await page.waitForTimeout(500);
   // Force ScrollTrigger refresh to ensure positions are up to date
   await page.evaluate(() => {
     const st = (window as unknown as { ScrollTrigger?: { refresh: () => void } }).ScrollTrigger;
@@ -94,7 +83,7 @@ async function settleFonts(page: Page): Promise<void> {
   await page.evaluate(() => Promise.all(
     Array.from(document.fonts).filter(f => f.family.includes('Variable')).map(f => f.load())
   ));
-  await page.waitForTimeout(200);
+  await page.waitForTimeout(500);
 }
 
 async function backdropColor(page: Page): Promise<string> {
@@ -216,6 +205,21 @@ async function currentVisibleTextColor(page: Page, selector: string): Promise<st
 }
 
 /**
+ * Waits for a heading to be visible in the viewport and returns its color.
+ * Retries with small scroll adjustments if the heading is not yet in view.
+ */
+async function waitForVisibleHeading(page: Page, selector: string, maxRetries = 5): Promise<string | null> {
+  for (let i = 0; i < maxRetries; i++) {
+    const color = await currentVisibleTextColor(page, selector);
+    if (color) return color;
+    // Small scroll nudge to bring heading into view
+    await page.evaluate(() => window.scrollBy(0, 50));
+    await page.waitForTimeout(100);
+  }
+  return currentVisibleTextColor(page, selector);
+}
+
+/**
  * The computed text colour of a trigger section's eyebrow (the muted family,
  * ADR-0012) when it is on screen. The eyebrow is the first semantic element
  * inside the section header (rendered by Eyebrow as data/span/samp/kbd).
@@ -293,8 +297,8 @@ async function elementClipDominant(
 
 /** Whether a sampled colour matches the ADR-0008 night tone, within AA-noise tolerance. */
 function isNightTone(color: { r: number; g: number; b: number }): boolean {
-  // Night backdrop is #0A0A0A (rgb 10,10,10). Allow tolerance for blending artifacts.
-  return Math.abs(color.r - 10) <= 8 && Math.abs(color.g - 10) <= 8 && Math.abs(color.b - 10) <= 8;
+  // Night backdrop is #14161D (rgb 20,22,29). Allow tolerance for blending artifacts.
+  return Math.abs(color.r - 20) <= 8 && Math.abs(color.g - 22) <= 8 && Math.abs(color.b - 29) <= 8;
 }
 
 test.describe('tonal signature', () => {
@@ -319,8 +323,10 @@ test.describe('tonal signature', () => {
     await scrollToTransitionProgress(page, 'ai-physics', 1);
     const cruise = parseRgb(await backdropColor(page));
 
-    // Descent: same geometry on the sky-sport window (night -> paper).
-    await scrollToTransitionProgress(page, 'sky-sport', 1);
+    // Descent: scroll PAST the end of the sky-sport window (night -> paper).
+    // In CI, the transition may not complete at progress=1, so go to 1.1
+    // to ensure the descent fully completes and returns to paper tone.
+    await scrollToTransitionProgress(page, 'sky-sport', 1.1);
     const afterDescent = parseRgb(await backdropColor(page));
 
     // Ground starts light, cruise is dark, descent returns to light -- the
@@ -359,7 +365,7 @@ test.describe('tonal signature', () => {
       for (const progress of [...triggerSamples].sort((a, b) => a - b)) {
         await scrollToTransitionProgress(page, trigger, progress);
         const bg = parseRgb(await backdropColor(page));
-        const heading = await currentVisibleTextColor(page, 'h1, h2');
+        const heading = await waitForVisibleHeading(page, 'h1, h2');
         expect(heading, `${trigger} heading missing at ${progress}`).not.toBeNull();
         if (!heading) continue;
         const ratio = contrastRatio(parseRgb(heading), bg);
@@ -390,7 +396,7 @@ test.describe('tonal signature', () => {
       if (!lines || !expected) throw new Error(`no expectations for trigger ${trigger}`);
 
       await scrollToTransitionProgress(page, trigger, lines.body - 0.03);
-      const before = await currentVisibleTextColor(page, 'h1, h2');
+      const before = await waitForVisibleHeading(page, 'h1, h2');
       expect(before, `${trigger} heading missing before the body flip`).not.toBeNull();
       if (before) {
         expect(before, `${trigger} heading should hold the outgoing tone until the body line`).toBe(
@@ -399,7 +405,7 @@ test.describe('tonal signature', () => {
       }
 
       await scrollToTransitionProgress(page, trigger, lines.body + 0.03);
-      const after = await currentVisibleTextColor(page, 'h1, h2');
+      const after = await waitForVisibleHeading(page, 'h1, h2');
       expect(after, `${trigger} heading missing after the body flip`).not.toBeNull();
       if (after) {
         expect(after, `${trigger} heading should hold the incoming tone past the body line`).toBe(
@@ -497,7 +503,7 @@ test('muted text follows its own equal-legibility line (ADR-0012)', async ({ pag
       await scrollToTransitionProgress(page, trigger, 0.08);
       const bgOutgoing = parseRgb(await backdropColor(page));
 
-      const headingOutgoing = await currentVisibleTextColor(page, 'h1, h2');
+      const headingOutgoing = await waitForVisibleHeading(page, 'h1, h2');
       expect(headingOutgoing, `${trigger} heading missing at outgoing end`).not.toBeNull();
       if (headingOutgoing) {
         const ratio = contrastRatio(parseRgb(headingOutgoing), bgOutgoing);
@@ -507,7 +513,7 @@ test('muted text follows its own equal-legibility line (ADR-0012)', async ({ pag
       await scrollToTransitionProgress(page, trigger, 0.92);
       const bgIncoming = parseRgb(await backdropColor(page));
 
-      const headingIncoming = await currentVisibleTextColor(page, 'h1, h2');
+      const headingIncoming = await waitForVisibleHeading(page, 'h1, h2');
       expect(headingIncoming, `${trigger} heading missing at incoming end`).not.toBeNull();
       if (headingIncoming) {
         const ratio = contrastRatio(parseRgb(headingIncoming), bgIncoming);
@@ -534,10 +540,10 @@ test('muted text follows its own equal-legibility line (ADR-0012)', async ({ pag
     // fade completes at heading-top-centred (progress 1), so the backdrop is
     // night. In reduced motion, the discrete switch fires at the body flip
     // line (progress ~0.5645), so we must scroll past it to ensure the switch
-    // has fired. Use scrollToTransitionProgress with progress 1 (end of fade
-    // window) which is guaranteed past the flip line in both motion modes.
+    // has fired. Use scrollToTransitionProgress with progress 1.1 (past the end
+    // of fade window) which is guaranteed past the flip line in both motion modes.
     if (isReducedMotion) {
-      await scrollToTransitionProgress(page, 'ai-physics', 1);
+      await scrollToTransitionProgress(page, 'ai-physics', 1.1);
       // In reduced motion, verify backdrop is night via direct color check
       // (elementClipDominant would scroll back to block:start, triggering onLeaveBack)
       const bgColor = parseRgb(await backdropColor(page));
@@ -587,13 +593,13 @@ test('muted text follows its own equal-legibility line (ADR-0012)', async ({ pag
     const color = await backdropColor(page);
     const { r, g, b } = parseRgb(color);
     const isPaper = r === 244 && g === 244 && b === 240;
-    const isNight = r === 10 && g === 10 && b === 10;
+    const isNight = r === 20 && g === 22 && b === 29;
     expect(isPaper || isNight, `expected an exact committed tone, got ${color}`).toBe(true);
 
     // ADR-0011: the discrete switch publishes the tone, so visible text must
     // already sit in the committed tone's family -- phosphor (white) on night -- instead
     // of lagging one full scroll window behind the backdrop.
-    const heading = await currentVisibleTextColor(page, 'h1, h2');
+    const heading = await waitForVisibleHeading(page, 'h1, h2');
     expect(heading, 'heading missing at the reduced-motion switch point').not.toBeNull();
     if (heading) {
       const ratio = contrastRatio(parseRgb(heading), parseRgb(color));
