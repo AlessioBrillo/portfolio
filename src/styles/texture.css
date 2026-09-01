@@ -189,3 +189,12 @@ html::before {
     }
   }
 }
+
+@media (forced-colors: active) {
+  @keyframes constellationFade {
+    0%,
+    100% {
+      opacity: 0;
+    }
+  }
+}

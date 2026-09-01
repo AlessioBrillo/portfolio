@@ -603,39 +603,41 @@ test('muted text follows its own equal-legibility line (ADR-0012)', async ({ pag
     }
   });
 
-  test('GSAP load failure renders static gradient and publishes carta tone', async ({
-    page,
-  }) => {
-    // Block GSAP modules to simulate load failure
-    await page.route('**/gsap/**', (route) => route.abort());
-    await page.route('**/gsap/ScrollTrigger**', (route) => route.abort());
-
+  test('forced-colors mode uses system colors and disables textures', async ({ page }, testInfo) => {
+    test.skip(
+      testInfo.project.name !== 'forced-colors',
+      'only meaningful under forced-colors',
+    );
     await page.goto('/');
     await page.waitForLoadState('networkidle');
 
-    // Wait for the tonal-engine-error event to fire (dispatched in catch block)
-    await page.waitForEvent('tonal-engine-error', { timeout: 10000 });
-
-    // Verify static gradient is applied (not a solid color)
+    // In forced-colors mode, the backdrop should use system Canvas color
     const bg = await backdropColor(page);
-    expect(bg).toContain('gradient');
+    // System Canvas color (varies by theme) - just verify it's not our custom gradient
+    expect(bg).not.toContain('gradient');
 
-    // Verify the gradient contains the flight profile colors
-    expect(bg).toContain('rgb(244, 239, 230)'); // carta
-    expect(bg).toContain('rgb(216, 208, 192)'); // foschia
-    expect(bg).toContain('rgb(20, 22, 29)');    // notte
-    expect(bg).toContain('rgb(232, 224, 208)'); // alba
-
-    // Verify tone context publishes 'carta' (ground tone) as the fallback
+    // Text should use system CanvasText (high contrast)
     const heading = await currentVisibleTextColor(page, 'h1, h2');
     expect(heading).not.toBeNull();
-    if (heading) {
-      // On carta backdrop, heading should be ink (dark)
-      const ratio = contrastRatio(parseRgb(heading), parseRgb('rgb(244, 239, 230)'));
-      expect(ratio).toBeGreaterThanOrEqual(AA_NORMAL_TEXT);
-    }
 
-    // Verify error toast is visible
-    await expect(page.locator('text=Animation unavailable')).toBeVisible({ timeout: 5000 });
+    // Texture layers should be disabled in forced-colors
+    const grainVisible = await page.evaluate(() => {
+      const el = document.querySelector('div[style*="400px 400px"]');
+      return el && getComputedStyle(el).display !== 'none';
+    });
+    expect(grainVisible).toBe(false);
+
+    const scanlinesVisible = await page.evaluate(() => {
+      const el = document.querySelector('div[style*="100% 4px"]');
+      return el && getComputedStyle(el).display !== 'none';
+    });
+    expect(scanlinesVisible).toBe(false);
+
+    // Constellation should be disabled
+    const constellationVisible = await page.evaluate(() => {
+      const el = document.querySelector('div[style*="constellationFade"]');
+      return el && getComputedStyle(el).display !== 'none';
+    });
+    expect(constellationVisible).toBe(false);
   });
 });

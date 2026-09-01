@@ -97,3 +97,39 @@
   --leading-relaxed: 1.6;
   --leading-loose: 1.8;
 }
+
+/* ===== FORCED COLORS / HIGH CONTRAST MODE ===== */
+/* Windows High Contrast / forced-colors: use system colors for maximum legibility.
+ * Disables all decorative textures (grain, scanlines, constellation) and maps
+ * semantic tokens to system color keywords. See ADR-0009 (a11y floor). */
+@media (forced-colors: active) {
+  :root {
+    --color-ink: CanvasText;
+    --color-ink-soft: GrayText;
+    --color-panna: Canvas;
+    --color-panna-dim: GrayText;
+    --color-accent: Highlight;
+    --color-accent-hover: Highlight;
+    --color-carta: Canvas;
+    --color-notte: Canvas;
+    --color-muted: GrayText;
+    --color-hairline-light: currentColor;
+    --color-hairline-dark: currentColor;
+  }
+
+  /* Disable all decorative overlays in forced-colors mode */
+  html::before,
+  .scanlines::after,
+  .halftone-overlay::after,
+  .dither-1bit::after {
+    display: none !important;
+  }
+
+  /* Constellation animation must not run */
+  @keyframes constellationFade {
+    0%,
+    100% {
+      opacity: 0;
+    }
+  }
+}
