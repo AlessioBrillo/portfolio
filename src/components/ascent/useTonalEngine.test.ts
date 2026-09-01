@@ -2,7 +2,11 @@ import { renderHook, waitFor } from '@testing-library/react';
 import { useRef } from 'react';
 import type { RefObject } from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { useTonalEngine, debounce } from '@/components/ascent/useTonalEngine';
+import {
+  useTonalEngine,
+  debounce,
+  renderStaticFlightGradient,
+} from '@/components/ascent/useTonalEngine';
 import {
   flipLineFor,
   SOFT_TEXT_TONE,
@@ -468,5 +472,42 @@ describe('useTonalEngine', () => {
       vi.advanceTimersByTime(50);
       expect(fn).toHaveBeenCalledTimes(1);
     });
+  });
+});
+
+describe('renderStaticFlightGradient', () => {
+  it('applies the correct flight profile gradient to the element', () => {
+    const el = document.createElement('div');
+    renderStaticFlightGradient(el);
+
+    const style = el.style.backgroundImage;
+    // Browser converts hex to rgb() in computed styles
+    expect(style).toContain('rgb(244, 239, 230)'); // carta
+    expect(style).toContain('rgb(216, 208, 192)'); // foschia
+    expect(style).toContain('rgb(20, 22, 29)'); // notte
+    expect(style).toContain('rgb(232, 224, 208)'); // alba
+
+    // Verify the gradient stops match the flight profile (8 sections ≈ 12.5% each)
+    expect(style).toContain('0%');
+    expect(style).toContain('12.5%');
+    expect(style).toContain('25%');
+    expect(style).toContain('62.5%');
+    expect(style).toContain('75%');
+    expect(style).toContain('87.5%');
+    expect(style).toContain('100%');
+  });
+
+  it('sets backgroundColor to transparent', () => {
+    const el = document.createElement('div');
+    renderStaticFlightGradient(el);
+    expect(el.style.backgroundColor).toBe('transparent');
+  });
+
+  it('produces deterministic output for the same input', () => {
+    const el1 = document.createElement('div');
+    const el2 = document.createElement('div');
+    renderStaticFlightGradient(el1);
+    renderStaticFlightGradient(el2);
+    expect(el1.style.backgroundImage).toBe(el2.style.backgroundImage);
   });
 });
