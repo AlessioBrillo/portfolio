@@ -2,7 +2,6 @@ import { expect, test, type Page } from '@playwright/test';
 import { contrastRatio, parseRgb } from './contrast';
 import {
   E2E_FLIP_PROGRESS,
-  type TonalTransition,
 } from '@/lib/tone';
 
 /**
