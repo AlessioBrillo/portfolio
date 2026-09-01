@@ -602,4 +602,40 @@ test('muted text follows its own equal-legibility line (ADR-0012)', async ({ pag
       );
     }
   });
+
+  test('GSAP load failure renders static gradient and publishes carta tone', async ({
+    page,
+  }) => {
+    // Block GSAP modules to simulate load failure
+    await page.route('**/gsap/**', (route) => route.abort());
+    await page.route('**/gsap/ScrollTrigger**', (route) => route.abort());
+
+    await page.goto('/');
+    await page.waitForLoadState('networkidle');
+
+    // Wait for the tonal-engine-error event to fire (dispatched in catch block)
+    await page.waitForEvent('tonal-engine-error', { timeout: 10000 });
+
+    // Verify static gradient is applied (not a solid color)
+    const bg = await backdropColor(page);
+    expect(bg).toContain('gradient');
+
+    // Verify the gradient contains the flight profile colors
+    expect(bg).toContain('rgb(244, 239, 230)'); // carta
+    expect(bg).toContain('rgb(216, 208, 192)'); // foschia
+    expect(bg).toContain('rgb(20, 22, 29)');    // notte
+    expect(bg).toContain('rgb(232, 224, 208)'); // alba
+
+    // Verify tone context publishes 'carta' (ground tone) as the fallback
+    const heading = await currentVisibleTextColor(page, 'h1, h2');
+    expect(heading).not.toBeNull();
+    if (heading) {
+      // On carta backdrop, heading should be ink (dark)
+      const ratio = contrastRatio(parseRgb(heading), parseRgb('rgb(244, 239, 230)'));
+      expect(ratio).toBeGreaterThanOrEqual(AA_NORMAL_TEXT);
+    }
+
+    // Verify error toast is visible
+    await expect(page.locator('text=Animation unavailable')).toBeVisible({ timeout: 5000 });
+  });
 });

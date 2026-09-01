@@ -94,6 +94,36 @@ function prefersReducedMotion(): boolean {
   return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 }
 
+/**
+ * Renders the static flight gradient as a fallback when GSAP fails to load.
+ * Pure function — no React, no side effects except mutating the element's style.
+ * The gradient matches the flight profile (ADR-0010): 8 sections ≈ 12.5% each.
+ * carta (ground/hero) -> foschia (climb/who) -> notte (cruise/mosaic,ai-physics,work-school)
+ * -> alba (descent/sky-sport) -> carta (descent/experiences) -> notte (contact)
+ */
+export function renderStaticFlightGradient(el: HTMLElement): void {
+  el.style.backgroundImage = `
+    linear-gradient(
+      to bottom,
+      ${BACKDROP_TONES.carta} 0%,
+      ${BACKDROP_TONES.carta} 12.5%,
+      ${BACKDROP_TONES.foschia} 12.5%,
+      ${BACKDROP_TONES.foschia} 25%,
+      ${BACKDROP_TONES.notte} 25%,
+      ${BACKDROP_TONES.notte} 62.5%,
+      ${BACKDROP_TONES.alba} 62.5%,
+      ${BACKDROP_TONES.alba} 75%,
+      ${BACKDROP_TONES.carta} 75%,
+      ${BACKDROP_TONES.carta} 87.5%,
+      ${BACKDROP_TONES.notte} 87.5%,
+      ${BACKDROP_TONES.notte} 100%
+    )
+  `
+    .replace(/\s+/g, ' ')
+    .trim();
+  el.style.backgroundColor = 'transparent';
+}
+
 export function useTonalEngine(
   backdropRef: RefObject<HTMLDivElement | null>,
   onToneChange?: (tone: ToneName) => void,
@@ -224,30 +254,7 @@ export function useTonalEngine(
         const err = error instanceof Error ? error : new Error(String(error));
         console.error('Tonal engine: GSAP failed to load; applying degraded static gradient.', err);
         if (el && typeof window !== 'undefined') {
-          // Degraded static gradient representing the flight profile (ADR-0010):
-          // carta (ground/hero) -> foschia (climb/who) -> notte (cruise/mosaic,ai-physics,work-school)
-          // -> alba (descent/sky-sport) -> carta (descent/experiences) -> notte (contact)
-          // Approximate section boundaries: 8 sections ≈ 12.5% each
-          el.style.backgroundImage = `
-            linear-gradient(
-              to bottom,
-              ${BACKDROP_TONES.carta} 0%,
-              ${BACKDROP_TONES.carta} 12.5%,
-              ${BACKDROP_TONES.foschia} 12.5%,
-              ${BACKDROP_TONES.foschia} 25%,
-              ${BACKDROP_TONES.notte} 25%,
-              ${BACKDROP_TONES.notte} 62.5%,
-              ${BACKDROP_TONES.alba} 62.5%,
-              ${BACKDROP_TONES.alba} 75%,
-              ${BACKDROP_TONES.carta} 75%,
-              ${BACKDROP_TONES.carta} 87.5%,
-              ${BACKDROP_TONES.notte} 87.5%,
-              ${BACKDROP_TONES.notte} 100%
-            )
-          `
-            .replace(/\s+/g, ' ')
-            .trim();
-          el.style.backgroundColor = 'transparent';
+          renderStaticFlightGradient(el);
         }
         if (typeof window !== 'undefined') {
           window.dispatchEvent(
