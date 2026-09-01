@@ -592,7 +592,6 @@ test('muted text follows its own equal-legibility line (ADR-0012)', async ({ pag
       );
     }
   });
-  }
 
   test('GSAP load failure renders static gradient and publishes carta tone', async ({
     page,
