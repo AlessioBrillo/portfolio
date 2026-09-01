@@ -43,3 +43,23 @@ export function initAnalytics(): void {
 
   document.head.appendChild(script);
 }
+
+/**
+ * Sends a non-blocking beacon to a same-origin endpoint using navigator.sendBeacon.
+ * Used for operational telemetry (e.g., tonal engine health) that must not block
+ * the main thread or affect page performance. Fails silently if sendBeacon is
+ * unavailable (older browsers, SSR) or returns false (queue full).
+ *
+ * The endpoint must be same-origin to satisfy CSP `connect-src 'self'`.
+ */
+export function sendBeacon(url: string, data: Record<string, unknown>): void {
+  if (typeof navigator === 'undefined' || typeof navigator.sendBeacon !== 'function') {
+    return;
+  }
+  try {
+    const blob = new Blob([JSON.stringify(data)], { type: 'application/json' });
+    navigator.sendBeacon(url, blob);
+  } catch {
+    // Swallow any unexpected errors — telemetry must never throw
+  }
+}

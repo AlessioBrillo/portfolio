@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { initAnalytics } from '@/lib/analytics';
+import { initAnalytics, sendBeacon } from '@/lib/analytics';
 
 const SRC = '/js/script.js';
 const DOMAIN = 'ilcassero.it';
@@ -68,5 +68,48 @@ describe('initAnalytics', () => {
     expect(script).toBeDefined();
     expect(script?.integrity).toBe('sha384-abc123');
     expect(script?.crossOrigin).toBe('anonymous');
+  });
+});
+
+describe('sendBeacon', () => {
+  beforeEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  it('is a no-op when navigator.sendBeacon is unavailable', () => {
+    vi.stubGlobal('navigator', {});
+    expect(() => sendBeacon('/api/health', { test: 'data' })).not.toThrow();
+  });
+
+  it('calls navigator.sendBeacon with JSON payload when available', () => {
+    const sendBeaconMock = vi.fn().mockReturnValue(true);
+    vi.stubGlobal('navigator', { sendBeacon: sendBeaconMock });
+
+    sendBeacon('/api/health', { engine: 'gsap', status: 'loaded' });
+
+    expect(sendBeaconMock).toHaveBeenCalledTimes(1);
+    expect(sendBeaconMock).toHaveBeenCalledWith(
+      '/api/health',
+      new Blob([JSON.stringify({ engine: 'gsap', status: 'loaded' })], {
+        type: 'application/json',
+      }),
+    );
+  });
+
+  it('handles sendBeacon returning false gracefully', () => {
+    const sendBeaconMock = vi.fn().mockReturnValue(false);
+    vi.stubGlobal('navigator', { sendBeacon: sendBeaconMock });
+
+    expect(() => sendBeacon('/api/health', { test: 'data' })).not.toThrow();
+    expect(sendBeaconMock).toHaveBeenCalledTimes(1);
+  });
+
+  it('is a no-op when navigator is undefined (SSR guard)', () => {
+    vi.stubGlobal('navigator', undefined);
+    expect(() => sendBeacon('/api/health', { test: 'data' })).not.toThrow();
   });
 });

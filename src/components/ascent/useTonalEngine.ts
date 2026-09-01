@@ -219,6 +219,13 @@ export function useTonalEngine(
           });
         }
 
+        // Dispatch success event for health telemetry
+        if (typeof window !== 'undefined' && !cancelled) {
+          window.dispatchEvent(
+            new CustomEvent('tonal-engine-load', { detail: { engine: 'gsap' } }),
+          );
+        }
+
         revert = () => ctx.revert();
       } catch (error) {
         const err = error instanceof Error ? error : new Error(String(error));
@@ -250,6 +257,11 @@ export function useTonalEngine(
           el.style.backgroundColor = 'transparent';
         }
         if (typeof window !== 'undefined') {
+          window.dispatchEvent(
+            new CustomEvent('tonal-engine-load', {
+              detail: { engine: 'fallback', error: err.message },
+            }),
+          );
           window.dispatchEvent(
             new CustomEvent('tonal-engine-error', {
               detail: { message: err.message, cause: err.cause, stack: err.stack },
