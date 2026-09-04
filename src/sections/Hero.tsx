@@ -50,7 +50,7 @@ export function Hero({ surface = 'scene' }: HeroProps): ReactElement {
           className="font-display text-[length:var(--text-macro)] font-medium leading-[var(--leading-tight)] tracking-[var(--tracking-tight)] text-balance"
           variants={rise}
         >
-          {SITE.name}
+          {SITE.name.toUpperCase()}
         </motion.h1>
 
         <motion.p

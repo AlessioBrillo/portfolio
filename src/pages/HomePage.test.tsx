@@ -14,7 +14,7 @@ function renderHome(): ReturnType<typeof render> {
 describe('HomePage', () => {
   it('mounts the full Phase-2 tree, including the tonal scene, without throwing', () => {
     renderHome();
-    expect(screen.getByRole('heading', { name: 'Alessio Brillo' })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'ALESSIO BRILLO' })).toBeInTheDocument();
   });
 
   it('renders the ground -> cruise sections wrapped by the tonal scene', () => {
