@@ -88,13 +88,34 @@ export const TONAL_TRANSITIONS: readonly TonalTransition[] = [
  * Progress thresholds (0..1) for body and soft flips per transition trigger.
  * Computed once at module load from the declared palette.
  * Keys are the transition triggers (section IDs that drive each crossfade).
+ *
+ * The flip line is computed per transition using the ACTUAL backdrop blend
+ * (transition.from → transition.to) against the text tone family (ink/panna).
+ * The text tone family depends on flight phase:
+ * - Climb (who: carta→foschia, mosaic: foschia→notte): outgoing=ink(carta), incoming=panna(notte)
+ * - Descent (sky-sport: notte→alba, experiences: alba→carta): outgoing=panna(notte), incoming=ink(carta)
  */
 export const FLIP_PROGRESS: Record<string, { body: number; soft: number }> = (() => {
   const out: Record<string, { body: number; soft: number }> = {};
   for (const transition of TONAL_TRANSITIONS) {
+    // Determine text tone family by flight phase, not just immediate from/to
+    const isClimb = transition.to === 'foschia' || transition.to === 'notte';
+    const isDescent = transition.from === 'notte' || transition.from === 'alba';
+
+    const textToneFrom = isClimb ? 'carta' : isDescent ? 'notte' : 'carta';
+    const textToneTo = isClimb ? 'notte' : isDescent ? 'carta' : 'notte';
+
     out[transition.trigger] = {
-      body: flipLineFor(TEXT_TONE, transition).progress,
-      soft: flipLineFor(SOFT_TEXT_TONE, transition).progress,
+      body: flipLineFor(TEXT_TONE, {
+        ...transition,
+        from: textToneFrom as ToneName,
+        to: textToneTo as ToneName,
+      }).progress,
+      soft: flipLineFor(SOFT_TEXT_TONE, {
+        ...transition,
+        from: textToneFrom as ToneName,
+        to: textToneTo as ToneName,
+      }).progress,
     };
   }
   return out;
