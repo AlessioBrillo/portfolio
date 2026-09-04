@@ -104,7 +104,10 @@ git push origin main
    - [ ] Contact section renders solid night
    - [ ] Footer renders solid night
    - [ ] No console errors
-   - [ ] Network tab: **No requests to plausible.io** (middleware inactive on preview since VITE_PLAUSIBLE_DOMAIN not set for preview? Actually it IS set for preview — verify beacon fires to `/api/event` which rewrites to plausible.io)
+   - [ ] **Middleware active**: Network tab → `/js/script.js` → 200 OK, `content-type: application/javascript` (served by edge function, NOT index.html)
+   - [ ] **Middleware active**: Network tab → `/api/event` (POST) → 200 OK, `content-type: application/json` (proxied to plausible.io)
+   - [ ] **CSP on proxied script**: `Content-Security-Policy: default-src 'self'; script-src 'self'` (no `unsafe-inline`, no `plausible.io`)
+   - [ ] **No direct requests to plausible.io** — all analytics traffic goes through `/js/script.js` and `/api/event` on our origin
 
 ---
 
