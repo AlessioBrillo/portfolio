@@ -3,6 +3,7 @@ import eslint from '@eslint/js';
 import tsParser from '@typescript-eslint/parser';
 import tsPlugin from '@typescript-eslint/eslint-plugin';
 import globals from 'globals';
+import noTonalBackdropStackingContext from './scripts/eslint-rules/no-tonal-backdrop-stacking-context.js';
 
 const globalIgnores = {
   ignores: ['dist/', 'node_modules/', 'vite.config.ts', 'vitest.config.ts', 'eslint.config.js'],
@@ -29,8 +30,10 @@ export default [
     },
     plugins: {
       '@typescript-eslint': tsPlugin,
+      'tonal-backdrop': { rules: { 'no-stacking-context': noTonalBackdropStackingContext } },
     },
     rules: {
+      'tonal-backdrop/no-stacking-context': 'error',
       'no-undef': 'off',
       'no-unused-vars': 'off',
       '@typescript-eslint/no-explicit-any': 'error',

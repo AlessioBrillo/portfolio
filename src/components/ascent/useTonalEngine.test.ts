@@ -9,10 +9,10 @@ import {
 } from '@/components/ascent/useTonalEngine';
 import {
   flipLineFor,
-  SOFT_TEXT_TONE,
   TEXT_TONE,
   TONAL_TRANSITIONS,
   BACKDROP_TONES,
+  FLIP_PROGRESS,
   type ToneName,
 } from '@/lib/tone';
 
@@ -146,8 +146,11 @@ describe('useTonalEngine', () => {
       const call = mocks.fromTo.mock.calls[0]?.[2] as FromToConfig;
       const onUpdate = call.scrollTrigger.onUpdate;
 
-      const bodyLine = flipLineFor(TEXT_TONE, climb).progress;
-      const softLine = flipLineFor(SOFT_TEXT_TONE, climb).progress;
+      // Use the precomputed FLIP_PROGRESS for the trigger (which matches the engine)
+      const lines = FLIP_PROGRESS[climb.trigger];
+      if (!lines) throw new Error(`no flip lines for trigger ${climb.trigger}`);
+      const bodyLine = lines.body;
+      const softLine = lines.soft;
 
       onUpdate({ progress: bodyLine - 0.01, getVelocity: () => 0 });
       expect(onToneChange).not.toHaveBeenCalled();
@@ -224,6 +227,8 @@ describe('useTonalEngine', () => {
       });
 
       renderEngine();
+      // Wait for GSAP to initialize AND font loading to complete
+      await waitFor(() => expect(mocks.registerPlugin).toHaveBeenCalled());
       await waitFor(() => expect(mocks.refresh).toHaveBeenCalledTimes(1));
       expect(variableFont.load).toHaveBeenCalled();
       expect(regularFont.load).not.toHaveBeenCalled();
@@ -252,6 +257,9 @@ describe('useTonalEngine', () => {
       });
 
       renderEngine();
+
+      // registerPlugin should be called immediately
+      await waitFor(() => expect(mocks.registerPlugin).toHaveBeenCalled());
 
       // refresh should not be called until variable font loads
       await Promise.resolve(); // let ready resolve
@@ -289,9 +297,16 @@ describe('useTonalEngine', () => {
     });
 
     it('registers load and resize listeners after GSAP initializes', async () => {
+      const regularFont = { family: 'Geist', load: vi.fn().mockResolvedValue(undefined) };
+      const fontSet = {
+        ready: Promise.resolve(),
+        *[Symbol.iterator]() {
+          yield regularFont;
+        },
+      };
       Object.defineProperty(document, 'fonts', {
         configurable: true,
-        value: { ready: Promise.resolve() },
+        value: fontSet,
       });
 
       const addEventListener = vi.spyOn(window, 'addEventListener');
@@ -324,9 +339,16 @@ describe('useTonalEngine', () => {
     });
 
     it('calls ScrollTrigger.refresh via load event callback', async () => {
+      const regularFont = { family: 'Geist', load: vi.fn().mockResolvedValue(undefined) };
+      const fontSet = {
+        ready: Promise.resolve(),
+        *[Symbol.iterator]() {
+          yield regularFont;
+        },
+      };
       Object.defineProperty(document, 'fonts', {
         configurable: true,
-        value: { ready: Promise.resolve() },
+        value: fontSet,
       });
 
       let loadCb: () => void = () => {};
@@ -349,9 +371,16 @@ describe('useTonalEngine', () => {
     });
 
     it('guards refreshIfActive when scrollTriggerRef is not yet set', async () => {
+      const regularFont = { family: 'Geist', load: vi.fn().mockResolvedValue(undefined) };
+      const fontSet = {
+        ready: Promise.resolve(),
+        *[Symbol.iterator]() {
+          yield regularFont;
+        },
+      };
       Object.defineProperty(document, 'fonts', {
         configurable: true,
-        value: { ready: Promise.resolve() },
+        value: fontSet,
       });
 
       const _ref = renderEngine();

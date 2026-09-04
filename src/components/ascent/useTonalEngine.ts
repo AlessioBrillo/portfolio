@@ -221,19 +221,25 @@ export function useTonalEngine(
           }
         }, el);
 
+        // CRITICAL: Wait for fonts to fully load AFTER GSAP context creation.
+        // document.fonts.ready resolves before font-variation-settings settle on variable fonts.
+        // We must refresh ScrollTrigger after fonts settle to capture final geometry.
         if (document.fonts) {
-          void document.fonts.ready.then(async () => {
-            if (cancelled) return;
-            // Variable fonts (GeistVariable, ArchivoVariable) need explicit load()
-            // because document.fonts.ready resolves before font-variation-settings settle.
-            const variableFonts = Array.from(document.fonts).filter((f) =>
-              f.family.includes('Variable'),
-            );
-            await Promise.all(variableFonts.map((f) => f.load()));
-            if (cancelled) return;
-            ScrollTrigger.refresh();
-          });
+          await document.fonts.ready;
+          // Variable fonts (GeistVariable, ArchivoVariable) need explicit load()
+          // because document.fonts.ready resolves before font-variation-settings settle.
+          const variableFonts = Array.from(document.fonts).filter((f) =>
+            f.family.includes('Variable'),
+          );
+          await Promise.all(variableFonts.map((f) => f.load()));
         }
+
+        // Check if component was unmounted during font loading
+        if (cancelled) return;
+
+        // Ensure ScrollTrigger measures geometry with final font layout.
+        // This handles any late layout shifts after variable fonts settle.
+        ScrollTrigger.refresh();
 
         // Dispatch success event for health telemetry
         if (typeof window !== 'undefined' && !cancelled) {
@@ -265,7 +271,6 @@ export function useTonalEngine(
         /* v8 ignore end */
       }
     }
-
     void setup();
 
     const refreshIfActive = (): void => {
