@@ -1,4 +1,5 @@
-import type { ReactElement } from 'react';
+import { useMemo } from 'react';
+import type { ReactElement, CSSProperties } from 'react';
 import { ALTITUDE_STOPS, resolveGaugeStop, SECTION_ORDER } from '@/lib/altitude';
 import { useSceneTone } from '@/components/ascent/tone-context';
 import { useCurrentSection } from '@/hooks/useCurrentSection';
@@ -8,6 +9,25 @@ import { useScrollProgress } from '@/hooks/useScrollProgress';
 import { isNotteSection } from '@/lib/section-tone';
 import { cn } from '@/lib/utils';
 import type { SectionId } from '@/types/domain';
+
+/**
+ * Get the CSP nonce for inline styles.
+ */
+function getCspNonce(): string | undefined {
+  if (typeof window === 'undefined') return undefined;
+  const meta = document.querySelector('meta[name="csp-nonce"]');
+  if (meta) return meta.getAttribute('content') ?? undefined;
+  return import.meta.env.VITE_CSP_NONCE;
+}
+
+/**
+ * Apply nonce to a style object if CSP nonce is available.
+ */
+function withNonce(style: CSSProperties): CSSProperties {
+  const nonce = getCspNonce();
+  if (!nonce) return style;
+  return { ...style, nonce } as CSSProperties & { nonce: string };
+}
 
 /**
  * Flight instrument: vertical gauge with structural track, mono labels,
@@ -38,6 +58,20 @@ export function AltitudeGauge(): ReactElement {
     });
   };
 
+  // Memoized styles with CSP nonce
+  const progressFillStyle = useMemo(
+    () => withNonce({ width: `${Math.round(progress * 100)}%` }),
+    [progress],
+  );
+  const gridTemplateStyle = useMemo(
+    () => withNonce({ gridTemplateColumns: 'repeat(var(--grid-columns), 1fr)' }),
+    [],
+  );
+  const altitudeFillStyle = useMemo(
+    () => withNonce({ height: `${Math.round(altitude * 100)}%` }),
+    [altitude],
+  );
+
   return (
     <>
       <div
@@ -48,12 +82,12 @@ export function AltitudeGauge(): ReactElement {
         <div
           data-testid="gauge-progress-fill"
           className="h-full bg-accent"
-          style={{ width: `${Math.round(progress * 100)}%` }}
+          style={progressFillStyle}
         />
         <div
           aria-hidden
           className="absolute inset-x-0 top-full h-[4px] grid-blueprint"
-          style={{ gridTemplateColumns: 'repeat(var(--grid-columns), 1fr)' }}
+          style={gridTemplateStyle}
         >
           {Array.from({ length: 12 }).map((_, i) => (
             <div key={i} className={borderClass} />
@@ -102,7 +136,7 @@ export function AltitudeGauge(): ReactElement {
           <div
             data-testid="gauge-altitude-fill"
             className="absolute inset-x-0 bottom-0 bg-accent transition-[height] duration-[var(--duration-slow)] ease-[var(--ease-out-expo)]"
-            style={{ height: `${Math.round(altitude * 100)}%` }}
+            style={altitudeFillStyle}
           />
         </div>
       </nav>

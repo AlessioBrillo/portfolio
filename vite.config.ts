@@ -4,6 +4,7 @@ import react from '@vitejs/plugin-react';
 import mdx from '@mdx-js/rollup';
 import { resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { cspNoncePlugin } from './scripts/vite-plugin-csp-nonce.ts';
 
 const dirname = fileURLToPath(new URL('.', import.meta.url));
 
@@ -15,6 +16,7 @@ export default defineConfig({
     },
   },
   plugins: [
+    cspNoncePlugin({ enableInDev: false }),
     { enforce: 'pre', ...mdx({ providerImportSource: '@mdx-js/react' }) },
     react(),
     // Machine-readable bundle stats, emitted on every build: the input for the
