@@ -1,7 +1,5 @@
-import { NextRequest, NextResponse } from 'next/server';
-
 /**
- * Vercel Edge Middleware for conditional Plausible proxy (ADR-0020).
+ * Vercel Edge Function for conditional Plausible proxy (ADR-0020).
  *
  * Only activates the proxy rewrites when BOTH VITE_PLAUSIBLE_SRC and
  * VITE_PLAUSIBLE_DOMAIN environment variables are set. This keeps preview
@@ -14,14 +12,18 @@ import { NextRequest, NextResponse } from 'next/server';
  * If env vars are not set, requests fall through to the SPA fallback
  * (handled by vercel.json rewrites) which returns index.html — effectively
  * a 404 for these paths without external network calls.
+ *
+ * Uses standard Web APIs (Request, Response, fetch) — no Next.js dependency.
+ * Declared in vercel.json under functions.middleware.ts with runtime: edge.
  */
 
 const PLAUSIBLE_SCRIPT_PATH = '/js/script.js';
 const PLAUSIBLE_EVENT_PATH = '/api/event';
 const PLAUSIBLE_TARGET_ORIGIN = 'https://plausible.io';
 
-export async function middleware(request: NextRequest): Promise<NextResponse | undefined> {
-  const { pathname } = request.nextUrl;
+export default async function middleware(request: Request): Promise<Response | undefined> {
+  const url = new URL(request.url);
+  const { pathname } = url;
 
   // Only handle the two Plausible proxy routes
   if (pathname !== PLAUSIBLE_SCRIPT_PATH && pathname !== PLAUSIBLE_EVENT_PATH) {
@@ -56,11 +58,11 @@ export async function middleware(request: NextRequest): Promise<NextResponse | u
 
       if (!response.ok) {
         console.error(`[Plausible Middleware] Script fetch failed: ${response.status}`);
-        return new NextResponse('Script unavailable', { status: 502 });
+        return new Response('Script unavailable', { status: 502 });
       }
 
       // Forward the script with caching headers
-      return new NextResponse(response.body, {
+      return new Response(response.body, {
         status: 200,
         headers: {
           'Content-Type': 'application/javascript',
@@ -73,7 +75,7 @@ export async function middleware(request: NextRequest): Promise<NextResponse | u
     if (pathname === PLAUSIBLE_EVENT_PATH) {
       // Proxy the event beacon (POST only)
       if (request.method !== 'POST') {
-        return new NextResponse('Method not allowed', { status: 405 });
+        return new Response('Method not allowed', { status: 405 });
       }
 
       const requestBody = await request.text();
@@ -88,7 +90,7 @@ export async function middleware(request: NextRequest): Promise<NextResponse | u
       });
 
       // Forward response from Plausible
-      return new NextResponse(response.body, {
+      return new Response(response.body, {
         status: response.status,
         headers: {
           'Content-Type': 'application/json',
@@ -102,7 +104,7 @@ export async function middleware(request: NextRequest): Promise<NextResponse | u
     return undefined;
   } catch (error) {
     console.error('[Plausible Middleware] Proxy error:', error);
-    return new NextResponse('Proxy error', { status: 502 });
+    return new Response('Proxy error', { status: 502 });
   }
 }
 
