@@ -11,9 +11,9 @@ portfolio, so code quality and documentation are first-class.
 
 ## Stack
 
-React 19, Vite 6, TypeScript 5 (strict), Tailwind CSS 4 (CSS-first `@theme`),
-Framer Motion (reveals), GSAP ScrollTrigger (tonal engine), MDX (case studies),
-React Router (case-study routes), Vitest. Package manager: **npm**. Path alias:
+React 19, Vite 8, TypeScript 5 (strict), Tailwind CSS 4 (CSS-first `@theme`),
+GSAP ScrollTrigger (tonal engine, lazy-loaded via `src/lib/gsap-loader.ts`),
+MDX (case studies), React Router (case-study routes), Vitest. Package manager: **npm**. Path alias:
 `@/*` maps to `src/*`.
 
 ## Non-negotiables
@@ -23,7 +23,7 @@ React Router (case-study routes), Vitest. Package manager: **npm**. Path alias:
   of mind is a new ADR, never an in-place edit.
 - **Immutability and small files** — prefer new objects over mutation; keep files
   cohesive (target under 400 lines, hard cap 800).
-- **Design discipline** — orange is the only accent and is never diluted; motion
+- **Design discipline** — hazard red is the only accent and is never diluted; motion
   respects `prefers-reduced-motion`; text contrast meets AA.
 - **Never commit the design paper** (`*.paper.md` / `portfolio-design-plan.md` are
   git-ignored) or any private content.
@@ -40,7 +40,7 @@ React Router (case-study routes), Vitest. Package manager: **npm**. Path alias:
 ## Local gates
 
 ```bash
-npm run typecheck && npm run lint && npm run format:check && npm test && npm run build && npm run photos:check
+npm run typecheck && npm run lint && npm run format:check && npm test && npm run build && npm run photos:check && npm run bundle:check && npm run deploy:check
 ```
 
 Husky runs typecheck + lint-staged on commit; commitlint enforces Conventional

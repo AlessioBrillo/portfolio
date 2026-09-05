@@ -104,7 +104,8 @@ complete — `apple-touch-icon.png` (iOS home screen) and `site.webmanifest`
 (Android/install) derive from the `favicon.svg` glyph, so the SPA-fallback
 exclusions for them are live, not dead entries. The JavaScript payload is
 under a CI-enforced budget (ADR-0018): every build runs `npm run bundle:check`
-against the committed `bundle-baseline.json` (entry chunk 165 kB, total JS
+against the committed `bundle-baseline-gzip.json` /
+`bundle-baseline-brotli.json` (entry chunk 165 kB, total JS
 225 kB gzip), so a growing bundle fails the pipeline instead of waiting for a
 manual analyzer run. Deploy itself, the absolute og:image URL and
 `sitemap.xml` still wait on the domain; the audit pass is done. The
@@ -151,9 +152,11 @@ The bundle gate (ADR-0018) is expected to trip on the next study — that is
 the gate working, not a failure. The re-baseline protocol: write the study,
 `npm run build`, then `npm run bundle:report` to measure. Over budget?
 Either shave the chunk (inline tables and heavy sections are the usual
-suspects) or accept the regression deliberately: update
-`bundle-baseline.json` with the measured numbers and record why in its
-`origin` note. Never raise a budget without that note — an unexplained bump
+suspects) or accept the regression deliberately: raise `entryChunkKb` /
+`totalJsKb` in both baseline files with the measured numbers and record why
+in the `origin` note (`npm run bundle:check -- --update-baseline --origin
+"<reason>"` refreshes only the per-chunk inventory, never the budgets).
+Never raise a budget without that note — an unexplained bump
 is the one thing the gate cannot catch.
 
 ## Inputs needed to proceed
