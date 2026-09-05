@@ -7,7 +7,9 @@
  *
  * The middleware handles two routes:
  * - /js/script.js   -> proxies to plausible.io/js/script.js (from VITE_PLAUSIBLE_SRC)
- * - /api/event      -> proxies to plausible.io/api/event
+ * - /api/event      -> proxies to plausible.io/api/event, same-origin only
+ *   (a foreign Origin is refused with 403 so the proxy is never an open
+ *   relay; preflight OPTIONS is answered directly)
  *
  * When the env pair is unset the middleware answers 404 directly, so these
  * paths never fall through to the SPA fallback (vercel.json excludes them):
@@ -32,6 +34,17 @@ function methodNotAllowed(): Response {
   return new Response('Method not allowed', {
     status: 405,
     headers: { 'Content-Type': 'text/plain; charset=utf-8', 'Cache-Control': 'no-store' },
+  });
+}
+
+function forbidden(): Response {
+  return new Response('Forbidden', {
+    status: 403,
+    headers: {
+      'Content-Type': 'text/plain; charset=utf-8',
+      'Cache-Control': 'no-store',
+      Vary: 'Origin',
+    },
   });
 }
 
@@ -102,6 +115,34 @@ export default async function middleware(request: Request): Promise<Response | u
     }
 
     if (pathname === PLAUSIBLE_EVENT_PATH) {
+      const pageOrigin = url.origin;
+      const requestOrigin = request.headers.get('Origin');
+
+      // Same-origin guard: the page posts to its own host, so a present
+      // Origin from anywhere else is a third party riding our proxy —
+      // refuse it outright instead of merely withholding the CORS header.
+      if (requestOrigin !== null && requestOrigin !== pageOrigin) {
+        return forbidden();
+      }
+
+      // CORS preflight. Browsers always send Origin here, so reaching this
+      // branch without one is malformed — the guard above already refused it.
+      if (request.method === 'OPTIONS') {
+        if (requestOrigin !== pageOrigin) {
+          return forbidden();
+        }
+        return new Response(null, {
+          status: 204,
+          headers: {
+            'Access-Control-Allow-Origin': pageOrigin,
+            'Access-Control-Allow-Methods': 'POST, OPTIONS',
+            'Access-Control-Allow-Headers': 'Content-Type',
+            Vary: 'Origin',
+            'Cache-Control': 'no-store',
+          },
+        });
+      }
+
       // Proxy the event beacon (POST only)
       if (request.method !== 'POST') {
         return methodNotAllowed();
@@ -112,25 +153,23 @@ export default async function middleware(request: Request): Promise<Response | u
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Origin': request.headers.get('Origin') || '',
+          'Origin': requestOrigin ?? '',
           'User-Agent': request.headers.get('User-Agent') || '',
         },
         body: requestBody,
       });
 
-      // Echo the request origin for CORS; omit the header when absent so the
-      // response is never implicitly wildcarded. Beacons must not be cached.
-      const requestOrigin = request.headers.get('Origin');
+      // Answer CORS with our own origin when the request carries none
+      // (non-browser beacons): the value is public, never attacker input.
+      // Beacons must not be cached.
       const headers: Record<string, string> = {
         'Content-Type': 'application/json',
         'Cache-Control': 'no-store',
         'Vary': 'Origin',
+        'Access-Control-Allow-Origin': requestOrigin ?? pageOrigin,
         'Access-Control-Allow-Methods': 'POST, OPTIONS',
         'Access-Control-Allow-Headers': 'Content-Type',
       };
-      if (requestOrigin) {
-        headers['Access-Control-Allow-Origin'] = requestOrigin;
-      }
       return new Response(response.body, { status: response.status, headers });
     }
 

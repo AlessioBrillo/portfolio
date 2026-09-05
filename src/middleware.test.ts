@@ -3,7 +3,7 @@ import middleware from '../middleware';
 
 // The Edge middleware is plain Web APIs + process.env, so it is unit-testable
 // without Vercel: these tests pin the contract vercel.json cannot express
-// (404-not-HTML when inert, method guards, CORS echo, no-store beacons).
+// (404-not-HTML when inert, method guards, same-origin CORS, no-store beacons).
 
 const SCRIPT_SRC = 'https://plausible.io/js/script.js';
 const DOMAIN = 'example.com';
@@ -79,7 +79,7 @@ describe('plausible edge middleware', () => {
     });
   });
 
-  it('proxies beacons with CORS echo and no-store', async () => {
+  it('proxies beacons with same-origin CORS and no-store', async () => {
     vi.stubGlobal(
       'fetch',
       vi.fn(async () => new Response('{}')),
@@ -96,10 +96,54 @@ describe('plausible edge middleware', () => {
     expect(withOrigin.headers.get('access-control-allow-origin')).toBe('https://site.test');
     expect(withOrigin.headers.get('cache-control')).toBe('no-store');
 
+    // No Origin (non-browser sender): answer with our own origin, never
+    // attacker input — the value is public either way.
     const anonymous = (await middleware(
       request('/api/event', { method: 'POST', body: '{}' }),
     )) as Response;
-    expect(anonymous.headers.get('access-control-allow-origin')).toBeNull();
+    expect(anonymous.headers.get('access-control-allow-origin')).toBe('https://site.test');
+  });
+
+  it('refuses cross-origin beacons with 403 (no open relay)', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async () => new Response('{}')),
+    );
+    const response = (await middleware(
+      request('/api/event', {
+        method: 'POST',
+        headers: { Origin: 'https://evil.test' },
+        body: '{}',
+      }),
+    )) as Response;
+    expect(response.status).toBe(403);
+    expect(response.headers.get('access-control-allow-origin')).toBeNull();
+    expect(vi.mocked(fetch)).not.toHaveBeenCalled();
+  });
+
+  it('answers preflight OPTIONS on the event path', async () => {
+    const sameOrigin = (await middleware(
+      request('/api/event', {
+        method: 'OPTIONS',
+        headers: { Origin: 'https://site.test' },
+      }),
+    )) as Response;
+    expect(sameOrigin.status).toBe(204);
+    expect(sameOrigin.headers.get('access-control-allow-origin')).toBe('https://site.test');
+    expect(sameOrigin.headers.get('access-control-allow-methods')).toContain('POST');
+
+    const foreign = (await middleware(
+      request('/api/event', {
+        method: 'OPTIONS',
+        headers: { Origin: 'https://evil.test' },
+      }),
+    )) as Response;
+    expect(foreign.status).toBe(403);
+
+    // The classic <script> tag needs no preflight: OPTIONS stays rejected.
+    await expect(
+      middleware(request('/js/script.js', { method: 'OPTIONS' })),
+    ).resolves.toMatchObject({ status: 405 });
   });
 
   it('maps upstream failures to 502', async () => {

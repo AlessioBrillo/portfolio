@@ -4,7 +4,7 @@ import { hasAnalytics } from './env';
 /**
  * Validates the Plausible analytics proxy middleware (ADR-0013, ADR-0020):
  * - When env vars are set: /js/script.js proxies to plausible.io, /api/event proxies beacons
- * - When env vars are NOT set: both routes fall through to SPA fallback (no external calls)
+ * - When env vars are NOT set: both routes answer 404 directly from middleware (no external calls)
  * - CSP headers are correct on proxied responses
  */
 test.describe('plausible analytics proxy middleware', () => {
