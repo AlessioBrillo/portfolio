@@ -1,8 +1,7 @@
 import { expect, test, type Page } from '@playwright/test';
 import { contrastRatio, parseRgb } from './contrast';
 import {
-  E2E_FLIP_PROGRESS,
-  FLIP_PROGRESS as E2E_FLIP_PROGRESS_MAP,
+  E2E_FLIP_PROGRESS as E2E_FLIP_PROGRESS_MAP,
   RENDERED_TEXT_TONES,
   RENDERED_MUTED_TONES,
   TRANSITION_TRIGGERS,
@@ -11,9 +10,6 @@ import {
   AA_NORMAL_TEXT,
   AA_LARGE_TEXT,
   MUTED_FLOOR,
-  EXPECTED_HEADING,
-  MUTED_EXPECTED_FULL_MOTION,
-  MUTED_EXPECTED_REDUCED_MOTION,
 } from '@/lib/tone.e2e';
 
 /**
@@ -391,7 +387,7 @@ test.describe('tonal signature', () => {
       'sky-sport': { before: RENDERED_TEXT_TONES.night, after: RENDERED_TEXT_TONES.paper },
     };
     for (const trigger of TRANSITION_TRIGGERS) {
-      const lines = FLIP_PROGRESS[trigger];
+      const lines = E2E_FLIP_PROGRESS_MAP[trigger];
       const expected = EXPECTED_HEADING[trigger];
       if (!lines || !expected) throw new Error(`no expectations for trigger ${trigger}`);
 
