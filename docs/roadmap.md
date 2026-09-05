@@ -15,15 +15,15 @@ validated, deploy waits on domain.**
 | 6     | **Finishing & deploy.** A11y, performance, OG card, 404, reduced-motion -> Vercel + domain.                                       | In progress (deploy waits on domain) |
 | 7     | **After.** CV hook, analytics, optional private area.                                                                             | Pending                              |
 
-Phase 2's crossfade (both climb and descent) is implemented and validated
+Phase 2's crossfade (all four windows) is implemented and validated
 end-to-end by the Playwright harness (`npm run e2e`) -- it now stands as the
 signature's regression net for any future change to `TonalScene`,
 `useTonalEngine`, `src/lib/tone.ts`, or the scene-tone context (ADR-0012). The
-last known residual is closed: ADR-0012 flips each text family at its own
-per-direction equal-legibility line (computed by bisection over the actual
-blend), so the body family clears 4.5:1 at every instant of both crossfades
-and the muted family's worst case is a documented 1.57:1 floor -- the old
-fade-midpoint residual (muted at 1.03:1, body at 3.57:1) no longer exists.
+flip lines are computed per window over each window's actual backdrop blend
+against the flight-phase text pair; the body family clears 4.5:1 everywhere
+except within a small window around each body flip, where the proven maximin
+optimum (~4.06, gated at 4.0) applies instead (ADR-0023) -- and the muted
+family's worst case is a documented 1.57:1 floor.
 
 Since the close of Phase 4, the remaining bands (Who, AI & Physics, Work &
 School, Sky & Sport, Experiences) have been scaffolded as content-driven
@@ -104,7 +104,8 @@ complete — `apple-touch-icon.png` (iOS home screen) and `site.webmanifest`
 (Android/install) derive from the `favicon.svg` glyph, so the SPA-fallback
 exclusions for them are live, not dead entries. The JavaScript payload is
 under a CI-enforced budget (ADR-0018): every build runs `npm run bundle:check`
-against the committed `bundle-baseline.json` (entry chunk 165 kB, total JS
+against the committed `bundle-baseline-gzip.json` /
+`bundle-baseline-brotli.json` (entry chunk 165 kB, total JS
 225 kB gzip), so a growing bundle fails the pipeline instead of waiting for a
 manual analyzer run. Deploy itself, the absolute og:image URL and
 `sitemap.xml` still wait on the domain; the audit pass is done. The
@@ -151,9 +152,11 @@ The bundle gate (ADR-0018) is expected to trip on the next study — that is
 the gate working, not a failure. The re-baseline protocol: write the study,
 `npm run build`, then `npm run bundle:report` to measure. Over budget?
 Either shave the chunk (inline tables and heavy sections are the usual
-suspects) or accept the regression deliberately: update
-`bundle-baseline.json` with the measured numbers and record why in its
-`origin` note. Never raise a budget without that note — an unexplained bump
+suspects) or accept the regression deliberately: raise `entryChunkKb` /
+`totalJsKb` in both baseline files with the measured numbers and record why
+in the `origin` note (`npm run bundle:check -- --update-baseline --origin
+"<reason>"` refreshes only the per-chunk inventory, never the budgets).
+Never raise a budget without that note — an unexplained bump
 is the one thing the gate cannot catch.
 
 ## Inputs needed to proceed

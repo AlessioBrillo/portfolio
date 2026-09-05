@@ -82,10 +82,13 @@ npm run typecheck && npm run lint && npm run format:check && npm test && npm run
 2. Identify offending chunk(s)
 3. Either:
    - **Shave**: Inline tables, remove unused deps, code-split heavier sections
-   - **Accept regression deliberately**: `npm run bundle:check -- --update-baseline`
-     - This updates `bundle-baseline.json` with new measurements
+   - **Accept regression deliberately**: raise `entryChunkKb` / `totalJsKb`
+     in `bundle-baseline-gzip.json` and `bundle-baseline-brotli.json` with
+     the measured numbers, then refresh the per-chunk inventory:
+     `npm run bundle:check -- --update-baseline --origin "<reason>"`
+     (the flag never raises budgets by itself)
      - **Mandatory**: Update `origin` field with reason (e.g., "Added physics-of-flight case study, +12 kB entry chunk")
-     - Commit `bundle-baseline.json` with message: `chore: re-baseline bundle budget after <study> (ADR-0018)`
+     - Commit both baseline files with message: `chore: re-baseline bundle budget after <study> (ADR-0018)`
 4. Re-run full gate until green
 
 ---
@@ -159,13 +162,13 @@ If critical issue discovered post-deploy:
 
 ## Reference: File Changes This Deploy Enables
 
-| File                   | Change                                                      | ADR      |
-| ---------------------- | ----------------------------------------------------------- | -------- |
-| `middleware.ts`        | Edge Middleware for conditional Plausible proxy             | ADR-0020 |
-| `vercel.json`          | Removed static Plausible rewrites; SPA fallback only        | ADR-0020 |
-| `src/lib/analytics.ts` | Uses `/js/script.js` + `/api/event` (proxied by middleware) | ADR-0013 |
-| `.env.example`         | Documents all 5 deploy-time variables                       | —        |
-| `bundle-baseline.json` | Updated if regression accepted (Step 4)                     | ADR-0018 |
+| File                                         | Change                                                      | ADR      |
+| -------------------------------------------- | ----------------------------------------------------------- | -------- |
+| `middleware.ts`                              | Edge Middleware for conditional Plausible proxy             | ADR-0020 |
+| `vercel.json`                                | Removed static Plausible rewrites; SPA fallback only        | ADR-0020 |
+| `src/lib/analytics.ts`                       | Uses `/js/script.js` + `/api/event` (proxied by middleware) | ADR-0013 |
+| `.env.example`                               | Documents all 5 deploy-time variables                       | —        |
+| `bundle-baseline-gzip.json` + `-brotli.json` | Updated if regression accepted (Step 4)                     | ADR-0018 |
 
 ---
 

@@ -88,6 +88,21 @@ checkNoPlausibleRewrites(config);
 const staticFiles = listPublicFiles(PUBLIC_DIR);
 const violations = staticFiles.filter((file) => isSpaFallbackRewrite(`/${file}`, source));
 
+// The Plausible proxy paths are owned by middleware.ts: they must never fall
+// through to index.html (HTML bytes served as JavaScript). With the env pair
+// unset the middleware answers 404 directly.
+const proxyPaths = ['/js/script.js', '/api/event'];
+for (const proxyPath of proxyPaths) {
+  if (isSpaFallbackRewrite(proxyPath, source)) {
+    console.error(
+      `[deploy] VIOLATION: ${proxyPath} would be served as index.html by the SPA fallback.`,
+    );
+    console.error('[deploy] Exclude the Plausible proxy paths in vercel.json (ADR-0020).');
+    process.exit(1);
+  }
+}
+console.log('[deploy] Plausible proxy paths excluded from the SPA fallback.');
+
 if (violations.length > 0) {
   console.error(
     '[deploy] VIOLATION: these public/ files would be served as index.html by the SPA fallback:',

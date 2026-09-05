@@ -26,15 +26,23 @@ test.describe('plausible analytics proxy middleware', () => {
     expect(response!.headers()['cache-control']).toContain('max-age=31536000');
   });
 
-  test('GET /js/script.js falls back to SPA when env vars NOT set', async ({ page }) => {
+  test('GET /js/script.js is inert (never the proxied script) when env vars NOT set', async ({
+    page,
+  }) => {
     test.skip(hasAnalytics, 'only meaningful when analytics env vars are NOT set');
 
     const response = await page.goto('/js/script.js', { waitUntil: 'networkidle' });
     expect(response).not.toBeNull();
 
-    // Should serve index.html (SPA fallback) — 200 with HTML content
-    expect(response!.status()).toBe(200);
-    expect(response!.headers()['content-type']).toContain('text/html');
+    // Hosting split: vite dev/preview falls back to index.html (200 HTML),
+    // Vercel answers 404 via the Edge middleware (vercel.json excludes the
+    // proxy paths from the SPA fallback). Both are inert — the contract is
+    // "never serve executable JS without the env pair".
+    expect([200, 404]).toContain(response!.status());
+    expect(response!.headers()['content-type']).not.toContain('application/javascript');
+    if (response!.status() === 200) {
+      expect(response!.headers()['content-type']).toContain('text/html');
+    }
   });
 
   test('POST /api/event proxies to plausible.io when env vars set', async ({ page }) => {

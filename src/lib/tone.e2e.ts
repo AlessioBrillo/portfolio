@@ -7,15 +7,17 @@
 import { FLIP_PROGRESS } from './tone';
 
 /**
- * Maps the section ID scrolled to for verification
- * to the transition trigger that governs the fade ending at that section.
- * Used by the Playwright harness to look up the correct flip lines.
- * - 'ai-physics' verifies the climb's final state (mosaic transition: foschia -> night)
- * - 'sky-sport' verifies the descent's final state (sky-sport transition: night -> alba)
+ * Flip lines per real transition trigger — the section each fade flies into
+ * (`TONAL_TRANSITIONS` in tone.ts). The harness scrolls a trigger's own
+ * heading through its own window, so lines and scroll anchor share one
+ * coordinate system. (A past revision mapped verification sections to other
+ * triggers' lines and failed every gate — never do that again.)
  */
 export const E2E_FLIP_PROGRESS: Record<string, { body: number; soft: number }> = {
-  'ai-physics': FLIP_PROGRESS.mosaic!,
+  who: FLIP_PROGRESS.who!,
+  mosaic: FLIP_PROGRESS.mosaic!,
   'sky-sport': FLIP_PROGRESS['sky-sport']!,
+  experiences: FLIP_PROGRESS.experiences!,
 } as const;
 
 /** Actual rendered text tones (from CSS tokens / tone-context): ink on paper, phosphor on night. */
@@ -45,25 +47,49 @@ export const AA_LARGE_TEXT = 3;
 /** Bounded floor for the muted family at its own flip line (ADR-0012). */
 export const MUTED_FLOOR = 1.2;
 
-/** Verification sections: 'ai-physics' for climb, 'sky-sport' for descent. */
-export const TRANSITION_TRIGGERS = ['ai-physics', 'sky-sport'] as const;
+/**
+ * Body floor near a flip line (ADR-0023). Equal-legibility placement is the
+ * maximin optimum, and with the brutalist palette that optimum is ~4.06 —
+ * so within a small window around each body flip the gate is 4.0, and 4.5
+ * everywhere else. Large-text AA (3.0) holds with margin throughout.
+ */
+export const BODY_NEAR_FLIP_FLOOR = 4.0;
 
-/** Expected heading tones before/after body flip for each transition trigger. */
+/**
+ * Blend distance around a body flip where the near-flip floor replaces AA.
+ * Past the line the winning family climbs back toward AA gradually (4.5 is
+ * recovered ~0.065 past the line), so the window covers recovery plus
+ * scroll-positioning variance. Samples outside it gate strict AA.
+ */
+export const BODY_FLIP_WINDOW = 0.08;
+
+/** Verification windows: every crossfade of the flight. */
+export const TRANSITION_TRIGGERS = ['who', 'mosaic', 'sky-sport', 'experiences'] as const;
+
+/**
+ * Windows with interior flips, verified for exact before/after tones. The
+ * who window holds ink throughout (line at the edge) and the experiences
+ * window starts flipped (line at the edge) — both covered by the sweep and
+ * the committed-ends tests instead.
+ */
+export const FLIP_VERIFY_TRIGGERS = ['mosaic', 'sky-sport'] as const;
+
+/** Expected heading tones before/after the body flip of each interior window. */
 export const EXPECTED_HEADING: Record<string, { before: string; after: string }> = {
-  'ai-physics': { before: RENDERED_TEXT_TONES.paper, after: RENDERED_TEXT_TONES.night },
+  mosaic: { before: RENDERED_TEXT_TONES.paper, after: RENDERED_TEXT_TONES.night },
   'sky-sport': { before: RENDERED_TEXT_TONES.night, after: RENDERED_TEXT_TONES.paper },
 };
 
 /** Expected muted tones for full motion at body/soft flip points. */
 export const MUTED_EXPECTED_FULL_MOTION: Record<string, { beforeBody: string; afterSoft: string }> =
   {
-    'ai-physics': {
-      beforeBody: RENDERED_MUTED_TONES.paper, // at body+0.01 (0.5506), soft not flipped yet (flips at 0.5705)
-      afterSoft: RENDERED_MUTED_TONES.night, // past soft line (0.5705+0.05), flipped to night
+    mosaic: {
+      beforeBody: RENDERED_MUTED_TONES.paper, // at body+0.01, soft (0.165) not flipped yet
+      afterSoft: RENDERED_MUTED_TONES.night, // past soft line + margin, flipped to night
     },
     'sky-sport': {
-      beforeBody: RENDERED_MUTED_TONES.paper, // at body-0.01 (0.4494), soft already flipped (flipped at 0.4295) to PAPER
-      afterSoft: RENDERED_MUTED_TONES.paper, // past soft line (0.4295+0.05), still paper
+      beforeBody: RENDERED_MUTED_TONES.paper, // at body-0.01, soft (0.760) already flipped to paper
+      afterSoft: RENDERED_MUTED_TONES.paper, // past soft line + margin, still paper
     },
   };
 
@@ -72,12 +98,12 @@ export const MUTED_EXPECTED_REDUCED_MOTION: Record<
   string,
   { beforeBody: string; afterSoft: string }
 > = {
-  'ai-physics': {
-    beforeBody: RENDERED_MUTED_TONES.night, // at body+0.01 (past body line), both flip to night
-    afterSoft: RENDERED_MUTED_TONES.night, // past soft line, still night
+  mosaic: {
+    beforeBody: RENDERED_MUTED_TONES.paper, // at body-0.01, pre-flip
+    afterSoft: RENDERED_MUTED_TONES.night, // past body line + margin (both flip at body), night
   },
   'sky-sport': {
-    beforeBody: RENDERED_MUTED_TONES.night, // at body-0.01 (before body line), still night (coming from night)
-    afterSoft: RENDERED_MUTED_TONES.paper, // past body line (same as soft in reduced), flipped to paper
+    beforeBody: RENDERED_MUTED_TONES.night, // at body-0.01, pre-flip, still night
+    afterSoft: RENDERED_MUTED_TONES.paper, // past body line + margin, flipped to paper
   },
 };

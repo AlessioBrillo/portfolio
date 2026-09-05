@@ -1,5 +1,5 @@
 import { useRef, useState, useMemo, useEffect, useCallback } from 'react';
-import type { ReactElement, ReactNode, CSSProperties } from 'react';
+import type { ReactElement, ReactNode } from 'react';
 import { TONE, type ToneName } from '@/lib/tone';
 import { SceneToneContext, SceneToneSetterContext } from './tone-context';
 import { useTonalEngine } from './useTonalEngine';
@@ -81,29 +81,6 @@ const CONSTELLATION_SVG = `data:image/svg+xml;base64,${btoa(
     <circle cx="790" cy="510" r="0.5" fill="#FBF8F2" opacity="0.35"/>
   </svg>`,
 )}`;
-
-/**
- * Get the CSP nonce for inline styles.
- * In production, this is injected by the Vite plugin.
- * In development, it's 'dev-unsafe-inline' which allows unsafe-inline via meta tag.
- */
-function getCspNonce(): string | undefined {
-  if (typeof window === 'undefined') return undefined;
-  // Read from meta tag injected by Vite plugin
-  const meta = document.querySelector('meta[name="csp-nonce"]');
-  if (meta) return meta.getAttribute('content') ?? undefined;
-  // Fallback to import.meta.env (set at build time)
-  return import.meta.env.VITE_CSP_NONCE;
-}
-
-/**
- * Apply nonce to a style object if CSP nonce is available.
- */
-function withNonce(style: CSSProperties): CSSProperties {
-  const nonce = getCspNonce();
-  if (!nonce) return style;
-  return { ...style, nonce } as CSSProperties & { nonce: string };
-}
 
 interface TonalSceneProps {
   children: ReactNode;
@@ -222,14 +199,10 @@ export function TonalScene({ children }: TonalSceneProps): ReactElement {
   const readonlyValue = useMemo(() => ({ tone, softTone }), [tone, softTone]);
   const setterValue = useMemo(() => ({ setTone, setSoftTone }), [setTone, setSoftTone]);
 
-  // Apply CSP nonce to all inline styles
-  const backdropStyle = useMemo(() => withNonce({ backgroundColor: TONE.paper }), []);
-  const grainStyleWithNonce = useMemo(() => withNonce(grainStyle), [grainStyle]);
-  const scanlineStyleWithNonce = useMemo(() => withNonce(scanlineStyle), [scanlineStyle]);
-  const constellationStyleWithNonce = useMemo(
-    () => withNonce(constellationStyle),
-    [constellationStyle],
-  );
+  // Inline styles (GSAP-driven backdrop, texture overlays) require
+  // `style-src 'unsafe-inline'` in vercel.json. CSP nonces do not apply to
+  // style attributes, only to <style>/<script> elements.
+  const backdropStyle = useMemo(() => ({ backgroundColor: TONE.paper }), []);
 
   return (
     <SceneToneSetterContext.Provider value={setterValue}>
@@ -243,20 +216,16 @@ export function TonalScene({ children }: TonalSceneProps): ReactElement {
             className="pointer-events-none fixed inset-0 -z-10"
             style={backdropStyle}
           />
-          <div
-            aria-hidden
-            className="pointer-events-none fixed inset-0 -z-5"
-            style={grainStyleWithNonce}
-          />
+          <div aria-hidden className="pointer-events-none fixed inset-0 -z-5" style={grainStyle} />
           <div
             aria-hidden
             className="pointer-events-none fixed inset-0 -z-4"
-            style={scanlineStyleWithNonce}
+            style={scanlineStyle}
           />
           <div
             aria-hidden
             className="pointer-events-none fixed inset-0 -z-3"
-            style={constellationStyleWithNonce}
+            style={constellationStyle}
           />
           <div className="relative z-10">{children}</div>
           {engineError && (

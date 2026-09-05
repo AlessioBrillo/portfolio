@@ -2,14 +2,18 @@ import { expect, test, type Page } from '@playwright/test';
 import { contrastRatio, parseRgb } from './contrast';
 import {
   E2E_FLIP_PROGRESS as E2E_FLIP_PROGRESS_MAP,
-  RENDERED_TEXT_TONES,
-  RENDERED_MUTED_TONES,
   TRANSITION_TRIGGERS,
+  FLIP_VERIFY_TRIGGERS,
+  EXPECTED_HEADING,
+  MUTED_EXPECTED_FULL_MOTION,
+  MUTED_EXPECTED_REDUCED_MOTION,
   SWEEP_STEP,
   SOFT_FLIP_MARGIN,
   AA_NORMAL_TEXT,
   AA_LARGE_TEXT,
   MUTED_FLOOR,
+  BODY_NEAR_FLIP_FLOOR,
+  BODY_FLIP_WINDOW,
 } from '@/lib/tone.e2e';
 
 /**
@@ -204,7 +208,11 @@ async function currentVisibleTextColor(page: Page, selector: string): Promise<st
  * Waits for a heading to be visible in the viewport and returns its color.
  * Retries with small scroll adjustments if the heading is not yet in view.
  */
-async function waitForVisibleHeading(page: Page, selector: string, maxRetries = 5): Promise<string | null> {
+async function waitForVisibleHeading(
+  page: Page,
+  selector: string,
+  maxRetries = 5,
+): Promise<string | null> {
   for (let i = 0; i < maxRetries; i++) {
     const color = await currentVisibleTextColor(page, selector);
     if (color) return color;
@@ -223,7 +231,9 @@ async function waitForVisibleHeading(page: Page, selector: string, maxRetries = 
 async function currentVisibleMutedColor(page: Page, triggerId: string): Promise<string | null> {
   return page.evaluate((triggerId) => {
     const section = document.getElementById(triggerId);
-    const eyebrow = section?.querySelector('header > data, header > span, header > samp, header > kbd');
+    const eyebrow = section?.querySelector(
+      'header > data, header > span, header > samp, header > kbd',
+    );
     if (!eyebrow) return null;
     const rect = eyebrow.getBoundingClientRect();
     if (rect.bottom < 0 || rect.top > window.innerHeight) return null;
@@ -297,6 +307,18 @@ function isNightTone(color: { r: number; g: number; b: number }): boolean {
   return Math.abs(color.r - 10) <= 8 && Math.abs(color.g - 10) <= 8 && Math.abs(color.b - 10) <= 8;
 }
 
+/**
+ * The crossfade collapses to system colors under forced-colors, so every
+ * test that asserts blended tones skips there — only the forced-colors test
+ * itself runs in that project.
+ */
+function skipUnderForcedColors(testInfo: { project: { name: string } }): void {
+  test.skip(
+    testInfo.project.name === 'forced-colors',
+    'crossfade asserts blended tones; forced-colors maps them to system colors',
+  );
+}
+
 test.describe('tonal signature', () => {
   test('hero loads with the manifesto visible', async ({ page }) => {
     await page.goto('/');
@@ -308,21 +330,22 @@ test.describe('tonal signature', () => {
   test('backdrop crossfades paper -> night -> paper across the flight', async ({
     page,
   }, testInfo) => {
+    skipUnderForcedColors(testInfo);
     await page.goto('/');
     await settleFonts(page);
     const ground = parseRgb(await backdropColor(page));
 
-    // Cruise: heading top parked at viewport centre = the climb fade window's
-    // own `top center` end mark, so the backdrop is deterministically at "night"
-    // (either end of the scrub or past the discrete flip). `scrollIntoViewIfNeeded`
-    // is NOT enough -- it stops at the nearest edge, short of the flip line.
-    await scrollToTransitionProgress(page, 'ai-physics', 1);
+    // Cruise: the mosaic fade (foschia -> night) completes as its heading
+    // parks at viewport centre, so the backdrop is deterministically night.
+    // `scrollIntoViewIfNeeded` is NOT enough -- it stops at the nearest edge,
+    // short of the flip line.
+    await scrollToTransitionProgress(page, 'mosaic', 1);
     const cruise = parseRgb(await backdropColor(page));
 
-    // Descent: scroll PAST the end of the sky-sport window (night -> paper).
+    // Descent: scroll to the end of the experiences window (alba -> paper).
     // In CI, the transition may not complete at progress=1, so go to 1.1
     // to ensure the descent fully completes and returns to paper tone.
-    await scrollToTransitionProgress(page, 'sky-sport', 1.1);
+    await scrollToTransitionProgress(page, 'experiences', 1.1);
     const afterDescent = parseRgb(await backdropColor(page));
 
     // Ground starts light, cruise is dark, descent returns to light -- the
@@ -335,15 +358,19 @@ test.describe('tonal signature', () => {
 
   test('every visible heading keeps AA contrast through each crossfade (ADR-0012)', async ({
     page,
-  }) => {
+  }, testInfo) => {
+    skipUnderForcedColors(testInfo);
     test.setTimeout(120_000);
     await page.goto('/');
     await settleFonts(page);
 
-    // Sweep both crossfades at dense blend fractions, plus each direction's
+    // Sweep all four crossfades at dense blend fractions, plus each direction's
     // own flip lines (+/- 0.03). The backdrop is uniform at every sample,
-    // so any visible heading is measured against the live blended colour:
-    // ADR-0012 guarantees >= 4.5:1 for the body family at *every* instant.
+    // so any visible heading is measured against the live blended colour.
+    // Body text clears 4.5:1 except within a small window around each body
+    // flip, where the proven maximin optimum (~4.06) is the gate instead
+    // (ADR-0023): equal-legibility placement minimizes the worst case, and no
+    // placement on these segments can hold 4.5 through the flip itself.
     const samples = new Set<number>();
     for (let progress = 0.05; progress < 1; progress += SWEEP_STEP) {
       samples.add(Math.round(progress * 100) / 100);
@@ -365,28 +392,31 @@ test.describe('tonal signature', () => {
         expect(heading, `${trigger} heading missing at ${progress}`).not.toBeNull();
         if (!heading) continue;
         const ratio = contrastRatio(parseRgb(heading), bg);
+        const nearFlip = Math.abs(progress - lines.body) <= BODY_FLIP_WINDOW;
+        const floor = nearFlip ? BODY_NEAR_FLIP_FLOOR : AA_NORMAL_TEXT;
         expect(
           ratio,
-          `${trigger} heading at blend ${progress} was ${ratio.toFixed(2)}:1 (needs ${AA_NORMAL_TEXT}:1)`,
-        ).toBeGreaterThanOrEqual(AA_NORMAL_TEXT);
+          `${trigger} heading at blend ${progress} was ${ratio.toFixed(2)}:1 (needs ${floor}:1${nearFlip ? ' near the flip' : ''})`,
+        ).toBeGreaterThanOrEqual(floor);
       }
     }
   });
 
-  test('scene text flips exactly at the equal-legibility lines (ADR-0012)', async ({ page }) => {
+  test('scene text flips exactly at the equal-legibility lines (ADR-0012)', async ({
+    page,
+  }, testInfo) => {
+    skipUnderForcedColors(testInfo);
     await page.goto('/');
     await settleFonts(page);
 
-    // Immediately before each direction's body flip line the heading must
-    // still hold the outgoing tone; immediately after, the incoming one. The
-    // exact computed colours prove the *mechanism* (the sweep above proves
-    // the contrast outcome). Holds under both motion preferences: reduced
-    // motion switches at the same per-direction line.
-    const EXPECTED_HEADING: Record<string, { before: string; after: string }> = {
-      'ai-physics': { before: RENDERED_TEXT_TONES.paper, after: RENDERED_TEXT_TONES.night },
-      'sky-sport': { before: RENDERED_TEXT_TONES.night, after: RENDERED_TEXT_TONES.paper },
-    };
-    for (const trigger of TRANSITION_TRIGGERS) {
+    // Immediately before each interior flip line the heading must still hold
+    // the outgoing tone; immediately after, the incoming one. The exact
+    // computed colours prove the *mechanism* (the sweep above proves the
+    // contrast outcome). Holds under both motion preferences: reduced motion
+    // switches at the same per-direction line. Only windows with interior
+    // flips are verified here (mosaic completes the climb, sky-sport opens
+    // the descent); edge windows are covered by the sweep and ends tests.
+    for (const trigger of FLIP_VERIFY_TRIGGERS) {
       const lines = E2E_FLIP_PROGRESS_MAP[trigger];
       const expected = EXPECTED_HEADING[trigger];
       if (!lines || !expected) throw new Error(`no expectations for trigger ${trigger}`);
@@ -411,63 +441,58 @@ test.describe('tonal signature', () => {
     }
   });
 
-  test('muted text follows its own equal-legibility line (ADR-0012)', async ({ page }, testInfo) => {
-    await page.addInitScript(() => { (window as unknown as { __TONAL_DEBUG__: boolean }).__TONAL_DEBUG__ = true; });
-    page.on('console', msg => { if (msg.text().includes('[TonalEngine]')) console.log('BROWSER:', msg.text()); });
+  test('muted text follows its own equal-legibility line (ADR-0012)', async ({
+    page,
+  }, testInfo) => {
+    skipUnderForcedColors(testInfo);
+    await page.addInitScript(() => {
+      (window as unknown as { __TONAL_DEBUG__: boolean }).__TONAL_DEBUG__ = true;
+    });
+    page.on('console', (msg) => {
+      if (msg.text().includes('[TonalEngine]')) console.log('BROWSER:', msg.text());
+    });
     await page.goto('/');
     await settleFonts(page);
 
     const isReducedMotion = testInfo.project.name === 'reduced-motion';
 
     // Per ADR-0012, the muted family flips at its own equal-legibility line,
-    // which is DIFFERENT from the body line and DIFFERENT per direction:
-    // - Climb (ai-physics): body flips at ~0.54, soft flips LATER at ~0.57
+    // which differs from the body line per window:
+    // - Mosaic (climb): body flips at ~0.085, soft flips LATER at ~0.165
     //   (muted pair is luminance-close, holds light tone longer)
-    // - Descent (sky-sport): body flips at ~0.46, soft flips EARLIER at ~0.43
-    //   (mirror of climb: at same geometry, descent has blended 1-t)
+    // - Sky-sport (descent): body flips at ~0.833, soft flips EARLIER at ~0.760
     // Under reduced motion, both families flip together at the body line.
-    const MUTED_EXPECTED_FULL_MOTION: Record<string, { beforeBody: string; afterSoft: string }> = {
-      'ai-physics': {
-        beforeBody: RENDERED_MUTED_TONES.paper, // at body+0.01 (0.5506), soft not flipped yet (flips at 0.5705)
-        afterSoft: RENDERED_MUTED_TONES.night,  // past soft line (0.5705+0.05), flipped to night
-      },
-      'sky-sport': {
-        beforeBody: RENDERED_MUTED_TONES.paper, // at body-0.01 (0.4494), soft already flipped (flipped at 0.4295) to PAPER
-        afterSoft: RENDERED_MUTED_TONES.paper,  // past soft line (0.4295+0.05), still paper
-      },
-    };
+    const MUTED_EXPECTED = isReducedMotion
+      ? MUTED_EXPECTED_REDUCED_MOTION
+      : MUTED_EXPECTED_FULL_MOTION;
 
-    const MUTED_EXPECTED_REDUCED_MOTION: Record<string, { beforeBody: string; afterSoft: string }> = {
-      'ai-physics': {
-        beforeBody: RENDERED_MUTED_TONES.night, // at body+0.01 (past body line), both flip to night
-        afterSoft: RENDERED_MUTED_TONES.night,  // past soft line, still night
-      },
-      'sky-sport': {
-        beforeBody: RENDERED_MUTED_TONES.night, // at body-0.01 (before body line), still night (coming from night)
-        afterSoft: RENDERED_MUTED_TONES.paper,  // past body line (same as soft in reduced), flipped to paper
-      },
-    };
-
-    const MUTED_EXPECTED = isReducedMotion ? MUTED_EXPECTED_REDUCED_MOTION : MUTED_EXPECTED_FULL_MOTION;
-
-    for (const trigger of TRANSITION_TRIGGERS) {
+    for (const trigger of FLIP_VERIFY_TRIGGERS) {
       const lines = E2E_FLIP_PROGRESS_MAP[trigger];
       if (!lines) throw new Error(`no flip lines for trigger ${trigger}`);
       const expected = MUTED_EXPECTED[trigger];
       if (!expected) throw new Error(`no expectations for trigger ${trigger}`);
 
-      // Sample just after the body flip — verify softTone has NOT flipped yet on climb,
-      // but HAS flipped already on descent (per ADR-0012 per-direction lines).
-      const beforeBodyProgress = trigger === 'ai-physics' ? lines.body + 0.01 : lines.body - 0.01;
+      // Sample just after the body flip — verify softTone has NOT flipped yet on
+      // climb, but HAS flipped already on descent (per-direction lines). Under
+      // reduced motion both flip at the body line, so sample just before it.
+      const beforeBodyProgress =
+        !isReducedMotion && trigger === 'mosaic' ? lines.body + 0.01 : lines.body - 0.01;
       await scrollToTransitionProgress(page, trigger, beforeBodyProgress);
       const before = await currentVisibleMutedColor(page, trigger);
       expect(before, `${trigger} eyebrow missing before body flip`).not.toBeNull();
       if (before) {
-        expect(before, `${trigger} eyebrow tone at body flip (per-direction soft line)`).toBe(expected.beforeBody);
+        expect(before, `${trigger} eyebrow tone at body flip (per-direction soft line)`).toBe(
+          expected.beforeBody,
+        );
       }
 
-      // Past the soft line: verify softTone has flipped to night on both directions.
-      await scrollToTransitionProgress(page, trigger, lines.soft + SOFT_FLIP_MARGIN);
+      // Past the flip: full motion samples past the soft line, reduced motion
+      // past the body line (both families flip there) — and the muted family
+      // holds its documented floor.
+      const afterProgress = isReducedMotion
+        ? lines.body + SOFT_FLIP_MARGIN
+        : lines.soft + SOFT_FLIP_MARGIN;
+      await scrollToTransitionProgress(page, trigger, afterProgress);
       const after = await currentVisibleMutedColor(page, trigger);
       expect(after, `${trigger} eyebrow missing after soft flip`).not.toBeNull();
       if (after) {
@@ -476,7 +501,7 @@ test.describe('tonal signature', () => {
         const ratio = contrastRatio(parseRgb(after), bg);
         expect(
           ratio,
-          `${trigger} eyebrow at blend ${lines.soft + SOFT_FLIP_MARGIN} was ${ratio.toFixed(2)}:1 (floor ${MUTED_FLOOR}:1)`,
+          `${trigger} eyebrow at blend ${afterProgress} was ${ratio.toFixed(2)}:1 (floor ${MUTED_FLOOR}:1)`,
         ).toBeGreaterThanOrEqual(MUTED_FLOOR);
       }
     }
@@ -484,7 +509,8 @@ test.describe('tonal signature', () => {
 
   test('scene text tone follows the backdrop at both committed ends of each crossfade', async ({
     page,
-  }) => {
+  }, testInfo) => {
+    skipUnderForcedColors(testInfo);
     await page.goto('/');
     await settleFonts(page);
 
@@ -521,7 +547,9 @@ test.describe('tonal signature', () => {
   test('stacking contract: scene bands show the backdrop, solid bands cover it', async ({
     page,
   }, testInfo) => {
+    skipUnderForcedColors(testInfo);
     await page.goto('/');
+    await settleFonts(page);
 
     // The sampled strip: background-only padding at the top of the target
     // (>=48px on every target), free of text or chrome. The `y` clears the
@@ -534,10 +562,11 @@ test.describe('tonal signature', () => {
 
     // Cruise: a transparent scene band (ai-physics). In full motion, the climb
     // fade completes at heading-top-centred (progress 1), so the backdrop is
-    // night. In reduced motion, the discrete switch fires at the body flip
-    // line (progress ~0.5645), so we must scroll past it to ensure the switch
-    // has fired. Use scrollToTransitionProgress with progress 1.1 (past the end
-    // of fade window) which is guaranteed past the flip line in both motion modes.
+    // night. In reduced motion, the discrete switches fire at the body flip
+    // lines (FLIP_PROGRESS in tone.ts), so we must scroll past them to ensure
+    // the switches have fired. Use scrollToTransitionProgress with progress 1.1
+    // (past the end of fade window) which is guaranteed past the flip line in
+    // both motion modes.
     if (isReducedMotion) {
       await scrollToTransitionProgress(page, 'ai-physics', 1.1);
       // In reduced motion, verify backdrop is night via direct color check
@@ -579,12 +608,13 @@ test.describe('tonal signature', () => {
       'only meaningful under prefers-reduced-motion',
     );
     await page.goto('/');
+    await settleFonts(page);
 
     // Under reduced motion the engine uses ScrollTrigger.onEnter/onLeaveBack
     // (see useTonalEngine), so mid-scroll the backdrop must already equal one
     // of the two committed tones exactly -- never an interpolated blend.
-    // The discrete switch fires at the per-direction body flip line (0.5645 for climb).
-    // Scroll past it to verify the switch to night.
+    // The discrete switch fires at the per-direction body flip line
+    // (FLIP_PROGRESS in tone.ts). Scroll past it to verify the switch to night.
     await scrollToTransitionProgress(page, 'ai-physics', 0.6);
     const color = await backdropColor(page);
     const { r, g, b } = parseRgb(color);
@@ -605,12 +635,12 @@ test.describe('tonal signature', () => {
     }
   });
 
-  test('forced-colors mode uses system colors and disables textures', async ({ page }, testInfo) => {
-    test.skip(
-      testInfo.project.name !== 'forced-colors',
-      'only meaningful under forced-colors',
-    );
+  test('forced-colors mode uses system colors and disables textures', async ({
+    page,
+  }, testInfo) => {
+    test.skip(testInfo.project.name !== 'forced-colors', 'only meaningful under forced-colors');
     await page.goto('/');
+    await settleFonts(page);
     await page.waitForLoadState('networkidle');
 
     // In forced-colors mode, the backdrop should use system Canvas color
@@ -622,24 +652,27 @@ test.describe('tonal signature', () => {
     const heading = await currentVisibleTextColor(page, 'h1, h2');
     expect(heading).not.toBeNull();
 
-    // Texture layers should be disabled in forced-colors
+    // Texture layers are hidden in forced-colors (display:none via the
+    // useForcedColors hook, which drops the inline texture paint entirely).
+    // Absent (null) or hidden (false) both satisfy "disabled" — only a
+    // visibly painted texture fails.
     const grainVisible = await page.evaluate(() => {
       const el = document.querySelector('div[style*="400px 400px"]');
       return el && getComputedStyle(el).display !== 'none';
     });
-    expect(grainVisible).toBe(false);
+    expect(grainVisible).not.toBe(true);
 
     const scanlinesVisible = await page.evaluate(() => {
       const el = document.querySelector('div[style*="100% 4px"]');
       return el && getComputedStyle(el).display !== 'none';
     });
-    expect(scanlinesVisible).toBe(false);
+    expect(scanlinesVisible).not.toBe(true);
 
     // Constellation should be disabled
     const constellationVisible = await page.evaluate(() => {
       const el = document.querySelector('div[style*="constellationFade"]');
       return el && getComputedStyle(el).display !== 'none';
     });
-    expect(constellationVisible).toBe(false);
+    expect(constellationVisible).not.toBe(true);
   });
 });

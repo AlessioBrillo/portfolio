@@ -92,4 +92,12 @@ describe('vercel.json SPA-fallback contract', () => {
       expect(isSpaFallbackRewrite(route, source!)).toBe(true);
     }
   });
+
+  it('never rewrites the Plausible proxy paths (middleware owns them)', () => {
+    expect(source).toBeDefined();
+    // The Edge middleware answers these directly (200 proxied, 404 inert).
+    // Serving index.html here would send HTML bytes to a <script> tag.
+    expect(isSpaFallbackRewrite('/js/script.js', source!)).toBe(false);
+    expect(isSpaFallbackRewrite('/api/event', source!)).toBe(false);
+  });
 });

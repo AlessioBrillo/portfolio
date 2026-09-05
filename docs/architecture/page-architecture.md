@@ -33,27 +33,26 @@ daylight for sport and experiences before the night landing.
 
 ## Implementation map
 
-| Section          | Component                      | Flight band | Tone          | Surface | Backdrop crossfade                             |
-| ---------------- | ------------------------------ | ----------- | ------------- | ------- | ---------------------------------------------- |
-| 00 Hero          | `src/sections/Hero.tsx`        | ground      | paper         | scene   | — (holds paper)                                |
-| 01 Who           | `src/sections/Who.tsx`         | ground      | paper         | scene   | — (holds paper)                                |
-| 02 Mosaic        | `src/sections/Mosaic.tsx`      | climb       | paper → night | scene   | anchors the climb fade (ADR-0010)              |
-| 03 AI & Physics  | `src/sections/AiPhysics.tsx`   | cruise      | night         | scene   | mechanical `trigger` for the climb fade        |
-| 04 Work & School | `src/sections/WorkSchool.tsx`  | cruise      | night         | scene   | — (holds night)                                |
-| 05 Sky & Sport   | `src/sections/SkySport.tsx`    | descent     | night → paper | scene   | mechanical `trigger` for the descent fade      |
-| 06 Experiences   | `src/sections/Experiences.tsx` | descent     | paper         | scene   | — (holds paper)                                |
-| 07 Contact       | `src/sections/Contact.tsx`     | night       | night         | solid   | — (paints its own night, outside `TonalScene`) |
+| Section          | Component                      | Flight band | Tone          | Surface | Backdrop crossfade                               |
+| ---------------- | ------------------------------ | ----------- | ------------- | ------- | ------------------------------------------------ |
+| 00 Hero          | `src/sections/Hero.tsx`        | ground      | paper         | scene   | — (holds paper)                                  |
+| 01 Who           | `src/sections/Who.tsx`         | ground      | paper         | scene   | drives the paper → haze fade                     |
+| 02 Mosaic        | `src/sections/Mosaic.tsx`      | climb       | paper → night | scene   | drives the haze → night fade (climb completes)   |
+| 03 AI & Physics  | `src/sections/AiPhysics.tsx`   | cruise      | night         | scene   | — (holds night)                                  |
+| 04 Work & School | `src/sections/WorkSchool.tsx`  | cruise      | night         | scene   | — (holds night)                                  |
+| 05 Sky & Sport   | `src/sections/SkySport.tsx`    | descent     | night → paper | scene   | drives the night → dawn fade                     |
+| 06 Experiences   | `src/sections/Experiences.tsx` | descent     | paper         | scene   | drives the dawn → paper fade (descent completes) |
+| 07 Contact       | `src/sections/Contact.tsx`     | night       | night         | solid   | — (paints its own night, outside `TonalScene`)   |
 
-> **Status:** Both crossfades (climb paper→night, descent night→paper) are live via
-> `useTonalEngine` (GSAP ScrollTrigger), driving the single `TonalScene` backdrop
-> that spans sections 00–06. ADR-0010 names each band by where it is narrated to
-> _occur_ (climb at Mosaic, descent at Sky & Sport); the GSAP `ScrollTrigger.trigger`
-> instead fires on the section the fade completes _into_ — AI & Physics for climb,
-> Sky & Sport for descent. For descent these coincide (Sky & Sport is both the
-> narrated band and the trigger); for climb they don't (Mosaic narrates the band,
-> AI & Physics mechanically drives it, since the fade plays out as AI & Physics
-> scrolls up to centre — i.e. while leaving Mosaic behind). Same crossfade, two
-> vocabularies (narrative anchor vs. mechanical trigger) — not a contradiction.
+> **Status:** All four crossfades (climb paper→haze→night, descent
+> night→dawn→paper) are live via `useTonalEngine` (GSAP ScrollTrigger),
+> driving the single `TonalScene` backdrop that spans sections 00–06.
+> Each fade's `ScrollTrigger.trigger` is the section the fade completes
+> _into_ — Who, Mosaic, Sky & Sport, Experiences (see `TONAL_TRANSITIONS`
+> in `src/lib/tone.ts`, the mechanical source of truth). ADR-0010 names
+> each band by where it is narrated to _occur_ (climb at Mosaic, descent
+> at Sky & Sport) — same crossfade, two vocabularies (narrative anchor
+> vs. mechanical trigger), not a contradiction.
 > The full multi-band altitude gauge (rise-and-fall fill) and scroll-up top bar
 > are live (Phase 3): see `docs/architecture/navigation-altitude-gauge.md` and
 > the `useAltitudeProfile` hook. The mobile gauge collapse renders as a thin top
