@@ -42,6 +42,11 @@ describe('App', () => {
 
   it('boots the real router shell, MDX provider and error boundary', async () => {
     render(<App />);
-    await waitFor(() => expect(screen.getByRole('heading', { level: 1 })).toBeInTheDocument());
+    // The h1 lives inside the lazy TonalScene boundary (HomePage): allow the
+    // assertion to outlive the default 1s waitFor budget on slow or
+    // coverage-instrumented runners, where the lazy chunk resolves late.
+    await waitFor(() => expect(screen.getByRole('heading', { level: 1 })).toBeInTheDocument(), {
+      timeout: 5000,
+    });
   });
 });
