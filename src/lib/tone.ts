@@ -93,33 +93,19 @@ export const TONAL_TRANSITIONS: readonly TonalTransition[] = [
  * Computed once at module load from the declared palette.
  * Keys are the transition triggers (section IDs that drive each crossfade).
  *
- * The flip line is computed per transition using the ACTUAL backdrop blend
- * (transition.from → transition.to) against the text tone family (ink/phosphor).
- * The text tone family depends on flight phase:
- * - Climb (who: paper→foschia, mosaic: foschia→night): outgoing=ink(paper), incoming=phosphor(night)
- * - Descent (sky-sport: night→alba, experiences: alba→paper): outgoing=phosphor(night), incoming=ink(paper)
+ * The flip line is computed per transition over the transition's ACTUAL
+ * backdrop blend (e.g. foschia → night) against the text tone family of the
+ * flight phase (climb: ink → phosphor; descent: phosphor → ink). The text
+ * tone family depends on flight phase, not on the immediate from/to names:
+ * intermediate backdrop tones (foschia, alba) have no text family of their
+ * own — scene text is always either the ink or the phosphor family.
  */
 export const FLIP_PROGRESS: Record<string, { body: number; soft: number }> = (() => {
   const out: Record<string, { body: number; soft: number }> = {};
   for (const transition of TONAL_TRANSITIONS) {
-    // Determine text tone family by flight phase, not just immediate from/to
-    const isClimb = transition.to === 'foschia' || transition.to === 'night';
-    const isDescent = transition.from === 'night' || transition.from === 'alba';
-
-    const textToneFrom = isClimb ? 'paper' : isDescent ? 'night' : 'paper';
-    const textToneTo = isClimb ? 'night' : isDescent ? 'paper' : 'night';
-
     out[transition.trigger] = {
-      body: flipLineFor(TEXT_TONE, {
-        ...transition,
-        from: textToneFrom as ToneName,
-        to: textToneTo as ToneName,
-      }).progress,
-      soft: flipLineFor(SOFT_TEXT_TONE, {
-        ...transition,
-        from: textToneFrom as ToneName,
-        to: textToneTo as ToneName,
-      }).progress,
+      body: flipLineFor(TEXT_TONE, transition).progress,
+      soft: flipLineFor(SOFT_TEXT_TONE, transition).progress,
     };
   }
   return out;
@@ -184,13 +170,17 @@ export function backdropColorAt(transition: TonalTransition, progress: number): 
  * difference, which is strictly decreasing across the fade: the outgoing
  * tone loses legibility as the backdrop approaches the incoming tone.
  *
- * The line is computed per transition: the climb and the descent run over
- * the same scroll window in opposite directions, so at any shared scroll
- * geometry the backdrop has blended *different* amounts (the descent at
- * progress `t` is the mirror of the climb at `1 - t`). A single shared
- * position would flip the descent at the climb's equal-legibility colour
- * and strand the outgoing tone below AA for the whole second half of the
- * fade — the defect the per-direction line exists to prevent.
+ * The line is computed per transition over the transition's ACTUAL backdrop
+ * segment (transition.from → transition.to, exactly what GSAP paints). The
+ * text pair follows the flight phase, not the segment names: a transition
+ * flying toward night/foschia is climb (outgoing ink, incoming phosphor),
+ * anything else is descent (outgoing phosphor, incoming ink). Intermediate
+ * backdrop tones (foschia, alba) carry no text family — scene text is always
+ * ink-family or phosphor-family.
+ *
+ * When the outgoing tone wins the whole segment the line clamps to 1 (flip
+ * at the window end — e.g. the who window never gets dark enough to dethrone
+ * ink); when the incoming tone already wins at the start it clamps to 0.
  *
  * The position string derives from the transition window geometry
  * (`top bottom` = heading top at 100% of the viewport, `top center` = 50%).
@@ -199,18 +189,15 @@ export function flipLineFor(
   textTone: Readonly<Record<ToneName, string>>,
   transition: TonalTransition,
 ): FlipLine {
+  const climb = transition.to === 'foschia' || transition.to === 'night';
+  const outgoingText = textTone[climb ? 'paper' : 'night'];
+  const incomingText = textTone[climb ? 'night' : 'paper'];
   let lo = 0;
   let hi = 1;
   for (let i = 0; i < 64; i += 1) {
     const mid = (lo + hi) / 2;
-    const outgoing = contrastRatio(
-      textTone[transition.from as ToneName] ?? BACKDROP_TONES[transition.from],
-      backdropColorAt(transition, mid),
-    );
-    const incoming = contrastRatio(
-      textTone[transition.to as ToneName] ?? BACKDROP_TONES[transition.to],
-      backdropColorAt(transition, mid),
-    );
+    const outgoing = contrastRatio(outgoingText, backdropColorAt(transition, mid));
+    const incoming = contrastRatio(incomingText, backdropColorAt(transition, mid));
     if (outgoing > incoming) {
       lo = mid;
     } else {
@@ -223,18 +210,22 @@ export function flipLineFor(
 
 /**
  * Where the scene's *body* text family flips on the climb (ADR-0012): the
- * equal-legibility line of ink/phosphor, tuned so both tones clear 4.5:1 at the
- * line itself. The descent mirrors it (see `flipLineFor`); the engine
- * computes the per-direction line for each transition. The reduced-motion
- * discrete switch is anchored to the same per-direction body line.
+ * equal-legibility line of ink/phosphor over the mosaic window
+ * (foschia → night), the segment where the backdrop actually gets dark enough
+ * to dethrone ink — the who window never does (its line clamps to 1). The
+ * reduced-motion discrete switch is anchored to the per-direction body line
+ * of each transition (see FLIP_PROGRESS); this export names the climb's
+ * decisive one. Worst case at the line (~4.1:1) is the documented body floor
+ * (ADR-0023): the maximin optimum for this palette, not a defect.
  */
-export const BODY_FLIP_LINE: FlipLine = flipLineFor(TEXT_TONE, TONAL_TRANSITIONS[0]!);
+export const BODY_FLIP_LINE: FlipLine = flipLineFor(TEXT_TONE, TONAL_TRANSITIONS[1]!);
 
 /**
  * Where the scene's *muted* text family flips on the climb (ADR-0012): the
- * equal-legibility line of ink-soft/phosphor-dim, which fires after the body
- * line (its pair is luminance-close, so it can afford to hold the light tone
- * longer). Its worst case at the line (~1.57:1) is the documented floor of
- * the hierarchy; the descent mirrors it per direction.
+ * equal-legibility line of ink-soft/phosphor-dim over the same segment,
+ * which fires after the body line (its pair is luminance-close, so it can
+ * afford to hold the light tone longer). Its worst case at the line (~1.7:1)
+ * is the documented floor of the hierarchy; the descent mirrors it per
+ * direction (sky-sport soft fires *before* its body line).
  */
-export const SOFT_FLIP_LINE: FlipLine = flipLineFor(SOFT_TEXT_TONE, TONAL_TRANSITIONS[0]!);
+export const SOFT_FLIP_LINE: FlipLine = flipLineFor(SOFT_TEXT_TONE, TONAL_TRANSITIONS[1]!);
