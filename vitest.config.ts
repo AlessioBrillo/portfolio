@@ -38,6 +38,8 @@ export default defineConfig({
         'src/mdx.d.ts',
         'src/main.tsx',
         'src/types/**',
+        'src/lib/gsap-loader.ts',
+        'src/lib/tone.e2e.ts',
       ],
       thresholds: {
         statements: 98.5,
