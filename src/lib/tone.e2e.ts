@@ -55,8 +55,13 @@ export const MUTED_FLOOR = 1.2;
  */
 export const BODY_NEAR_FLIP_FLOOR = 4.0;
 
-/** Blend distance around a body flip where the near-flip floor replaces AA. */
-export const BODY_FLIP_WINDOW = 0.05;
+/**
+ * Blend distance around a body flip where the near-flip floor replaces AA.
+ * Past the line the winning family climbs back toward AA gradually (4.5 is
+ * recovered ~0.065 past the line), so the window covers recovery plus
+ * scroll-positioning variance. Samples outside it gate strict AA.
+ */
+export const BODY_FLIP_WINDOW = 0.08;
 
 /** Verification windows: every crossfade of the flight. */
 export const TRANSITION_TRIGGERS = ['who', 'mosaic', 'sky-sport', 'experiences'] as const;

@@ -608,6 +608,7 @@ test.describe('tonal signature', () => {
       'only meaningful under prefers-reduced-motion',
     );
     await page.goto('/');
+    await settleFonts(page);
 
     // Under reduced motion the engine uses ScrollTrigger.onEnter/onLeaveBack
     // (see useTonalEngine), so mid-scroll the backdrop must already equal one
@@ -639,6 +640,7 @@ test.describe('tonal signature', () => {
   }, testInfo) => {
     test.skip(testInfo.project.name !== 'forced-colors', 'only meaningful under forced-colors');
     await page.goto('/');
+    await settleFonts(page);
     await page.waitForLoadState('networkidle');
 
     // In forced-colors mode, the backdrop should use system Canvas color
