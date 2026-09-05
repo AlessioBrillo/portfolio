@@ -25,6 +25,15 @@ try {
   ({ buildSitemapXml } = await import('../src/lib/sitemap.ts'));
   ({ getPublishedCaseStudies } = await import('../src/content/case-studies/registry.ts'));
 } catch (error) {
+  // Fail closed once a domain is configured: a production build without a
+  // sitemap must break the pipeline, not ship silently. Pre-domain the skip
+  // stays harmless (exit 0) — there is nothing to advertise yet.
+  if (origin) {
+    console.error(
+      `[sitemap] VITE_SITE_URL is set but sources failed to load (${error?.code ?? error}).`,
+    );
+    process.exit(1);
+  }
   console.warn(`[sitemap] Could not load TypeScript sources (${error?.code ?? error}) — skipping.`);
   process.exit(0);
 }

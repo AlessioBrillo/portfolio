@@ -9,6 +9,9 @@
  * - `middleware.ts` must exist at project root for conditional proxy
  * - `vercel.json` must NOT contain Plausible rewrites (handled by middleware)
  *
+ * And the sitemap contract: `dist/sitemap.xml` (emitted only when
+ * `VITE_SITE_URL` is set) must exist then, and must never match the fallback.
+ *
  * The exclusion list lives in `vercel.json` as the fallback rewrite's regex
  * `source`; this gate walks `public/` and fails when any committed file is
  * not excluded. The pure logic lives in `src/lib/deploy-routing.ts`
@@ -102,6 +105,28 @@ for (const proxyPath of proxyPaths) {
   }
 }
 console.log('[deploy] Plausible proxy paths excluded from the SPA fallback.');
+
+// The build-time sitemap lives in dist/ (not public/), so the public/ walk
+// above cannot see it — check it explicitly. A missing sitemap fails only
+// when a domain is configured (pre-domain there is nothing to advertise);
+// a sitemap served as index.html HTML bytes is always a violation.
+const DIST_SITEMAP = join(ROOT, 'dist', 'sitemap.xml');
+const siteUrl = process.env.VITE_SITE_URL ?? '';
+if (siteUrl && !existsSync(DIST_SITEMAP)) {
+  console.error('[deploy] VIOLATION: VITE_SITE_URL is set but dist/sitemap.xml was not emitted.');
+  console.error('[deploy] The sitemap step must fail closed — check generate-sitemap output.');
+  process.exit(1);
+}
+if (existsSync(DIST_SITEMAP) && isSpaFallbackRewrite('/sitemap.xml', source)) {
+  console.error(
+    '[deploy] VIOLATION: /sitemap.xml would be served as index.html by the SPA fallback.',
+  );
+  console.error('[deploy] Add an exclusion to the fallback rewrite source in vercel.json.');
+  process.exit(1);
+}
+if (existsSync(DIST_SITEMAP)) {
+  console.log('[deploy] sitemap.xml excluded from the SPA fallback.');
+}
 
 if (violations.length > 0) {
   console.error(
