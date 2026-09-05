@@ -1,38 +1,50 @@
 {
   "entryChunkKb": 128,
   "totalJsKb": 181,
-  "origin": "Measured 2026-08-31 from the production build with this gate's own method (whole-file brotli of dist/): entry chunk 127.6 kB, total JS 180.6 kB. Budgets are baseline +10%, rounded up. Raise a budget only with a deliberate ADR or an accepted, measured regression.",
+  "origin": "Measured 2026-08-31 from the production build with this gate's own method (whole-file brotli of dist/): entry chunk 127.6 kB, total JS 180.6 kB. Budgets are baseline +10%, rounded up. Raise a budget only with a deliberate ADR or an accepted, measured regression. | Updated 2026-09-05: Bundle optimization: lazy-loaded TonalScene, extracted GSAP to separate chunk, removed framer-motion, moved adm-zip to devDependencies, split vendor chunks",
   "chunks": [
     {
-      "name": "assets/grokking-modular-addition-DiV_uWWi.js",
+      "name": "assets/grokking-modular-addition-D-0UX5tQ.js",
       "brotliKb": 3.2
     },
     {
-      "name": "assets/gsap-WthEQL9P.js",
-      "brotliKb": 24.1
+      "name": "assets/gsap-engine-B5T0b9Xv.js",
+      "brotliKb": 0.7
     },
     {
-      "name": "assets/index-BFpTelPJ.js",
-      "brotliKb": 127.6
+      "name": "assets/index-VY5GqZrr.js",
+      "brotliKb": 17
     },
     {
-      "name": "assets/physics-of-flight-D-1T9QGe.js",
+      "name": "assets/physics-of-flight-CSoyEBLU.js",
       "brotliKb": 3
     },
     {
-      "name": "assets/ScrollTrigger-l6JEjUcF.js",
-      "brotliKb": 15.4
+      "name": "assets/react-vendor-C7V23D3H.js",
+      "brotliKb": 75.1
     },
     {
-      "name": "assets/transformer-italian-corpus-Cvj84v4b.js",
+      "name": "assets/rolldown-runtime-CbXtAM7H.js",
+      "brotliKb": 0.3
+    },
+    {
+      "name": "assets/TonalScene-Cwx6vS-K.js",
+      "brotliKb": 3.7
+    },
+    {
+      "name": "assets/tone-BQWb95TU.js",
+      "brotliKb": 1
+    },
+    {
+      "name": "assets/transformer-italian-corpus-Dt0-i5J5.js",
       "brotliKb": 2.3
     },
     {
-      "name": "assets/vds-licence-MQGq9T5K.js",
+      "name": "assets/vds-licence-CHgyHlf9.js",
       "brotliKb": 2.1
     },
     {
-      "name": "assets/work-the-ascent-D71PNghW.js",
+      "name": "assets/work-the-ascent-BkZfOBYR.js",
       "brotliKb": 3
     }
   ]
