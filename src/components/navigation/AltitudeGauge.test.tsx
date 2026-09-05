@@ -3,6 +3,13 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { ToneProvider } from '@/components/ascent/ToneProvider';
 import { AltitudeGauge } from '@/components/navigation/AltitudeGauge';
 
+// Mock the lazy-loaded TonalScene to return the actual component synchronously in tests
+vi.mock('@/components/ascent/TonalScene', () => ({
+  TonalScene: ({ children }: { children: React.ReactNode }) => (
+    <div data-testid="tonal-scene">{children}</div>
+  ),
+}));
+
 const mockUseCurrentSection = vi.fn();
 const mockUseReducedMotion = vi.fn();
 const mockUseAltitudeProfile = vi.fn();

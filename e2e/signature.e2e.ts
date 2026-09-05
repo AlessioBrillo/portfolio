@@ -2,7 +2,19 @@ import { expect, test, type Page } from '@playwright/test';
 import { contrastRatio, parseRgb } from './contrast';
 import {
   E2E_FLIP_PROGRESS,
-} from '@/lib/tone';
+  FLIP_PROGRESS as E2E_FLIP_PROGRESS_MAP,
+  RENDERED_TEXT_TONES,
+  RENDERED_MUTED_TONES,
+  TRANSITION_TRIGGERS,
+  SWEEP_STEP,
+  SOFT_FLIP_MARGIN,
+  AA_NORMAL_TEXT,
+  AA_LARGE_TEXT,
+  MUTED_FLOOR,
+  EXPECTED_HEADING,
+  MUTED_EXPECTED_FULL_MOTION,
+  MUTED_EXPECTED_REDUCED_MOTION,
+} from '@/lib/tone.e2e';
 
 /**
  * Validates the tonal signature (ADR-0003, ADR-0010, ADR-0011, ADR-0012,
@@ -23,7 +35,7 @@ import {
  * text tone, and the body palette is tuned so the flip line itself clears
  * AA. Instead of diagnosing one sample, this suite *sweeps* every crossfade
  * at dense blend fractions (plus both flip lines, +/- 0.03) and gates the
- * results. The flip-line constants are imported from `src/lib/tone.ts`
+ * results. The flip-line constants are imported from `src/lib/tone.e2e.ts`
  * (`E2E_FLIP_PROGRESS`), which computes them by bisection over the actual
  * GSAP-blended backdrop colours.
  *
@@ -34,31 +46,6 @@ import {
  * (see the HTML report) for human review at each breakpoint.
  * ponytail: pixel-diff baselines, add once a matched-environment (Docker) runner exists.
  */
-
-const AA_LARGE_TEXT = 3;
-const AA_NORMAL_TEXT = 4.5;
-/** Bounded floor for the muted family at its own flip line (ADR-0012). */
-const MUTED_FLOOR = 1.2;
-/** Verification sections: 'ai-physics' for climb, 'sky-sport' for descent. */
-const TRANSITION_TRIGGERS = ['ai-physics', 'sky-sport'] as const;
-/** Flip progress per verification section, sourced from tone.ts (single source of truth). */
-const FLIP_PROGRESS: Record<string, { body: number; soft: number }> = E2E_FLIP_PROGRESS;
-
-/** Actual rendered text tones (from CSS tokens / tone-context): ink on paper, phosphor on night. */
-const RENDERED_TEXT_TONES = {
-  paper: 'rgb(5, 5, 5)',
-  night: 'rgb(234, 234, 234)',
-} as const;
-
-/** Actual rendered muted tones: ink-soft on paper, phosphor-dim on night. */
-const RENDERED_MUTED_TONES = {
-  paper: 'rgb(72, 69, 63)',
-  night: 'rgb(141, 141, 141)',
-} as const;
-/** Density of the blend-fraction sweep (0.05 .. 0.95, step 0.1, plus both flip lines +/- 0.03). */
-const SWEEP_STEP = 0.1;
-/** Margin around flip lines for before/after sampling -- increased for soft flip due to scroll positioning variance. */
-const SOFT_FLIP_MARGIN = 0.05;
 
 /**
  * Waits for the display fonts to finish swapping in. `useTonalEngine`
@@ -367,7 +354,7 @@ test.describe('tonal signature', () => {
     }
 
     for (const trigger of TRANSITION_TRIGGERS) {
-      const lines = FLIP_PROGRESS[trigger];
+      const lines = E2E_FLIP_PROGRESS_MAP[trigger];
       if (!lines) throw new Error(`no flip lines for trigger ${trigger}`);
       const triggerSamples = new Set(samples);
       for (const progress of [lines.body, lines.soft]) {
@@ -468,7 +455,7 @@ test.describe('tonal signature', () => {
     const MUTED_EXPECTED = isReducedMotion ? MUTED_EXPECTED_REDUCED_MOTION : MUTED_EXPECTED_FULL_MOTION;
 
     for (const trigger of TRANSITION_TRIGGERS) {
-      const lines = FLIP_PROGRESS[trigger];
+      const lines = E2E_FLIP_PROGRESS_MAP[trigger];
       if (!lines) throw new Error(`no flip lines for trigger ${trigger}`);
       const expected = MUTED_EXPECTED[trigger];
       if (!expected) throw new Error(`no expectations for trigger ${trigger}`);

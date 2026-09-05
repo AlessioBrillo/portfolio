@@ -1,8 +1,15 @@
 import { render, screen } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { Mosaic } from '@/sections/Mosaic';
 import { getMosaicEntries } from '@/content/mosaic';
+
+// Mock the lazy-loaded TonalScene to return the actual component synchronously in tests
+vi.mock('@/components/ascent/TonalScene', () => ({
+  TonalScene: ({ children }: { children: React.ReactNode }) => (
+    <div data-testid="tonal-scene">{children}</div>
+  ),
+}));
 
 describe('Mosaic', () => {
   it('renders every curated tile', () => {

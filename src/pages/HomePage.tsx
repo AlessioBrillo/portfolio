@@ -1,7 +1,6 @@
-import type { ReactElement } from 'react';
+import { Suspense, lazy, type ReactElement } from 'react';
 import { TopBar } from '@/components/navigation/TopBar';
 import { AltitudeGauge } from '@/components/navigation/AltitudeGauge';
-import { TonalScene } from '@/components/ascent/TonalScene';
 import { Footer } from '@/components/ui/Footer';
 import { Hero } from '@/sections/Hero';
 import { Who } from '@/sections/Who';
@@ -11,6 +10,10 @@ import { WorkSchool } from '@/sections/WorkSchool';
 import { SkySport } from '@/sections/SkySport';
 import { Experiences } from '@/sections/Experiences';
 import { Contact } from '@/sections/Contact';
+
+const TonalScene = lazy(() =>
+  import('@/components/ascent/TonalScene').then((m) => ({ default: m.TonalScene })),
+);
 
 /**
  * The single page: one continuous flight from ground to night (ADR-0010).
@@ -23,22 +26,28 @@ import { Contact } from '@/sections/Contact';
  * The chrome (TopBar, AltitudeGauge) lives *inside* the scene so it can read
  * the live tone published by `TonalScene` (ADR-0011) and follow the blends
  * instead of a static per-section tone.
+ *
+ * `TonalScene` is lazy-loaded to keep GSAP and the tonal engine out of the
+ * entry chunk. The Suspense fallback paints the paper tone so there is no
+ * flash before the engine mounts.
  */
 export function HomePage(): ReactElement {
   return (
     <>
       <main>
-        <TonalScene>
-          <TopBar />
-          <AltitudeGauge />
-          <Hero surface="scene" />
-          <Who surface="scene" />
-          <Mosaic surface="scene" />
-          <AiPhysics surface="scene" />
-          <WorkSchool surface="scene" />
-          <SkySport surface="scene" />
-          <Experiences surface="scene" />
-        </TonalScene>
+        <Suspense fallback={<div aria-hidden className="fixed inset-0 -z-10 bg-paper" />}>
+          <TonalScene>
+            <TopBar />
+            <AltitudeGauge />
+            <Hero surface="scene" />
+            <Who surface="scene" />
+            <Mosaic surface="scene" />
+            <AiPhysics surface="scene" />
+            <WorkSchool surface="scene" />
+            <SkySport surface="scene" />
+            <Experiences surface="scene" />
+          </TonalScene>
+        </Suspense>
         <Contact />
       </main>
       <Footer />

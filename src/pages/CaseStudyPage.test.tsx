@@ -3,6 +3,13 @@ import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { CaseStudyPage } from '@/pages/CaseStudyPage';
 
+// Mock the lazy-loaded TonalScene to return the actual component synchronously in tests
+vi.mock('@/components/ascent/TonalScene', () => ({
+  TonalScene: ({ children }: { children: React.ReactNode }) => (
+    <div data-testid="tonal-scene">{children}</div>
+  ),
+}));
+
 const STUDIES = [
   {
     slug: 'first-study',
