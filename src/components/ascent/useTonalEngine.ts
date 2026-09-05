@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react';
 import type { RefObject } from 'react';
-import { debounce } from 'lodash-es';
+import { debounce } from '@/lib/debounce';
 import {
   flipLineFor,
   TEXT_TONE,

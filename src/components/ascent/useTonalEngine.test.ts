@@ -2,7 +2,7 @@ import { renderHook, waitFor } from '@testing-library/react';
 import { useRef } from 'react';
 import type { RefObject } from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { debounce } from 'lodash-es';
+import { debounce } from '@/lib/debounce';
 import { useTonalEngine, renderStaticFlightGradient } from '@/components/ascent/useTonalEngine';
 import {
   flipLineFor,
