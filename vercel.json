@@ -37,7 +37,7 @@
   ],
   "rewrites": [
     {
-      "source": "/((?!assets/|photos/|fonts/|favicon\\.svg|og-image\\.png|robots\\.txt|sitemap\\.xml|apple-touch-icon\\.png|.*\\.pdf|.*\\.webmanifest).*)",
+      "source": "/((?!assets/|photos/|fonts/|js/script\\.js|api/event|favicon\\.svg|og-image\\.png|robots\\.txt|sitemap\\.xml|apple-touch-icon\\.png|.*\\.pdf|.*\\.webmanifest).*)",
       "destination": "/index.html"
     }
   ]
