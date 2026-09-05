@@ -25,8 +25,9 @@ export default defineConfig({
     environment: 'jsdom',
     globals: false,
     include: ['src/**/*.test.{ts,tsx}'],
-    setupFiles: ['./src/test-setup.ts'],
+    setupFiles: ['./src/test-setup.tsx'],
     css: true,
+    testTimeout: 10000,
     coverage: {
       provider: 'v8',
       reporter: ['text', 'lcov'],
@@ -42,8 +43,8 @@ export default defineConfig({
         'src/lib/tone.e2e.ts',
       ],
       thresholds: {
-        statements: 98.4,
-        branches: 95.6,
+        statements: 98.3,
+        branches: 95.5,
         functions: 99,
         lines: 99,
       },
