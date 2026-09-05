@@ -2,11 +2,8 @@ import { renderHook, waitFor } from '@testing-library/react';
 import { useRef } from 'react';
 import type { RefObject } from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import {
-  useTonalEngine,
-  debounce,
-  renderStaticFlightGradient,
-} from '@/components/ascent/useTonalEngine';
+import { debounce } from 'lodash-es';
+import { useTonalEngine, renderStaticFlightGradient } from '@/components/ascent/useTonalEngine';
 import {
   flipLineFor,
   TEXT_TONE,
@@ -46,18 +43,21 @@ const mocks = vi.hoisted(() => {
   };
 });
 
-vi.mock('gsap', () => ({
-  gsap: {
-    registerPlugin: mocks.registerPlugin,
-    matchMedia: mocks.matchMedia,
-    context: mocks.context,
-    fromTo: mocks.fromTo,
-    set: mocks.set,
-  },
-}));
-
-vi.mock('gsap/ScrollTrigger', () => ({
-  ScrollTrigger: { create: mocks.create, refresh: mocks.refresh },
+// Mock the GSAP loader module instead of gsap directly
+vi.mock('@/lib/gsap-loader', () => ({
+  loadGsap: vi.fn().mockResolvedValue({
+    gsap: {
+      registerPlugin: mocks.registerPlugin,
+      matchMedia: mocks.matchMedia,
+      context: mocks.context,
+      fromTo: mocks.fromTo,
+      set: mocks.set,
+    },
+    ScrollTrigger: {
+      create: mocks.create,
+      refresh: mocks.refresh,
+    },
+  }),
 }));
 
 function setReducedMotion(reduced: boolean): void {
@@ -485,7 +485,7 @@ describe('useTonalEngine', () => {
       const fn = vi.fn();
       const debounced = debounce(fn, 100);
       debounced();
-      (debounced as typeof debounced & { cancel: () => void }).cancel();
+      debounced.cancel();
       vi.advanceTimersByTime(100);
       expect(fn).not.toHaveBeenCalled();
     });
