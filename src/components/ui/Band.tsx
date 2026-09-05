@@ -1,4 +1,4 @@
-import type { ReactElement, ReactNode } from 'react';
+import type { ReactElement, ReactNode, CSSProperties } from 'react';
 import type { SectionId } from '@/types/domain';
 import { useSceneTone } from '@/components/ascent/tone-context';
 import { cn } from '@/lib/utils';
@@ -20,6 +20,7 @@ interface BandProps {
   children: ReactNode;
   tone?: Tone;
   surface?: Surface;
+  style?: CSSProperties;
 }
 
 /**
@@ -37,6 +38,7 @@ export function Band({
   children,
   tone = 'paper',
   surface = 'solid',
+  style,
 }: BandProps): ReactElement {
   const sceneTone = useSceneTone();
   const effectiveTone = surface === 'scene' ? sceneTone.tone : tone;
@@ -56,6 +58,7 @@ export function Band({
         'border-y',
         hairline,
       )}
+      style={style}
     >
       <div className="mx-auto max-w-page grid-blueprint">{children}</div>
     </section>
