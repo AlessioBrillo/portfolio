@@ -140,24 +140,24 @@ describe('TopBar', () => {
   it('follows the live scene tone on a blend section (ADR-0011)', () => {
     mockUseCurrentSection.mockReturnValue('sky-sport');
     const { container } = render(
-      <ToneProvider initialTone="notte">
+      <ToneProvider initialTone="night">
         <TopBar />
       </ToneProvider>,
     );
     const header = container.querySelector('header')!;
-    expect(header.className).toContain('bg-notte/70');
-    expect(header.className).toContain('text-panna');
+    expect(header.className).toContain('bg-night/70');
+    expect(header.className).toContain('text-phosphor');
   });
 
-  it('keeps explicit solid-notte sections dark even when the scene reads carta', () => {
+  it('keeps explicit solid-night sections dark even when the scene reads paper', () => {
     mockUseCurrentSection.mockReturnValue('contact');
     const { container } = render(
-      <ToneProvider initialTone="carta">
+      <ToneProvider initialTone="paper">
         <TopBar />
       </ToneProvider>,
     );
     const header = container.querySelector('header')!;
-    expect(header.className).toContain('bg-notte/70');
-    expect(header.className).toContain('text-panna');
+    expect(header.className).toContain('bg-night/70');
+    expect(header.className).toContain('text-phosphor');
   });
 });

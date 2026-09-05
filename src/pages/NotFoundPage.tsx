@@ -9,7 +9,7 @@ export function NotFoundPage(): ReactElement {
 
   return (
     <main className="flex min-h-screen flex-col items-center justify-center gap-6 bg-night px-6 text-center text-phosphor">
-      <Eyebrow tone="dark">404</Eyebrow>
+      <Eyebrow tone="night">404</Eyebrow>
       <h1 className="font-display text-[length:var(--text-h2)] font-medium text-balance">
         Lost altitude.
       </h1>

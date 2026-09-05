@@ -65,41 +65,41 @@ describe('MosaicTile', () => {
     expect(link).toContainElement(screen.getByRole('heading', { name: 'Sky' }));
   });
 
-  it('uses carta background and border when scene tone is carta', () => {
+  it('uses paper background and border when scene tone is paper', () => {
     renderWithRouter(
-      <ToneProvider initialTone="carta">
+      <ToneProvider initialTone="paper">
         <MosaicTile entry={plainEntry} />
       </ToneProvider>,
     );
     const card = screen.getByText('Projects').closest('article');
-    expect(card).toHaveClass('bg-carta/80');
+    expect(card).toHaveClass('bg-paper/80');
     expect(card).toHaveClass('border-hairline-light');
   });
 
-  it('uses notte background and border when scene tone is notte', () => {
+  it('uses night background and border when scene tone is night', () => {
     renderWithRouter(
-      <ToneProvider initialTone="notte">
+      <ToneProvider initialTone="night">
         <MosaicTile entry={plainEntry} />
       </ToneProvider>,
     );
     const card = screen.getByText('Projects').closest('article');
-    expect(card).toHaveClass('bg-notte/80');
+    expect(card).toHaveClass('bg-night/80');
     expect(card).toHaveClass('border-hairline-dark');
   });
 
-  it('uses panna-dim text for line when scene tone is notte', () => {
+  it('uses phosphor-dim text for line when scene tone is night', () => {
     renderWithRouter(
-      <ToneProvider initialTone="notte">
+      <ToneProvider initialTone="night">
         <MosaicTile entry={plainEntry} />
       </ToneProvider>,
     );
     const line = screen.getByText('Work and school.');
-    expect(line).toHaveClass('text-panna-dim');
+    expect(line).toHaveClass('text-phosphor-dim');
   });
 
-  it('uses ink-soft text for line when scene tone is carta', () => {
+  it('uses ink-soft text for line when scene tone is paper', () => {
     renderWithRouter(
-      <ToneProvider initialTone="carta">
+      <ToneProvider initialTone="paper">
         <MosaicTile entry={plainEntry} />
       </ToneProvider>,
     );

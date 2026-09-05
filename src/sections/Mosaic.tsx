@@ -14,7 +14,7 @@ export function Mosaic({ surface = 'scene' }: MosaicProps): ReactElement {
   const entries = getMosaicEntries();
 
   return (
-    <Band id="mosaic" ariaLabel="The mosaic" tone="carta" surface={surface}>
+    <Band id="mosaic" ariaLabel="The mosaic" tone="paper" surface={surface}>
       <SectionHeader
         eyebrow="SECTOR 02 · MOSAIC INDEX · 6 PIECES"
         title="Puzzle Index: Pieces Under One Roof"

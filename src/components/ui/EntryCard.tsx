@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { useSceneTone } from '@/components/ascent/tone-context';
 import { cn } from '@/lib/utils';
 
-export type CardTone = 'light' | 'dark';
+export type CardTone = 'paper' | 'night';
 
 interface EntryCardProps {
   title: string;
@@ -13,10 +13,10 @@ interface EntryCardProps {
   /** Optional deep link to a case-study route. */
   href?: string;
   /**
-   * `light` sits on carta-family surfaces, `dark` on notte-family ones. When
+   * `paper` sits on paper-family surfaces, `night` on night-family ones. When
    * omitted the card takes its tone from the live scene's *muted* tone
    * (ADR-0012, `softTone`) so its meta line and copy stay legible while the
-   * backdrop blends; outside a scene it defaults to `light`. Only
+   * backdrop blends; outside a scene it defaults to `paper`. Only
    * fixed-surface cards (Contact) pass it.
    */
   tone?: CardTone;
@@ -27,13 +27,13 @@ interface EntryCardProps {
  * macro title, micro meta/description. Hover reveals accent edge.
  */
 const CARD_SURFACE: Record<CardTone, string> = {
-  light: 'border-hairline-light bg-carta/80',
-  dark: 'border-hairline-dark bg-notte/80',
+  paper: 'border-hairline-light bg-paper/80',
+  night: 'border-hairline-dark bg-night/80',
 };
 
 const META_COLOR: Record<CardTone, string> = {
-  light: 'text-ink-soft',
-  dark: 'text-panna-dim',
+  paper: 'text-ink-soft',
+  night: 'text-phosphor-dim',
 };
 
 const CARD_BASE = cn(
@@ -48,7 +48,7 @@ const CARD_BASE = cn(
 /** A project or study card in the cruise bands; links when a route exists. */
 export function EntryCard({ title, line, meta, href, tone }: EntryCardProps): ReactElement {
   const sceneTone = useSceneTone();
-  const effectiveTone: CardTone = tone ?? (sceneTone.softTone === 'notte' ? 'dark' : 'light');
+  const effectiveTone: CardTone = tone ?? (sceneTone.softTone === 'night' ? 'night' : 'paper');
   const classes = cn(CARD_BASE, CARD_SURFACE[effectiveTone]);
 
   const content = (

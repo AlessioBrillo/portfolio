@@ -13,7 +13,7 @@ export function AiPhysics({ surface = 'scene' }: AiPhysicsProps): ReactElement {
   const studies = getPublishedCaseStudies().filter((meta) => meta.domain === 'ai');
 
   return (
-    <Band id="ai-physics" ariaLabel="AI and physics" tone="notte" surface={surface}>
+    <Band id="ai-physics" ariaLabel="AI and physics" tone="night" surface={surface}>
       <SectionHeader
         eyebrow="SECTOR 03 · CORE TELEMETRY · 3 STUDIES"
         title="Core Telemetry: Where the Thinking Shows"

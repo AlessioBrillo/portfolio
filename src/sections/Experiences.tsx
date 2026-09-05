@@ -13,7 +13,7 @@ interface ExperiencesProps {
 export function Experiences({ surface = 'scene' }: ExperiencesProps): ReactElement {
   const { softTone } = useSceneTone();
   return (
-    <Band id="experiences" ariaLabel="Experiences" tone="carta" surface={surface}>
+    <Band id="experiences" ariaLabel="Experiences" tone="paper" surface={surface}>
       <SectionHeader
         eyebrow="SECTOR 06 · ARCHIVE ACCESS · N RECORDS"
         title="Archive: Curated Storytelling"

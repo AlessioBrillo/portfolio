@@ -6,7 +6,7 @@ import { useCurrentSection } from '@/hooks/useCurrentSection';
 import { useReducedMotion } from '@/hooks/useReducedMotion';
 import { useAltitudeProfile } from '@/hooks/useAltitudeProfile';
 import { useScrollProgress } from '@/hooks/useScrollProgress';
-import { isNotteSection } from '@/lib/section-tone';
+import { isNightSection } from '@/lib/section-tone';
 import { cn } from '@/lib/utils';
 import type { SectionId } from '@/types/domain';
 
@@ -43,13 +43,13 @@ export function AltitudeGauge(): ReactElement {
   const progress = useScrollProgress();
   const { tone: sceneTone } = useSceneTone();
   const activeIndex = resolveGaugeStop(currentSection, TARGETS, SECTION_ORDER);
-  const inDark = isNotteSection(currentSection) || sceneTone === 'notte';
-  const trackColor = inDark ? 'bg-panna/10' : 'bg-ink/10';
-  const labelColor = inDark ? 'text-panna-dim' : 'text-ink-soft';
-  const labelHover = inDark ? 'hover:text-panna' : 'hover:text-ink';
+  const inDark = isNightSection(currentSection) || sceneTone === 'night';
+  const trackColor = inDark ? 'bg-phosphor/10' : 'bg-ink/10';
+  const labelColor = inDark ? 'text-phosphor-dim' : 'text-ink-soft';
+  const labelHover = inDark ? 'hover:text-phosphor' : 'hover:text-ink';
   const activeColor = 'text-accent';
 
-  const borderClass = inDark ? 'border-panna/10' : 'border-ink/10';
+  const borderClass = inDark ? 'border-phosphor/10' : 'border-ink/10';
 
   const goTo = (sectionId: string): void => {
     document.getElementById(sectionId)?.scrollIntoView({

@@ -13,7 +13,7 @@ export function WorkSchool({ surface = 'scene' }: WorkSchoolProps): ReactElement
   const entries = getProjectEntries();
 
   return (
-    <Band id="work-school" ariaLabel="Work and school" tone="notte" surface={surface}>
+    <Band id="work-school" ariaLabel="Work and school" tone="night" surface={surface}>
       <SectionHeader
         eyebrow="SECTOR 04 · OPERATIONAL LOG · 2 ENTRIES"
         title="Operational Log: Projects That Enlarge"

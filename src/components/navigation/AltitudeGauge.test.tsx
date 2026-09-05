@@ -160,23 +160,23 @@ describe('AltitudeGauge', () => {
   it('follows the live scene tone for label colour on a blend section (ADR-0011)', () => {
     mockUseCurrentSection.mockReturnValue('sky-sport');
     render(
-      <ToneProvider initialTone="notte">
+      <ToneProvider initialTone="night">
         <AltitudeGauge />
       </ToneProvider>,
     );
     const buttons = screen.getAllByRole('button');
-    expect(buttons[0]).toHaveClass('text-panna-dim');
-    expect(buttons[0]).not.toHaveClass('text-panna');
+    expect(buttons[0]).toHaveClass('text-phosphor-dim');
+    expect(buttons[0]).not.toHaveClass('text-phosphor');
   });
 
-  it('keeps night label chrome at contact even when the scene reads carta', () => {
+  it('keeps night label chrome at contact even when the scene reads paper', () => {
     mockUseCurrentSection.mockReturnValue('contact');
     render(
-      <ToneProvider initialTone="carta">
+      <ToneProvider initialTone="paper">
         <AltitudeGauge />
       </ToneProvider>,
     );
     const buttons = screen.getAllByRole('button');
-    expect(buttons[0]).toHaveClass('text-panna-dim');
+    expect(buttons[0]).toHaveClass('text-phosphor-dim');
   });
 });

@@ -55,31 +55,31 @@ describe('useTonalEngine — GSAP load failure', () => {
     const gradient = result.current.current?.style.backgroundImage;
     expect(gradient).toBeDefined();
     if (!gradient) return;
-    const cartaRgb = hexToRgb(BACKDROP_TONES.carta);
+    const paperRgb = hexToRgb(BACKDROP_TONES.paper);
     const foschiaRgb = hexToRgb(BACKDROP_TONES.foschia);
-    const notteRgb = hexToRgb(BACKDROP_TONES.notte);
+    const nightRgb = hexToRgb(BACKDROP_TONES.night);
     const albaRgb = hexToRgb(BACKDROP_TONES.alba);
 
-    expect(gradient).toContain(cartaRgb);
+    expect(gradient).toContain(paperRgb);
     expect(gradient).toContain(foschiaRgb);
-    expect(gradient).toContain(notteRgb);
+    expect(gradient).toContain(nightRgb);
     expect(gradient).toContain(albaRgb);
 
-    // Verify order: carta -> foschia -> notte -> alba -> carta -> notte
-    const cartaIndex = gradient.indexOf(cartaRgb);
+    // Verify order: paper -> foschia -> night -> alba -> paper -> night
+    const paperIndex = gradient.indexOf(paperRgb);
     const foschiaIndex = gradient.indexOf(foschiaRgb);
-    const notteIndex = gradient.indexOf(notteRgb);
+    const nightIndex = gradient.indexOf(nightRgb);
     const albaIndex = gradient.indexOf(albaRgb);
 
-    expect(cartaIndex).toBeLessThan(foschiaIndex);
-    expect(foschiaIndex).toBeLessThan(notteIndex);
-    expect(notteIndex).toBeLessThan(albaIndex);
+    expect(paperIndex).toBeLessThan(foschiaIndex);
+    expect(foschiaIndex).toBeLessThan(nightIndex);
+    expect(nightIndex).toBeLessThan(albaIndex);
 
-    // alba should appear before the final carta/notte sequence
-    const lastCartaIndex = gradient.lastIndexOf(cartaRgb);
-    const lastNotteIndex = gradient.lastIndexOf(notteRgb);
-    expect(albaIndex).toBeLessThan(lastCartaIndex);
-    expect(lastCartaIndex).toBeLessThan(lastNotteIndex);
+    // alba should appear before the final paper/night sequence
+    const lastPaperIndex = gradient.lastIndexOf(paperRgb);
+    const lastNightIndex = gradient.lastIndexOf(nightRgb);
+    expect(albaIndex).toBeLessThan(lastPaperIndex);
+    expect(lastPaperIndex).toBeLessThan(lastNightIndex);
 
     errorSpy.mockRestore();
   });

@@ -27,7 +27,7 @@ describe('SectionHeader', () => {
   });
 
   it('passes the dark tone to the eyebrow', () => {
-    render(<SectionHeader eyebrow="Cruise" title="Night" tone="dark" />);
-    expect(screen.getByText('[Cruise]')).toHaveClass('text-panna-dim');
+    render(<SectionHeader eyebrow="Cruise" title="Night" tone="night" />);
+    expect(screen.getByText('[Cruise]')).toHaveClass('text-phosphor-dim');
   });
 });
