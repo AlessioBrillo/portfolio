@@ -23,6 +23,7 @@ trade-offs without re-running the original arguments.
 | [0014](0014-identity-surface.md)                | Identity surface — public repo link and resume on request      | 2026-08-13 | Accepted |
 | [0015](0015-studies-navigation-order.md)        | Cross-study navigation in a curated reading order              | 2026-08-13 | Accepted |
 | [0016](0016-photo-asset-caching.md)             | Content-hashed photo assets with immutable caching             | 2026-08-16 | Accepted |
+| [0023](0023-body-floor-near-flips.md)           | Body contrast floor near flip lines (brutalist palette)        | 2026-09-05 | Accepted |
 
 ## Conventions
 

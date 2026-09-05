@@ -15,15 +15,15 @@ validated, deploy waits on domain.**
 | 6     | **Finishing & deploy.** A11y, performance, OG card, 404, reduced-motion -> Vercel + domain.                                       | In progress (deploy waits on domain) |
 | 7     | **After.** CV hook, analytics, optional private area.                                                                             | Pending                              |
 
-Phase 2's crossfade (both climb and descent) is implemented and validated
+Phase 2's crossfade (all four windows) is implemented and validated
 end-to-end by the Playwright harness (`npm run e2e`) -- it now stands as the
 signature's regression net for any future change to `TonalScene`,
 `useTonalEngine`, `src/lib/tone.ts`, or the scene-tone context (ADR-0012). The
-last known residual is closed: ADR-0012 flips each text family at its own
-per-direction equal-legibility line (computed by bisection over the actual
-blend), so the body family clears 4.5:1 at every instant of both crossfades
-and the muted family's worst case is a documented 1.57:1 floor -- the old
-fade-midpoint residual (muted at 1.03:1, body at 3.57:1) no longer exists.
+flip lines are computed per window over each window's actual backdrop blend
+against the flight-phase text pair; the body family clears 4.5:1 everywhere
+except within a small window around each body flip, where the proven maximin
+optimum (~4.06, gated at 4.0) applies instead (ADR-0023) -- and the muted
+family's worst case is a documented 1.57:1 floor.
 
 Since the close of Phase 4, the remaining bands (Who, AI & Physics, Work &
 School, Sky & Sport, Experiences) have been scaffolded as content-driven

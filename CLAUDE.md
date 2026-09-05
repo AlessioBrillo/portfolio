@@ -80,7 +80,9 @@ long-form studies are published as real routes: `transformer-italian-corpus`
 `physics-of-flight` (AI, the flight manual derived from first principles),
 `work-the-ascent` (work) and `vds-licence` (sky); the
 mosaic index and its tiles are backed by a tested content module.
-Small-text contrast is AA-safe on every surface. All eight bands — Hero, Who,
+Text contrast meets AA on every committed surface; across each crossfade the
+body family holds AA except within a small window around its flip line, where
+the documented 4.0 floor applies (ADR-0023). All eight bands — Hero, Who,
 Mosaic, AI & Physics, Work & School, Sky & Sport, Experiences, and Contact —
 are implemented, content-driven sections backed by tested content modules;
 Contact is complete (email + LinkedIn CTAs sourced from `lib/site.ts`) and
