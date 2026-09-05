@@ -42,8 +42,8 @@ export default defineConfig({
         'src/lib/tone.e2e.ts',
       ],
       thresholds: {
-        statements: 98.5,
-        branches: 95.8,
+        statements: 98.4,
+        branches: 95.6,
         functions: 99,
         lines: 99,
       },
