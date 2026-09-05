@@ -18,10 +18,7 @@ export async function loadGsap(): Promise<{
     create: (options: unknown) => void;
   };
 }> {
-  const [gsapMod, stMod] = await Promise.all([
-    import('gsap' /* @vite-ignore */),
-    import('gsap/ScrollTrigger' /* @vite-ignore */),
-  ]);
+  const [gsapMod, stMod] = await Promise.all([import('gsap'), import('gsap/ScrollTrigger')]);
   const gsap = (gsapMod.default ?? gsapMod) as {
     registerPlugin: (plugin: unknown) => void;
     context: (fn: () => void, el: Element) => { revert: () => void };
