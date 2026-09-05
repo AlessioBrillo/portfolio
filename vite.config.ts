@@ -44,5 +44,17 @@ export default defineConfig({
   build: {
     outDir: 'dist',
     sourcemap: false,
+    modulePreload: { polyfill: false },
+    rollupOptions: {
+      output: {
+        manualChunks(id) {
+          if (id.includes('gsap') || id.includes('ScrollTrigger')) return 'gsap-engine';
+          if (id.includes('react') || id.includes('react-dom') || id.includes('react-router-dom')) return 'react-vendor';
+          if (id.includes('@mdx-js/react')) return 'mdx-runtime';
+        },
+        chunkFileNames: 'assets/[name]-[hash].js',
+        entryFileNames: 'assets/[name]-[hash].js',
+      },
+    },
   },
 });

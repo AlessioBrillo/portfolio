@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react';
 import type { RefObject } from 'react';
+import { debounce } from 'lodash-es';
 import {
   flipLineFor,
   TEXT_TONE,
@@ -9,36 +10,13 @@ import {
   type TonalTransition,
   type ToneName,
 } from '@/lib/tone';
+import { loadGsap } from '@/lib/gsap-loader';
 
 /** Type for ScrollTrigger — only the surface we actually use (`refresh()`, `getAll()`). */
 type ScrollTriggerType = {
   refresh: () => void;
   getAll: () => Array<{ kill: () => void }>;
 };
-
-/**
- * Native debounce with proper cleanup — replaces custom implementation.
- * Uses setTimeout/clearTimeout with a ref to track the timer, ensuring
- * no memory leaks on unmount and correct trailing-edge behavior.
- */
-export function debounce<T extends (...args: unknown[]) => void>(fn: T, wait: number): T {
-  let timeoutId: ReturnType<typeof setTimeout> | null = null;
-  const debounced = ((...args: unknown[]) => {
-    if (timeoutId) clearTimeout(timeoutId);
-    timeoutId = setTimeout(() => {
-      timeoutId = null;
-      fn(...args);
-    }, wait);
-  }) as T;
-  // Attach cancel method for explicit cleanup
-  (debounced as T & { cancel: () => void }).cancel = () => {
-    if (timeoutId) {
-      clearTimeout(timeoutId);
-      timeoutId = null;
-    }
-  };
-  return debounced;
-}
 
 /**
  * The element a transition's `start`/`end` marks are measured against. A
@@ -133,10 +111,8 @@ export function useTonalEngine(
 
     async function setup(): Promise<void> {
       try {
-        const [gsapMod, stMod] = await Promise.all([import('gsap'), import('gsap/ScrollTrigger')]);
+        const { gsap, ScrollTrigger } = await loadGsap();
         if (cancelled || el === null) return;
-        const { gsap } = gsapMod;
-        const { ScrollTrigger } = stMod;
         scrollTriggerRef.current = ScrollTrigger;
 
         gsap.registerPlugin(ScrollTrigger);
@@ -189,7 +165,7 @@ export function useTonalEngine(
                     end: transition.end,
                     /* v8 ignore next -- full motion path requires GSAP ScrollTrigger not available in jsdom */
                     scrub: true,
-                    onUpdate: (self) => {
+                    onUpdate: (self: { progress: number }) => {
                       const progress = self.progress;
                       const prevProgress = prevProgressRef.current.get(transition.trigger) ?? -1;
                       prevProgressRef.current.set(transition.trigger, progress);
@@ -284,7 +260,7 @@ export function useTonalEngine(
     return () => {
       cancelled = true;
       window.removeEventListener('resize', debouncedRefresh);
-      (debouncedRefresh as typeof debouncedRefresh & { cancel: () => void }).cancel();
+      debouncedRefresh.cancel();
       revert?.();
     };
   }, [backdropRef]);
