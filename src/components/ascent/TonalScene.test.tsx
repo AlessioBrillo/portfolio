@@ -22,7 +22,7 @@ function ToneProbe(): ReactElement {
   const { tone } = useSceneTone();
   const { setTone } = useSceneToneSetter();
   return (
-    <button type="button" onClick={() => setTone('notte')}>
+    <button type="button" onClick={() => setTone('night')}>
       tone:{tone}
     </button>
   );
@@ -41,7 +41,7 @@ describe('TonalScene', () => {
     expect(screen.getByText('inside the scene')).toBeInTheDocument();
   });
 
-  it('renders a fixed, decorative backdrop seeded on the carta tone', () => {
+  it('renders a fixed, decorative backdrop seeded on the paper tone', () => {
     const { container } = render(
       <TonalScene>
         <span>content</span>
@@ -50,7 +50,7 @@ describe('TonalScene', () => {
     const backdrop = container.querySelector('.pointer-events-none.fixed.inset-0.-z-10');
     expect(backdrop).toBeInTheDocument();
     expect(backdrop).toHaveAttribute('aria-hidden');
-    expect(backdrop).toHaveStyle({ backgroundColor: TONE.carta });
+    expect(backdrop).toHaveStyle({ backgroundColor: TONE.paper });
   });
 
   it('paints the backdrop below all page content (negative z, no wrapper stacking context)', () => {
@@ -87,14 +87,14 @@ describe('TonalScene', () => {
       </TonalScene>,
     );
 
-    expect(screen.getByRole('button')).toHaveTextContent('tone:carta');
+    expect(screen.getByRole('button')).toHaveTextContent('tone:paper');
     fireEvent.click(screen.getByRole('button'));
-    expect(screen.getByRole('button')).toHaveTextContent('tone:notte');
+    expect(screen.getByRole('button')).toHaveTextContent('tone:night');
 
     // React owns the seed colour only; the engine paints the backdrop after
     // mount, so a state flip must never snap it back to a React-driven value.
     const backdrop = container.querySelector('.pointer-events-none.fixed.inset-0.-z-10');
-    expect(backdrop).toHaveStyle({ backgroundColor: TONE.carta });
+    expect(backdrop).toHaveStyle({ backgroundColor: TONE.paper });
   });
 
   it('handles tonal engine error event and sets error state', async () => {
@@ -132,17 +132,17 @@ describe('TonalScene', () => {
     expect(scanlineLayer).toHaveStyle({ display: 'none' });
   });
 
-  it('shows constellation on ArrowUp keydown when tone is notte and reduced motion is false', async () => {
-    // Set tone to notte via setter
+  it('shows constellation on ArrowUp keydown when tone is night and reduced motion is false', async () => {
+    // Set tone to night via setter
     render(
       <TonalScene>
         <ToneProbe />
       </TonalScene>,
     );
 
-    // Set tone to notte
+    // Set tone to night
     fireEvent.click(screen.getByRole('button'));
-    expect(screen.getByRole('button')).toHaveTextContent('tone:notte');
+    expect(screen.getByRole('button')).toHaveTextContent('tone:night');
 
     // Press ArrowUp key
     fireEvent.keyDown(window, { key: 'ArrowUp' });
@@ -162,7 +162,7 @@ describe('TonalScene', () => {
     );
 
     fireEvent.click(screen.getByRole('button'));
-    expect(screen.getByRole('button')).toHaveTextContent('tone:notte');
+    expect(screen.getByRole('button')).toHaveTextContent('tone:night');
 
     fireEvent.keyDown(window, { key: 'ArrowUp' });
 
@@ -171,8 +171,8 @@ describe('TonalScene', () => {
     expect(constellationLayer).toHaveStyle({ display: 'none' });
   });
 
-  it('hides constellation on ArrowUp when tone is not notte', () => {
-    // Tone stays at carta (default)
+  it('hides constellation on ArrowUp when tone is not night', () => {
+    // Tone stays at paper (default)
     render(
       <TonalScene>
         <ToneProbe />
@@ -181,7 +181,7 @@ describe('TonalScene', () => {
 
     fireEvent.keyDown(window, { key: 'ArrowUp' });
 
-    // Constellation layer should be hidden when tone is not notte
+    // Constellation layer should be hidden when tone is not night
     const constellationLayer = document.querySelector('.pointer-events-none.fixed.inset-0.-z-3');
     expect(constellationLayer).toHaveStyle({ display: 'none' });
   });

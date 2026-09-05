@@ -38,16 +38,16 @@ describe('Experiences', () => {
     );
   });
 
-  it('uses the notte muted tone for stories when the scene is on notte', () => {
+  it('uses the night muted tone for stories when the scene is on night', () => {
     render(
       <MemoryRouter>
-        <ToneProvider initialTone="notte">
+        <ToneProvider initialTone="night">
           <Experiences surface="scene" />
         </ToneProvider>
       </MemoryRouter>,
     );
     const entry = getExperienceEntries()[0];
     if (!entry) return;
-    expect(screen.getByText(entry.line)).toHaveClass('text-panna-dim');
+    expect(screen.getByText(entry.line)).toHaveClass('text-phosphor-dim');
   });
 });

@@ -15,14 +15,14 @@ interface MosaicTileProps {
  */
 export function MosaicTile({ entry }: MosaicTileProps): ReactElement {
   const sceneTone = useSceneTone();
-  const isNotte = sceneTone.tone === 'notte';
+  const isNight = sceneTone.tone === 'night';
 
   const cardBase = cn(
     'relative flex h-full flex-col justify-between gap-4 p-6',
     'rounded-none',
     'border-[var(--hairline-thick)]',
-    isNotte ? 'border-hairline-dark' : 'border-hairline-light',
-    isNotte ? 'bg-notte/80' : 'bg-carta/80',
+    isNight ? 'border-hairline-dark' : 'border-hairline-light',
+    isNight ? 'bg-night/80' : 'bg-paper/80',
     'transition-[transform,border-color] duration-[var(--duration-normal)] ease-[var(--ease-sharp)]',
     'hover:-translate-y-2 hover:border-accent active:scale-[0.98] active:translate-y-[1px]',
     'ascii-corners',
@@ -38,7 +38,7 @@ export function MosaicTile({ entry }: MosaicTileProps): ReactElement {
       <p
         className={cn(
           'font-sans text-[length:var(--text-body-sm)] leading-[var(--leading-relaxed)]',
-          isNotte ? 'text-panna-dim' : 'text-ink-soft',
+          isNight ? 'text-phosphor-dim' : 'text-ink-soft',
         )}
       >
         {entry.line}

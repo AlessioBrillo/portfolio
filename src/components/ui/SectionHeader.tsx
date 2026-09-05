@@ -9,7 +9,7 @@ interface SectionHeaderProps {
   /**
    * Optional tone. Omitted (the default) lets the eyebrow and rule derive
    * from the live scene tone (ADR-0012) so they flip with the backdrop;
-   * only fixed-surface sections (Contact's solid notte) pass it.
+   * only fixed-surface sections (Contact's solid night) pass it.
    */
   tone?: EyebrowTone;
 }
@@ -21,8 +21,8 @@ interface SectionHeaderProps {
  */
 export function SectionHeader({ eyebrow, title, intro, tone }: SectionHeaderProps): ReactElement {
   const sceneTone = useSceneTone();
-  const effectiveTone: EyebrowTone = tone ?? (sceneTone.softTone === 'notte' ? 'dark' : 'light');
-  const hrClass = effectiveTone === 'dark' ? 'hr-structural-dark' : 'hr-structural-light';
+  const effectiveTone: EyebrowTone = tone ?? (sceneTone.softTone === 'night' ? 'night' : 'paper');
+  const hrClass = effectiveTone === 'night' ? 'hr-structural-dark' : 'hr-structural-light';
 
   return (
     <header className="flex flex-col gap-4">

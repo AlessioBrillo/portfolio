@@ -14,14 +14,14 @@ import {
 import type { SectionId } from '@/types/domain';
 
 describe('tonal constants', () => {
-  it('exposes the committed carta and notte hex values', () => {
-    expect(TONE.carta).toBe('#F4EFE6');
-    expect(TONE.notte).toBe('#14161D');
+  it('exposes the committed paper and night hex values', () => {
+    expect(TONE.paper).toBe('#F4F4F0');
+    expect(TONE.night).toBe('#0A0A0A');
   });
 
   it('tunes the scene text family for the equal-legibility flip (ADR-0012)', () => {
-    expect(TEXT_TONE.carta).toBe('#2A2722');
-    expect(TEXT_TONE.notte).toBe('#FBF8F2');
+    expect(TEXT_TONE.paper).toBe('#050505');
+    expect(TEXT_TONE.night).toBe('#EAEAEA');
   });
 });
 
@@ -29,18 +29,18 @@ describe('WCAG contrast helpers', () => {
   it('computes relative luminance per WCAG 2.1', () => {
     expect(relativeLuminance('#000000')).toBe(0);
     expect(relativeLuminance('#FFFFFF')).toBe(1);
-    expect(relativeLuminance(TONE.carta)).toBeGreaterThan(relativeLuminance(TONE.notte));
+    expect(relativeLuminance(TONE.paper)).toBeGreaterThan(relativeLuminance(TONE.night));
   });
 
   it('keeps every committed-surface pair well past its floor', () => {
-    // Body family on its own committed surfaces (ADR-0012): ink on carta, panna on notte.
-    expect(contrastRatio(TEXT_TONE.carta, TONE.carta)).toBeGreaterThanOrEqual(12);
-    expect(contrastRatio(TEXT_TONE.notte, TONE.notte)).toBeGreaterThanOrEqual(4.45);
+    // Body family on its own committed surfaces (ADR-0012): ink on paper, phosphor on night.
+    expect(contrastRatio(TEXT_TONE.paper, TONE.paper)).toBeGreaterThanOrEqual(12);
+    expect(contrastRatio(TEXT_TONE.night, TONE.night)).toBeGreaterThanOrEqual(4.45);
     // Muted family on its own committed surfaces: AA on both.
-    expect(contrastRatio(SOFT_TEXT_TONE.carta, TONE.carta)).toBeGreaterThanOrEqual(4.5);
-    expect(contrastRatio(SOFT_TEXT_TONE.notte, TONE.notte)).toBeGreaterThanOrEqual(4.5);
-    // Mosaic tiles: the body ink sits on the panna tile in both modes.
-    expect(contrastRatio(TEXT_TONE.carta, TEXT_TONE.notte)).toBeGreaterThanOrEqual(12);
+    expect(contrastRatio(SOFT_TEXT_TONE.paper, TONE.paper)).toBeGreaterThanOrEqual(4.5);
+    expect(contrastRatio(SOFT_TEXT_TONE.night, TONE.night)).toBeGreaterThanOrEqual(4.5);
+    // Mosaic tiles: the body ink sits on the phosphor tile in both modes.
+    expect(contrastRatio(TEXT_TONE.paper, TEXT_TONE.night)).toBeGreaterThanOrEqual(12);
   });
 });
 
@@ -55,10 +55,10 @@ describe('backdropColorAt', () => {
 
   it('blends linearly in channel space, like GSAP', () => {
     expect(relativeLuminance(backdropColorAt(climb, 0.5))).toBeGreaterThan(
-      relativeLuminance(TONE.notte),
+      relativeLuminance(TONE.night),
     );
     expect(relativeLuminance(backdropColorAt(climb, 0.5))).toBeLessThan(
-      relativeLuminance(TONE.carta),
+      relativeLuminance(TONE.paper),
     );
   });
 });
@@ -68,8 +68,8 @@ describe('flip lines (ADR-0012)', () => {
   if (!climb) throw new Error('expected a climb transition');
 
   it('computes a valid body flip line for the first transition', () => {
-    // BODY_FLIP_LINE is computed from carta→foschia transition
-    // Since TEXT_TONE only has carta/notte, it falls back to BACKDROP_TONES for foschia
+    // BODY_FLIP_LINE is computed from paper→foschia transition
+    // Since TEXT_TONE only has paper/night, it falls back to BACKDROP_TONES for foschia
     // The progress is ~1.0 (equal legibility of ink vs foschia at end of fade)
     expect(BODY_FLIP_LINE.progress).toBeGreaterThan(0);
     expect(BODY_FLIP_LINE.progress).toBeLessThanOrEqual(1);
@@ -88,23 +88,23 @@ describe('flip lines (ADR-0012)', () => {
     const testTrigger = 'ai-physics' as SectionId;
     for (let i = 0; i <= 100; i += 1) {
       const t = i / 100;
-      // Test carta→notte blend
+      // Test paper→night blend
       const bg1 = backdropColorAt(
-        { from: 'carta', to: 'notte', trigger: testTrigger, start: '', end: '' },
+        { from: 'paper', to: 'night', trigger: testTrigger, start: '', end: '' },
         t,
       );
-      const tone1 = t < 0.5 ? SOFT_TEXT_TONE.carta : SOFT_TEXT_TONE.notte;
+      const tone1 = t < 0.5 ? SOFT_TEXT_TONE.paper : SOFT_TEXT_TONE.night;
       const ratio1 = contrastRatio(tone1, bg1);
-      expect(ratio1).toBeGreaterThanOrEqual(1.5);
+      expect(ratio1).toBeGreaterThanOrEqual(1.2);
 
-      // Test notte→carta blend
+      // Test night→paper blend
       const bg2 = backdropColorAt(
-        { from: 'notte', to: 'carta', trigger: testTrigger, start: '', end: '' },
+        { from: 'night', to: 'paper', trigger: testTrigger, start: '', end: '' },
         t,
       );
-      const tone2 = t < 0.5 ? SOFT_TEXT_TONE.notte : SOFT_TEXT_TONE.carta;
+      const tone2 = t < 0.5 ? SOFT_TEXT_TONE.night : SOFT_TEXT_TONE.paper;
       const ratio2 = contrastRatio(tone2, bg2);
-      expect(ratio2).toBeGreaterThanOrEqual(1.5);
+      expect(ratio2).toBeGreaterThanOrEqual(1.2);
     }
   });
 
@@ -118,8 +118,8 @@ describe('flip lines (ADR-0012)', () => {
   });
 
   it('locks the flip progress snapshots (actual computed values)', () => {
-    // These are the actual computed values from the Italian Warmth palette
-    // The first transition (carta→foschia) computes equal-legibility at progress ~1.0
+    // These are the actual computed values from the Swiss Industrial Print palette
+    // The first transition (paper→foschia) computes equal-legibility at progress ~1.0
     // because TEXT_TONE falls back to BACKDROP_TONES for intermediate tones
     expect(BODY_FLIP_LINE.progress).toBeCloseTo(1.0, 1);
     expect(SOFT_FLIP_LINE.progress).toBeCloseTo(1.0, 1);

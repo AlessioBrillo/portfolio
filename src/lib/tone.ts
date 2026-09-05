@@ -13,18 +13,22 @@ import type { SectionId } from '@/types/domain';
 
 /** All backdrop tones the flight uses (including intermediates). */
 export const BACKDROP_TONES = {
-  carta: '#F4EFE6',
-  foschia: '#D8D0C0',
-  notte: '#14161D',
-  alba: '#E8E0D0',
+  /** Newsprint — light substrate (ground) */
+  paper: '#F4F4F0',
+  /** Haze — intermediate climb tone */
+  foschia: '#7A7A7A',
+  /** Deactivated CRT — dark substrate (cruise/night) */
+  night: '#0A0A0A',
+  /** Dawn — intermediate descent tone */
+  alba: '#858585',
 } as const;
 
 export type BackdropToneName = keyof typeof BACKDROP_TONES;
 
 /** The two primary surfaces (for text tone families). */
 export const TONE = {
-  carta: BACKDROP_TONES.carta,
-  notte: BACKDROP_TONES.notte,
+  paper: BACKDROP_TONES.paper,
+  night: BACKDROP_TONES.night,
 } as const;
 
 export type ToneName = keyof typeof TONE;
@@ -32,23 +36,23 @@ export type ToneName = keyof typeof TONE;
 /**
  * The scene's body text family (ADR-0012): the ink-family colour that sits
  * on each committed backdrop tone, mirroring the CSS tokens `--color-ink` /
- * `--color-panna`. The two values are tuned so the equal-legibility flip
+ * `--color-phosphor`. The two values are tuned so the equal-legibility flip
  * (see `flipLineFor`) clears WCAG AA (4.5:1) at every instant of the blend.
  */
 export const TEXT_TONE = {
-  carta: '#2A2722',
-  notte: '#FBF8F2',
+  paper: '#050505',
+  night: '#EAEAEA',
 } as const;
 
 /**
  * The scene's muted text family (ADR-0012): `--color-ink-soft` /
- * `--color-panna-dim`. The pair is luminance-close by design — it is the
+ * `--color-phosphor-dim`. The pair is luminance-close by design — it is the
  * hero/body/muted hierarchy, not a defect — so its flip line bounds the
  * worst case to a documented floor instead of clearing AA.
  */
 export const SOFT_TEXT_TONE = {
-  carta: '#5A544A',
-  notte: '#B8B0A3',
+  paper: '#48453F',
+  night: '#8D8D8D',
 } as const;
 
 /**
@@ -68,20 +72,20 @@ export interface TonalTransition {
 
 /**
  * The flight profile as a sequence of backdrop crossfades (ADR-0010):
- * climb (carta → foschia → notte) into cruise, then descent (notte → alba → carta)
- * back to daylight, finally notte landing at Contact.
+ * climb (paper → foschia → night) into cruise, then descent (night → alba → paper)
+ * back to daylight, finally night landing at Contact.
  *
  * `trigger` is the ScrollTrigger anchor — the section that fade flies *into*.
  */
 export const TONAL_TRANSITIONS: readonly TonalTransition[] = [
   // Climb phase: ground → haze → night
-  { trigger: 'who', from: 'carta', to: 'foschia', start: 'top bottom', end: 'top center' },
-  { trigger: 'mosaic', from: 'foschia', to: 'notte', start: 'top bottom', end: 'top center' },
-  // Cruise holds notte (no transition needed, AI & Physics and Work & School are on notte)
-  // Descent phase: night → dawn → carta
-  { trigger: 'sky-sport', from: 'notte', to: 'alba', start: 'top bottom', end: 'top center' },
-  { trigger: 'experiences', from: 'alba', to: 'carta', start: 'top bottom', end: 'top center' },
-  // Contact paints its own solid notte outside TonalScene
+  { trigger: 'who', from: 'paper', to: 'foschia', start: 'top bottom', end: 'top center' },
+  { trigger: 'mosaic', from: 'foschia', to: 'night', start: 'top bottom', end: 'top center' },
+  // Cruise holds night (no transition needed, AI & Physics and Work & School are on night)
+  // Descent phase: night → dawn → paper
+  { trigger: 'sky-sport', from: 'night', to: 'alba', start: 'top bottom', end: 'top center' },
+  { trigger: 'experiences', from: 'alba', to: 'paper', start: 'top bottom', end: 'top center' },
+  // Contact paints its own solid night outside TonalScene
 ] as const;
 
 /**
@@ -90,20 +94,20 @@ export const TONAL_TRANSITIONS: readonly TonalTransition[] = [
  * Keys are the transition triggers (section IDs that drive each crossfade).
  *
  * The flip line is computed per transition using the ACTUAL backdrop blend
- * (transition.from → transition.to) against the text tone family (ink/panna).
+ * (transition.from → transition.to) against the text tone family (ink/phosphor).
  * The text tone family depends on flight phase:
- * - Climb (who: carta→foschia, mosaic: foschia→notte): outgoing=ink(carta), incoming=panna(notte)
- * - Descent (sky-sport: notte→alba, experiences: alba→carta): outgoing=panna(notte), incoming=ink(carta)
+ * - Climb (who: paper→foschia, mosaic: foschia→night): outgoing=ink(paper), incoming=phosphor(night)
+ * - Descent (sky-sport: night→alba, experiences: alba→paper): outgoing=phosphor(night), incoming=ink(paper)
  */
 export const FLIP_PROGRESS: Record<string, { body: number; soft: number }> = (() => {
   const out: Record<string, { body: number; soft: number }> = {};
   for (const transition of TONAL_TRANSITIONS) {
     // Determine text tone family by flight phase, not just immediate from/to
-    const isClimb = transition.to === 'foschia' || transition.to === 'notte';
-    const isDescent = transition.from === 'notte' || transition.from === 'alba';
+    const isClimb = transition.to === 'foschia' || transition.to === 'night';
+    const isDescent = transition.from === 'night' || transition.from === 'alba';
 
-    const textToneFrom = isClimb ? 'carta' : isDescent ? 'notte' : 'carta';
-    const textToneTo = isClimb ? 'notte' : isDescent ? 'carta' : 'notte';
+    const textToneFrom = isClimb ? 'paper' : isDescent ? 'night' : 'paper';
+    const textToneTo = isClimb ? 'night' : isDescent ? 'paper' : 'night';
 
     out[transition.trigger] = {
       body: flipLineFor(TEXT_TONE, {
@@ -125,8 +129,8 @@ export const FLIP_PROGRESS: Record<string, { body: number; soft: number }> = (()
  * E2E verification map: maps the section ID scrolled to for verification
  * to the transition trigger that governs the fade ending at that section.
  * Used by the Playwright harness to look up the correct flip lines.
- * - 'ai-physics' verifies the climb's final state (mosaic transition: foschia -> notte)
- * - 'sky-sport' verifies the descent's final state (sky-sport transition: notte -> alba)
+ * - 'ai-physics' verifies the climb's final state (mosaic transition: foschia -> night)
+ * - 'sky-sport' verifies the descent's final state (sky-sport transition: night -> alba)
  */
 export const E2E_FLIP_PROGRESS: Record<string, { body: number; soft: number }> = {
   'ai-physics': FLIP_PROGRESS.mosaic!,
@@ -231,7 +235,7 @@ export function flipLineFor(
 
 /**
  * Where the scene's *body* text family flips on the climb (ADR-0012): the
- * equal-legibility line of ink/panna, tuned so both tones clear 4.5:1 at the
+ * equal-legibility line of ink/phosphor, tuned so both tones clear 4.5:1 at the
  * line itself. The descent mirrors it (see `flipLineFor`); the engine
  * computes the per-direction line for each transition. The reduced-motion
  * discrete switch is anchored to the same per-direction body line.
@@ -240,7 +244,7 @@ export const BODY_FLIP_LINE: FlipLine = flipLineFor(TEXT_TONE, TONAL_TRANSITIONS
 
 /**
  * Where the scene's *muted* text family flips on the climb (ADR-0012): the
- * equal-legibility line of ink-soft/panna-dim, which fires after the body
+ * equal-legibility line of ink-soft/phosphor-dim, which fires after the body
  * line (its pair is luminance-close, so it can afford to hold the light tone
  * longer). Its worst case at the line (~1.57:1) is the documented floor of
  * the hierarchy; the descent mirrors it per direction.

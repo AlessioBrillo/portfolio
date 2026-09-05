@@ -13,7 +13,7 @@ interface WhoProps {
 export function Who({ surface = 'scene' }: WhoProps): ReactElement {
   const { softTone } = useSceneTone();
   return (
-    <Band id="who" ariaLabel="Who I am" tone="carta" surface={surface}>
+    <Band id="who" ariaLabel="Who I am" tone="paper" surface={surface}>
       <SectionHeader
         eyebrow="SECTOR 01 · CHARACTER · ENTERPRISING · ADVENTUROUS · CURIOUS"
         title="Character: Enterprising · Adventurous · Curious"

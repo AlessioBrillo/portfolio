@@ -13,7 +13,7 @@ interface SkySportProps {
 export function SkySport({ surface = 'scene' }: SkySportProps): ReactElement {
   const { softTone } = useSceneTone();
   return (
-    <Band id="sky-sport" ariaLabel="Sky and sport" tone="notte" surface={surface}>
+    <Band id="sky-sport" ariaLabel="Sky and sport" tone="night" surface={surface}>
       <SectionHeader
         eyebrow="SECTOR 05 · DESCENT VECTOR · 3 DISCIPLINES"
         title="Descent Vector: Aviation · Tennis · Mountain"

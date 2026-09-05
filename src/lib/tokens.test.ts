@@ -11,8 +11,8 @@ import { TONE } from '@/lib/tone';
  *   --duration-normal: 300ms   →  DURATION.normal = 300
  *   --duration-slow: 600ms     →  DURATION.slow = 600
  *   --ease-out-expo: 0.16,1,0.3,1  →  EASE_OUT_EXPO = [0.16, 1, 0.3, 1]
- *   --color-carta: #F4EFE6     →  TONE.carta = '#F4EFE6'
- *   --color-notte: #14161D     →  TONE.notte = '#14161D'
+ *   --color-paper: #F4F4F0     →  TONE.paper = '#F4F4F0'
+ *   --color-night: #0A0A0A     →  TONE.night = '#0A0A0A'
  */
 describe('design token sync (JS internal consistency)', () => {
   it('animation durations are positive', () => {
@@ -35,8 +35,8 @@ describe('design token sync (JS internal consistency)', () => {
   });
 
   it('TONE colours are valid hex strings', () => {
-    expect(TONE.carta).toMatch(/^#[0-9a-fA-F]{6}$/);
-    expect(TONE.notte).toMatch(/^#[0-9a-fA-F]{6}$/);
-    expect(TONE.carta).not.toBe(TONE.notte);
+    expect(TONE.paper).toMatch(/^#[0-9a-fA-F]{6}$/);
+    expect(TONE.night).toMatch(/^#[0-9a-fA-F]{6}$/);
+    expect(TONE.paper).not.toBe(TONE.night);
   });
 });

@@ -15,28 +15,28 @@ describe('Eyebrow', () => {
     expect(label).toHaveClass('font-mono', 'uppercase');
   });
 
-  it('defaults to the light tone (ink-soft on carta)', () => {
+  it('defaults to the light tone (ink-soft on paper)', () => {
     render(<Eyebrow>Ground</Eyebrow>);
     expect(screen.getByText('Ground')).toHaveClass('text-ink-soft');
   });
 
-  it('uses the dark tone (panna-dim on notte) when requested', () => {
-    render(<Eyebrow tone="dark">Cruise</Eyebrow>);
-    expect(screen.getByText('Cruise')).toHaveClass('text-panna-dim');
+  it('uses the dark tone (phosphor-dim on night) when requested', () => {
+    render(<Eyebrow tone="night">Cruise</Eyebrow>);
+    expect(screen.getByText('Cruise')).toHaveClass('text-phosphor-dim');
   });
 
-  it('defaults to the dark tone when the scene is on notte', () => {
+  it('defaults to the dark tone when the scene is on night', () => {
     render(
-      <ToneProvider initialTone="notte">
+      <ToneProvider initialTone="night">
         <Eyebrow>Cruise</Eyebrow>
       </ToneProvider>,
     );
-    expect(screen.getByText('Cruise')).toHaveClass('text-panna-dim');
+    expect(screen.getByText('Cruise')).toHaveClass('text-phosphor-dim');
   });
 
   it('follows the muted tone when the scene splits body and soft tones (ADR-0012)', () => {
     render(
-      <ToneProvider initialTone="notte" initialSoftTone="carta">
+      <ToneProvider initialTone="night" initialSoftTone="paper">
         <Eyebrow>Blending</Eyebrow>
       </ToneProvider>,
     );
@@ -45,8 +45,8 @@ describe('Eyebrow', () => {
 
   it('lets an explicit tone override the scene tone', () => {
     render(
-      <ToneProvider initialTone="notte" initialSoftTone="notte">
-        <Eyebrow tone="light">Ground</Eyebrow>
+      <ToneProvider initialTone="night" initialSoftTone="night">
+        <Eyebrow tone="paper">Ground</Eyebrow>
       </ToneProvider>,
     );
     expect(screen.getByText('Ground')).toHaveClass('text-ink-soft');

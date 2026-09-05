@@ -27,14 +27,14 @@ describe('Who', () => {
     expect(screen.getByAltText(getWhoPortrait().alt)).toBeInTheDocument();
   });
 
-  it('uses the notte muted tone for statements when the scene is on notte', () => {
+  it('uses the night muted tone for statements when the scene is on night', () => {
     render(
-      <ToneProvider initialTone="notte">
+      <ToneProvider initialTone="night">
         <Who surface="scene" />
       </ToneProvider>,
     );
     const statement = getWhoStatements()[0];
     if (!statement) return;
-    expect(screen.getByText(statement.line)).toHaveClass('text-panna-dim');
+    expect(screen.getByText(statement.line)).toHaveClass('text-phosphor-dim');
   });
 });

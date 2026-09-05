@@ -11,8 +11,8 @@ function ReadTone(): ReactElement {
     <button
       type="button"
       onClick={() => {
-        setTone('notte');
-        setSoftTone('notte');
+        setTone('night');
+        setSoftTone('night');
       }}
     >
       tone:{tone} soft:{softTone}
@@ -21,31 +21,31 @@ function ReadTone(): ReactElement {
 }
 
 describe('ToneProvider', () => {
-  it('seeds children with the initial tone and defaults to carta', () => {
+  it('seeds children with the initial tone and defaults to paper', () => {
     render(
       <ToneProvider>
         <ReadTone />
       </ToneProvider>,
     );
-    expect(screen.getByRole('button')).toHaveTextContent('tone:carta soft:carta');
+    expect(screen.getByRole('button')).toHaveTextContent('tone:paper soft:paper');
   });
 
   it('honours an explicit initial tone', () => {
     render(
-      <ToneProvider initialTone="notte">
+      <ToneProvider initialTone="night">
         <ReadTone />
       </ToneProvider>,
     );
-    expect(screen.getByRole('button')).toHaveTextContent('tone:notte soft:notte');
+    expect(screen.getByRole('button')).toHaveTextContent('tone:night soft:night');
   });
 
   it('seeds the muted tone independently when requested', () => {
     render(
-      <ToneProvider initialTone="notte" initialSoftTone="carta">
+      <ToneProvider initialTone="night" initialSoftTone="paper">
         <ReadTone />
       </ToneProvider>,
     );
-    expect(screen.getByRole('button')).toHaveTextContent('tone:notte soft:carta');
+    expect(screen.getByRole('button')).toHaveTextContent('tone:night soft:paper');
   });
 
   it('publishes tone changes to all descendants', () => {
@@ -58,7 +58,7 @@ describe('ToneProvider', () => {
     screen.getAllByRole('button').forEach((button) => fireEvent.click(button));
     expect(screen.getAllByRole('button')).toHaveLength(2);
     for (const button of screen.getAllByRole('button')) {
-      expect(button).toHaveTextContent('tone:notte soft:notte');
+      expect(button).toHaveTextContent('tone:night soft:night');
     }
   });
 });

@@ -83,25 +83,25 @@ function prefersReducedMotion(): boolean {
  * Renders the static flight gradient as a fallback when GSAP fails to load.
  * Pure function — no React, no side effects except mutating the element's style.
  * The gradient matches the flight profile (ADR-0010): 8 sections ≈ 12.5% each.
- * carta (ground/hero) -> foschia (climb/who) -> notte (cruise/mosaic,ai-physics,work-school)
- * -> alba (descent/sky-sport) -> carta (descent/experiences) -> notte (contact)
+ * paper (ground/hero) -> foschia (climb/who) -> night (cruise/mosaic,ai-physics,work-school)
+ * -> alba (descent/sky-sport) -> paper (descent/experiences) -> night (contact)
  */
 export function renderStaticFlightGradient(el: HTMLElement): void {
   el.style.backgroundImage = `
     linear-gradient(
       to bottom,
-      ${BACKDROP_TONES.carta} 0%,
-      ${BACKDROP_TONES.carta} 12.5%,
+      ${BACKDROP_TONES.paper} 0%,
+      ${BACKDROP_TONES.paper} 12.5%,
       ${BACKDROP_TONES.foschia} 12.5%,
       ${BACKDROP_TONES.foschia} 25%,
-      ${BACKDROP_TONES.notte} 25%,
-      ${BACKDROP_TONES.notte} 62.5%,
+      ${BACKDROP_TONES.night} 25%,
+      ${BACKDROP_TONES.night} 62.5%,
       ${BACKDROP_TONES.alba} 62.5%,
       ${BACKDROP_TONES.alba} 75%,
-      ${BACKDROP_TONES.carta} 75%,
-      ${BACKDROP_TONES.carta} 87.5%,
-      ${BACKDROP_TONES.notte} 87.5%,
-      ${BACKDROP_TONES.notte} 100%
+      ${BACKDROP_TONES.paper} 75%,
+      ${BACKDROP_TONES.paper} 87.5%,
+      ${BACKDROP_TONES.night} 87.5%,
+      ${BACKDROP_TONES.night} 100%
     )
   `
     .replace(/\s+/g, ' ')
@@ -226,10 +226,10 @@ export function useTonalEngine(
         // We must refresh ScrollTrigger after fonts settle to capture final geometry.
         if (document.fonts) {
           await document.fonts.ready;
-          // Variable fonts (GeistVariable, ArchivoVariable) need explicit load()
+          // Variable fonts (Archivo, JetBrains Mono) need explicit load()
           // because document.fonts.ready resolves before font-variation-settings settle.
-          const variableFonts = Array.from(document.fonts).filter((f) =>
-            f.family.includes('Variable'),
+          const variableFonts = Array.from(document.fonts).filter(
+            (f) => f.family.includes('Archivo') || f.family.includes('JetBrains'),
           );
           await Promise.all(variableFonts.map((f) => f.load()));
         }

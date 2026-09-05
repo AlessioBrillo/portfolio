@@ -111,14 +111,14 @@ interface TonalSceneProps {
 
 /**
  * The flight's tonal backdrop: a single fixed surface whose colour flies from
- * `carta` (ground) up to `notte` (cruise) and back down through `alba` to `carta`
- * (descent) as the user scrolls. Contact paints its own solid notte outside the scene.
+ * `paper` (ground) up to `night` (cruise) and back down through `alba` to `paper`
+ * (descent) as the user scrolls. Contact paints its own solid night outside the scene.
  *
  * Motion is owned by `useTonalEngine` (GSAP ScrollTrigger, ADR-0003); the
  * transition map lives in `@/lib/tone`. React only renders the seed colour --
  * once mounted, GSAP owns the backdrop element's paint, so the scene state
  * must never re-render it (that would snap the blend back to the seed). The
- * backdrop starts on `carta` so there is no flash before GSAP loads.
+ * backdrop starts on `paper` so there is no flash before GSAP loads.
  *
  * The scene's current tone is published through `SceneToneContext` (ADR-0011):
  * scene bands read it for their text colour, so text stays legible while the
@@ -126,8 +126,8 @@ interface TonalSceneProps {
  *
  * Texture layers:
  * - Global mechanical noise (GRAIN_SVG) — always present
- * - CRT scanlines (SCANLINE_SVG) — only when tone === 'notte', disabled under reduced motion
- * - Constellation (CONSTELLATION_SVG) — easter egg: press ↑ on notte to reveal
+ * - CRT scanlines (SCANLINE_SVG) — only when tone === 'night', disabled under reduced motion
+ * - Constellation (CONSTELLATION_SVG) — easter egg: press ↑ on night to reveal
  * **Stacking contract:** the backdrop must paint *behind all page content*,
  * not just behind the scene's own children. The wrapper divs carry no
  * `z-index`, so they do not create a stacking context -- the backdrop's
@@ -139,8 +139,8 @@ interface TonalSceneProps {
  */
 export function TonalScene({ children }: TonalSceneProps): ReactElement {
   const backdropRef = useRef<HTMLDivElement>(null);
-  const [tone, setTone] = useState<ToneName>('carta');
-  const [softTone, setSoftTone] = useState<ToneName>('carta');
+  const [tone, setTone] = useState<ToneName>('paper');
+  const [softTone, setSoftTone] = useState<ToneName>('paper');
   const [engineError, setEngineError] = useState<Error | null>(null);
   const [showConstellation, setShowConstellation] = useState(false);
   const prefersReducedMotion = useReducedMotion();
@@ -159,10 +159,10 @@ export function TonalScene({ children }: TonalSceneProps): ReactElement {
       window.removeEventListener('tonal-engine-error', handleEngineError as EventListener);
   }, []);
 
-  // Constellation easter egg: press ArrowUp on notte to reveal star field
+  // Constellation easter egg: press ArrowUp on night to reveal star field
   const handleKeyDown = useCallback(
     (event: KeyboardEvent) => {
-      if (event.key === 'ArrowUp' && tone === 'notte' && !prefersReducedMotion) {
+      if (event.key === 'ArrowUp' && tone === 'night' && !prefersReducedMotion) {
         setShowConstellation(true);
         // Auto-hide after 8 seconds
         setTimeout(() => setShowConstellation(false), 8000);
@@ -192,7 +192,7 @@ export function TonalScene({ children }: TonalSceneProps): ReactElement {
     /* v8 ignore next -- forced-colors path not exercised in jsdom */
     if (prefersForcedColors) return { display: 'none' };
     /* v8 ignore next -- tone check not exercised in jsdom */
-    if (tone !== 'notte') return { display: 'none' };
+    if (tone !== 'night') return { display: 'none' };
     return {
       backgroundImage: `url("${SCANLINE_SVG}")`,
       backgroundRepeat: 'repeat',
@@ -208,7 +208,7 @@ export function TonalScene({ children }: TonalSceneProps): ReactElement {
     /* v8 ignore next -- forced-colors path not exercised in jsdom */
     if (prefersForcedColors) return { display: 'none' };
     /* v8 ignore next -- tone check not exercised in jsdom */
-    if (tone !== 'notte') return { display: 'none' };
+    if (tone !== 'night') return { display: 'none' };
     return {
       backgroundImage: `url("${CONSTELLATION_SVG}")`,
       backgroundRepeat: 'no-repeat',
@@ -223,7 +223,7 @@ export function TonalScene({ children }: TonalSceneProps): ReactElement {
   const setterValue = useMemo(() => ({ setTone, setSoftTone }), [setTone, setSoftTone]);
 
   // Apply CSP nonce to all inline styles
-  const backdropStyle = useMemo(() => withNonce({ backgroundColor: TONE.carta }), []);
+  const backdropStyle = useMemo(() => withNonce({ backgroundColor: TONE.paper }), []);
   const grainStyleWithNonce = useMemo(() => withNonce(grainStyle), [grainStyle]);
   const scanlineStyleWithNonce = useMemo(() => withNonce(scanlineStyle), [scanlineStyle]);
   const constellationStyleWithNonce = useMemo(
@@ -263,7 +263,7 @@ export function TonalScene({ children }: TonalSceneProps): ReactElement {
             <div
               role="status"
               aria-live="polite"
-              className="fixed bottom-4 left-4 right-4 sm:left-auto sm:right-4 sm:w-80 z-50 bg-ink/95 backdrop-blur text-carta px-4 py-3 text-sm font-mono border border-accent/50"
+              className="fixed bottom-4 left-4 right-4 sm:left-auto sm:right-4 sm:w-80 z-50 bg-ink/95 backdrop-blur text-paper px-4 py-3 text-sm font-mono border border-accent/50"
             >
               Animation unavailable — static view active
             </div>

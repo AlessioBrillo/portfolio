@@ -27,14 +27,14 @@ const rise: Variants = {
  * in docs/content/sections.md.
  *
  * Contrast (measured): the eyebrow defaults to `ink-soft` (8.3:1) and the
- * manifesto is ink (~13:1) on carta — both clear AA.
+ * manifesto is ink (~13:1) on paper — both clear AA.
  */
 export function Hero({ surface = 'scene' }: HeroProps): ReactElement {
   const prefersReducedMotion = useReducedMotion();
   const motionState = prefersReducedMotion ? 'shown' : undefined;
 
   return (
-    <Band id="hero" ariaLabel="Introduction" tone="carta" surface={surface}>
+    <Band id="hero" ariaLabel="Introduction" tone="paper" surface={surface}>
       <motion.div
         className="flex min-h-[80vh] flex-col justify-center gap-8"
         variants={container}

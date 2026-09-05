@@ -212,8 +212,8 @@ describe('useTonalEngine', () => {
     });
 
     it('re-measures trigger geometry once the display fonts settle', async () => {
-      const variableFont = { family: 'GeistVariable', load: vi.fn().mockResolvedValue(undefined) };
-      const regularFont = { family: 'Geist', load: vi.fn().mockResolvedValue(undefined) };
+      const variableFont = { family: 'Archivo', load: vi.fn().mockResolvedValue(undefined) };
+      const regularFont = { family: 'JetBrains Mono', load: vi.fn().mockResolvedValue(undefined) };
       const fontSet = {
         ready: Promise.resolve(),
         *[Symbol.iterator]() {
@@ -231,7 +231,7 @@ describe('useTonalEngine', () => {
       await waitFor(() => expect(mocks.registerPlugin).toHaveBeenCalled());
       await waitFor(() => expect(mocks.refresh).toHaveBeenCalledTimes(1));
       expect(variableFont.load).toHaveBeenCalled();
-      expect(regularFont.load).not.toHaveBeenCalled();
+      expect(regularFont.load).toHaveBeenCalled();
     });
 
     it('waits for variable fonts to load before ScrollTrigger.refresh', async () => {
@@ -240,10 +240,10 @@ describe('useTonalEngine', () => {
         resolveVariableLoad = resolve;
       });
       const variableFont = {
-        family: 'GeistVariable',
+        family: 'Archivo',
         load: vi.fn().mockReturnValue(variableLoadPromise),
       };
-      const regularFont = { family: 'Geist', load: vi.fn().mockResolvedValue(undefined) };
+      const regularFont = { family: 'JetBrains Mono', load: vi.fn().mockResolvedValue(undefined) };
       const fontSet = {
         ready: Promise.resolve(),
         *[Symbol.iterator]() {
@@ -297,7 +297,7 @@ describe('useTonalEngine', () => {
     });
 
     it('registers load and resize listeners after GSAP initializes', async () => {
-      const regularFont = { family: 'Geist', load: vi.fn().mockResolvedValue(undefined) };
+      const regularFont = { family: 'JetBrains Mono', load: vi.fn().mockResolvedValue(undefined) };
       const fontSet = {
         ready: Promise.resolve(),
         *[Symbol.iterator]() {
@@ -339,7 +339,7 @@ describe('useTonalEngine', () => {
     });
 
     it('calls ScrollTrigger.refresh via load event callback', async () => {
-      const regularFont = { family: 'Geist', load: vi.fn().mockResolvedValue(undefined) };
+      const regularFont = { family: 'JetBrains Mono', load: vi.fn().mockResolvedValue(undefined) };
       const fontSet = {
         ready: Promise.resolve(),
         *[Symbol.iterator]() {
@@ -371,7 +371,7 @@ describe('useTonalEngine', () => {
     });
 
     it('guards refreshIfActive when scrollTriggerRef is not yet set', async () => {
-      const regularFont = { family: 'Geist', load: vi.fn().mockResolvedValue(undefined) };
+      const regularFont = { family: 'JetBrains Mono', load: vi.fn().mockResolvedValue(undefined) };
       const fontSet = {
         ready: Promise.resolve(),
         *[Symbol.iterator]() {
@@ -511,10 +511,10 @@ describe('renderStaticFlightGradient', () => {
 
     const style = el.style.backgroundImage;
     // Browser converts hex to rgb() in computed styles
-    expect(style).toContain('rgb(244, 239, 230)'); // carta
-    expect(style).toContain('rgb(216, 208, 192)'); // foschia
-    expect(style).toContain('rgb(20, 22, 29)'); // notte
-    expect(style).toContain('rgb(232, 224, 208)'); // alba
+    expect(style).toContain('rgb(244, 244, 240)'); // paper
+    expect(style).toContain('rgb(122, 122, 122)'); // foschia
+    expect(style).toContain('rgb(10, 10, 10)'); // night
+    expect(style).toContain('rgb(133, 133, 133)'); // alba
 
     // Verify the gradient stops match the flight profile (8 sections ≈ 12.5% each)
     expect(style).toContain('0%');
