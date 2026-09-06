@@ -8,15 +8,16 @@
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
     <link rel="manifest" href="/site.webmanifest" />
-<!-- Critical font preloads (font-display:optional in CSS) — eliminates FOIT/FOUT
+    <!-- Critical font preloads (font-display:optional in CSS) — eliminates FOIT/FOUT
      and layout shift. Fonts served from /fonts/ (public/) for stable URLs.
      Matches tokens.css @font-face definitions in src/styles/typography.css. -->
     <link rel="preload" as="font" type="font/woff2" crossorigin href="/fonts/Archivo.woff2" />
-    <link rel="preload" as="font" type="font/woff2" crossorigin href="/fonts/Geist.woff2" />
+    <link rel="preload" as="font" type="font/woff2" crossorigin href="/fonts/ArchivoBlack.woff2" />
     <link rel="preload" as="font" type="font/woff2" crossorigin href="/fonts/JetBrainsMono.woff2" />
     <!--
-      Social cards (og:image must be absolute at deploy; the relative path keeps
-      the interim deployment truthful). The card source is
+      Social cards: the relative og:image keeps pre-domain deployments
+      truthful; scripts/finalize-dist.mjs absolutizes it under VITE_SITE_URL
+      at build time once the domain lands. The card source is
       docs/design/og-image.svg — see its header for regeneration.
     -->
     <meta property="og:type" content="website" />
@@ -27,7 +28,7 @@
     />
     <meta property="og:image" content="/og-image.png" />
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="theme-color" content="#f4efe6" />
+    <meta name="theme-color" content="#f4f4f0" />
     <!--
       Person structured data for search engines. `url` is omitted until the
       real domain is configured (ADR-0008 / deploy step); `sameAs` mirrors
