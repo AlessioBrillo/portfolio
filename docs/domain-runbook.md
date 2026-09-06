@@ -34,13 +34,19 @@
 1. Vercel Dashboard → Project → Settings → Domains
 2. Add `<domain>` and `www.<domain>`
 3. Wait for "Valid Configuration" (green checkmark)
-4. **Do not** enable "Redirect www to apex" — let Vercel handle canonicalization via headers
+4. Enable the redirect `www.<domain>` → `<domain>` (apex is canonical,
+   ADR-0024) — no duplicate-content surface, ever
 
 ---
 
 ## Step 3: Environment Variables (Vercel Project Settings → Environment Variables)
 
 Set **all** variables for **Production** and **Preview** environments:
+
+> After changing any variable below, **rebuild/redeploy** — the client bakes
+> the `VITE_*` pair at build time while the Edge middleware reads it at
+> request time (ADR-0024). An env-only change without a rebuild desyncs them
+> (script injected but proxy 404, or vice versa).
 
 | Variable                   | Value                               | Example                     | Scope                |
 | -------------------------- | ----------------------------------- | --------------------------- | -------------------- |
@@ -121,6 +127,7 @@ git push origin main
 2. Wait for production deploy (green checkmark)
 3. Open `https://<domain>`
 4. Verify **all** of the above PLUS:
+   - [ ] `www.<domain>` 301-redirects to the apex (canonical, ADR-0024)
    - [ ] Canonical links present on case-study routes (`<link rel="canonical" href="https://<domain>/ai/transformer-italian-corpus">`)
    - [ ] `sitemap.xml` served at `https://<domain>/sitemap.xml` with correct URLs
    - [ ] `robots.txt` served with `Sitemap: https://<domain>/sitemap.xml`

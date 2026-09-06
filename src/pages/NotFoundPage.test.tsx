@@ -31,4 +31,14 @@ describe('NotFoundPage', () => {
     const link = screen.getByRole('link', { name: /return to ground/i });
     expect(link).toHaveAttribute('href', '/');
   });
+
+  it('marks the page noindex (the SPA fallback serves unknown routes as 200)', () => {
+    const { unmount } = render(
+      <MemoryRouter>
+        <NotFoundPage />
+      </MemoryRouter>,
+    );
+    expect(document.querySelector('meta[name="robots"]')).toHaveAttribute('content', 'noindex');
+    unmount();
+  });
 });

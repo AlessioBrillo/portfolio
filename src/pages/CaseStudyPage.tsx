@@ -67,6 +67,10 @@ function StudyNavLink({
   );
 }
 
+/** Route domains that resolve to studies — anything else is a 404 by
+ * construction (ADR-0005), without even consulting the registry. */
+const KNOWN_DOMAINS: readonly CaseStudyDomain[] = ['ai', 'work', 'sky'];
+
 /** Renders a single case study from its MDX body at `/{domain}/{slug}`. */
 export function CaseStudyPage(): ReactElement {
   const { domain, slug } = useParams();
@@ -74,8 +78,9 @@ export function CaseStudyPage(): ReactElement {
   const previousSlug = useRef(slug);
   // The registry is keyed by the `{domain}/{slug}` route identity itself, so
   // a returned entry is by construction the study for this route (ADR-0005).
-  const domainTyped = domain as CaseStudyDomain;
-  const entry = domain && slug ? getCaseStudy(domainTyped, slug) : undefined;
+  const domainKnown = domain !== undefined && (KNOWN_DOMAINS as readonly string[]).includes(domain);
+  const entry =
+    domainKnown && domain && slug ? getCaseStudy(domain as CaseStudyDomain, slug) : undefined;
   const valid = entry !== undefined;
   const Body = useMemo(() => (entry ? lazy(entry.load) : null), [entry]);
   const nav = useMemo(() => (valid && slug ? studyNavigation(slug) : {}), [valid, slug]);
@@ -99,7 +104,7 @@ export function CaseStudyPage(): ReactElement {
           canonical: canonicalStudyUrl(origin, entry.meta.domain, entry.meta.slug),
           robots: isPublishedStudy(entry.meta) ? undefined : 'noindex',
         }
-      : { title: 'Lost altitude' },
+      : { title: 'Lost altitude', robots: 'noindex' },
   );
 
   if (!valid || !Body) {

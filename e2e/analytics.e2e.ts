@@ -21,9 +21,11 @@ test.describe('plausible analytics proxy middleware', () => {
     expect(body).toContain('plausible');
     expect(body).not.toContain('<html'); // Not SPA fallback
 
-    // Verify caching headers
-    expect(response!.headers()['cache-control']).toContain('immutable');
-    expect(response!.headers()['cache-control']).toContain('max-age=31536000');
+    // Verify caching headers: short max-age + SWR (third-party body,
+    // never immutable — see ADR-0022).
+    expect(response!.headers()['cache-control']).toContain('max-age=3600');
+    expect(response!.headers()['cache-control']).toContain('stale-while-revalidate=86400');
+    expect(response!.headers()['cache-control']).not.toContain('immutable');
   });
 
   test('GET /js/script.js is inert (never the proxied script) when env vars NOT set', async ({
