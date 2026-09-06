@@ -61,3 +61,40 @@ jobs:
 
       - name: Enforce the photo-asset contract (referenced files exist, no orphans)
         run: npm run photos:check
+
+  # Domain-landing dry run (ADR-0022): the VITE_SITE_URL-set path (sitemap,
+  # absolute og:image + JSON-LD url, robots Sitemap line) never runs in the
+  # main job, so exercise it here against a throwaway origin. Fails closed if
+  # any domain-mode artifact is missing — the day the real domain lands this
+  # job already covers the mechanism, only the origin changes.
+  domain-dry-run:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci --prefer-offline
+
+      - name: Build with a throwaway domain
+        run: npm run build
+        env:
+          VITE_SITE_URL: https://example.com
+
+      - name: Assert domain-mode artifacts
+        run: |
+          test -f dist/sitemap.xml || (echo "missing dist/sitemap.xml with VITE_SITE_URL set" && exit 1)
+          test "$(grep -o '<loc>' dist/sitemap.xml | wc -l)" -eq 7 || (echo "expected 7 sitemap URLs (/ + /archive + 5 studies)" && exit 1)
+          for slug in transformer-italian-corpus grokking-modular-addition physics-of-flight the-ascent vds-licence; do
+            grep -q "$slug" dist/sitemap.xml || (echo "sitemap missing $slug" && exit 1)
+          done
+          grep -q '/archive' dist/sitemap.xml || (echo "sitemap missing /archive" && exit 1)
+          grep -q 'https://example.com/og-image.png' dist/index.html || (echo "og:image not absolutized" && exit 1)
+          grep -q '"url": "https://example.com/"' dist/index.html || (echo "JSON-LD url not injected" && exit 1)
+          grep -q 'Sitemap: https://example.com/sitemap.xml' dist/robots.txt || (echo "robots Sitemap line missing" && exit 1)
