@@ -55,6 +55,12 @@ Set **all** variables for **Production** and **Preview** environments:
 | `VITE_PLAUSIBLE_DOMAIN`    | `<domain>`                          | `alessiobrillo.com`         | Production + Preview |
 | `VITE_PLAUSIBLE_INTEGRITY` | `sha384-<hash>`                     | See Step 3.1                | Production           |
 
+> Preview shares the env pair on purpose (Step 5 verifies the active proxy
+> before production), but preview traffic then counts under the same
+> `data-domain`: exclude the `*.vercel.app` hostnames in the Plausible
+> dashboard (Settings → Segments / filtered views) so launch-day numbers
+> reflect the apex only.
+
 ### Step 3.1: Generate SRI Hash (Production Only)
 
 ```bash

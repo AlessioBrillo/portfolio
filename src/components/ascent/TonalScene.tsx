@@ -3,7 +3,6 @@ import type { ReactElement, ReactNode } from 'react';
 import { TONE, type ToneName } from '@/lib/tone';
 import { SceneToneContext, SceneToneSetterContext } from './tone-context';
 import { useTonalEngine } from './useTonalEngine';
-import { useTonalEngineHealth } from '@/hooks/useTonalEngineHealth';
 import { useReducedMotion } from '@/hooks/useReducedMotion';
 import { useForcedColors } from '@/hooks/useForcedColors';
 
@@ -123,7 +122,6 @@ export function TonalScene({ children }: TonalSceneProps): ReactElement {
   const prefersReducedMotion = useReducedMotion();
   const prefersForcedColors = useForcedColors();
   useTonalEngine(backdropRef, setTone, setSoftTone);
-  useTonalEngineHealth({ meta: { reducedMotion: prefersReducedMotion } });
 
   useEffect(() => {
     function handleEngineError(
