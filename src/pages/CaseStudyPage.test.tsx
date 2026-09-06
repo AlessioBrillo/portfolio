@@ -99,6 +99,13 @@ describe('CaseStudyPage', () => {
     expect(screen.getByText('Lost altitude.')).toBeInTheDocument();
   });
 
+  it('renders NotFoundPage for an unknown domain without consulting the registry', () => {
+    mocks.getCaseStudy.mockClear();
+    renderAt('/cooking/risotto');
+    expect(screen.getByText('Lost altitude.')).toBeInTheDocument();
+    expect(mocks.getCaseStudy).not.toHaveBeenCalled();
+  });
+
   it('renders a study with an empty stack without a dangling separator', async () => {
     mocks.getCaseStudy.mockReturnValueOnce({
       meta: {
