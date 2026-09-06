@@ -169,8 +169,8 @@ is the one thing the gate cannot catch.
    (`[ 45.6306° N · 8.7281° E — VDS ]`), the author's pilot identity.
 4. A **domain** + how you want to sign (full name? a small personal brand?).
 5. ~~**Font binaries**~~ — resolved: the Latin-subset variable woff2 files
-   (Fraunces / Geist / Geist Mono, OFL licenses alongside) are committed under
-   `src/assets/fonts/` and wired via `@font-face` (ADR-0007).
+   (Archivo / Archivo Black / JetBrains Mono, OFL licenses alongside) are
+   committed under `public/fonts/` and wired via `@font-face` (ADR-0007).
 
 **Only the domain remains.** All code, content, assets, and gates are ready.
 
