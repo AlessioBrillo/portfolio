@@ -9,7 +9,9 @@
  * - /js/script.js   -> proxies to plausible.io/js/script.js (from VITE_PLAUSIBLE_SRC)
  * - /api/event      -> proxies to plausible.io/api/event, same-origin only
  *   (a foreign Origin is refused with 403 so the proxy is never an open
- *   relay; preflight OPTIONS is answered directly)
+ *   relay; preflight OPTIONS is answered directly). Client IPs
+ *   (`X-Forwarded-For` / `X-Real-IP` when present) are forwarded so Plausible
+ *   can count uniques — without them every beacon looks like one edge IP.
  *
  * When the env pair is unset the middleware answers 404 directly, so these
  * paths never fall through to the SPA fallback (vercel.json excludes them):
@@ -106,7 +108,7 @@ export default async function middleware(request: Request): Promise<Response | u
       // Forward the script with caching headers. Short max-age with
       // stale-while-revalidate: the body is Plausible's, not ours — an
       // immutable year-long pin would serve a stale script long after an
-      // upstream rotation (ADR-0022).
+      // upstream rotation (ADR-0024).
       return new Response(response.body, {
         status: 200,
         headers: {
@@ -152,12 +154,16 @@ export default async function middleware(request: Request): Promise<Response | u
       }
 
       const requestBody = await request.text();
+      const forwardedFor = request.headers.get('x-forwarded-for');
+      const realIp = request.headers.get('x-real-ip');
       const response = await fetch(`${PLAUSIBLE_TARGET_ORIGIN}/api/event`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Origin': requestOrigin ?? '',
+          Origin: requestOrigin ?? '',
           'User-Agent': request.headers.get('User-Agent') || '',
+          ...(forwardedFor ? { 'X-Forwarded-For': forwardedFor } : {}),
+          ...(realIp ? { 'X-Real-IP': realIp } : {}),
         },
         body: requestBody,
       });
