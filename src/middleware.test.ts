@@ -65,7 +65,10 @@ describe('plausible edge middleware', () => {
     const response = (await middleware(request('/js/script.js'))) as Response;
     expect(response.status).toBe(200);
     expect(response.headers.get('content-type')).toContain('application/javascript');
-    expect(response.headers.get('cache-control')).toContain('immutable');
+    // Third-party body under our origin: short max-age + SWR, never immutable.
+    expect(response.headers.get('cache-control')).toContain('max-age=3600');
+    expect(response.headers.get('cache-control')).toContain('stale-while-revalidate=86400');
+    expect(response.headers.get('cache-control')).not.toContain('immutable');
     expect(response.headers.get('content-security-policy')).not.toContain('unsafe-inline');
     await expect(response.text()).resolves.toContain('plausible');
   });

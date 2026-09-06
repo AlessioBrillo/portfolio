@@ -103,12 +103,15 @@ export default async function middleware(request: Request): Promise<Response | u
         return new Response('Script unavailable', { status: 502 });
       }
 
-      // Forward the script with caching headers
+      // Forward the script with caching headers. Short max-age with
+      // stale-while-revalidate: the body is Plausible's, not ours — an
+      // immutable year-long pin would serve a stale script long after an
+      // upstream rotation (ADR-0022).
       return new Response(response.body, {
         status: 200,
         headers: {
           'Content-Type': 'application/javascript',
-          'Cache-Control': 'public, max-age=31536000, immutable',
+          'Cache-Control': 'public, max-age=3600, stale-while-revalidate=86400',
           'Content-Security-Policy': "default-src 'self'; script-src 'self'",
         },
       });
