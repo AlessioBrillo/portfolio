@@ -129,10 +129,14 @@ git push origin main
    - [ ] Contact section renders solid night
    - [ ] Footer renders solid night
    - [ ] No console errors
-   - [ ] **Middleware active**: Network tab → `/js/script.js` → 200 OK, `content-type: application/javascript` (served by edge function, NOT index.html)
-   - [ ] **Middleware active**: Network tab → `/api/event` (POST) → 200 OK, `content-type: application/json` (proxied to plausible.io)
-   - [ ] **CSP on proxied script**: `Content-Security-Policy: default-src 'self'; script-src 'self'` (no `unsafe-inline`, no `plausible.io`)
-   - [ ] **No direct requests to plausible.io** — all analytics traffic goes through `/js/script.js` and `/api/event` on our origin
+   - [ ] **Smoke gate green** (covers the middleware, the proxy paths, the
+         CSP, and the security headers — no hand-reading the Network tab):
+     ```bash
+     npm run smoke -- --url <preview-url>
+     ```
+     All checks must be `pass` or `skip` (a `skip` on `sitemap` is
+     correct while the domain is not live yet). Any `fail` blocks the
+     promote in Step 6.
 
 ---
 
@@ -142,7 +146,13 @@ git push origin main
    OR merge PR to `main` (auto-deploys to production)
 2. Wait for production deploy (green checkmark)
 3. Open `https://<domain>`
-4. Verify **all** of the above PLUS:
+4. Run the smoke gate against production (now with the apex redirect check):
+   ```bash
+   npm run smoke -- --url https://<domain> --apex <domain>
+   ```
+   Zero `fail` allowed — on failure, roll back immediately (see below) and
+   investigate on `main`.
+5. Verify **all** of the above PLUS:
    - [ ] `www.<domain>` 301-redirects to the apex (canonical, ADR-0024)
    - [ ] Canonical links present on case-study routes (`<link rel="canonical" href="https://<domain>/ai/transformer-italian-corpus">`)
    - [ ] `sitemap.xml` served at `https://<domain>/sitemap.xml` with correct URLs
