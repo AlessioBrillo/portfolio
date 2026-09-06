@@ -11,7 +11,7 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc --noEmit && vite build",
-    "postbuild": "node scripts/validate-site-url.mjs && node scripts/generate-sitemap.mjs",
+    "postbuild": "node scripts/validate-site-url.mjs && node scripts/generate-sitemap.mjs && node scripts/finalize-dist.mjs",
     "bundle:check": "node scripts/check-bundle.mjs",
     "bundle:report": "node scripts/check-bundle.mjs --report",
     "bundle:check:ci": "node scripts/check-bundle.mjs --ci",
@@ -36,8 +36,6 @@
     "prepare": "husky"
   },
   "dependencies": {
-    "@fontsource/archivo": "5.3.0",
-    "@fontsource/jetbrains-mono": "5.3.0",
     "@mdx-js/react": "^3.1.0",
     "clsx": "^2.1.1",
     "gsap": "3.15.0",
@@ -50,9 +48,6 @@
     "@commitlint/cli": "^21.2.2",
     "@commitlint/config-conventional": "^21.2.2",
     "@eslint/js": "^10.0.1",
-    "@fontsource-variable/archivo": "5.3.0",
-    "@fontsource-variable/geist": "5.3.0",
-    "@fontsource-variable/jetbrains-mono": "5.3.0",
     "@mdx-js/rollup": "^3.1.0",
     "@playwright/test": "1.62.1",
     "@tailwindcss/postcss": "^4.3.3",
