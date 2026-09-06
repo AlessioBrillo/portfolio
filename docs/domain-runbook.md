@@ -124,7 +124,7 @@ git push origin main
    - [ ] Canonical links present on case-study routes (`<link rel="canonical" href="https://<domain>/ai/transformer-italian-corpus">`)
    - [ ] `sitemap.xml` served at `https://<domain>/sitemap.xml` with correct URLs
    - [ ] `robots.txt` served with `Sitemap: https://<domain>/sitemap.xml`
-   - [ ] OG image loads: `https://<domain>/og-image.png`
+   - [ ] OG image loads: `https://<domain>/og-image.png` (automatic: `postbuild` finalizes `dist/index.html` from `VITE_SITE_URL`, no code change)
    - [ ] Plausible beacon fires: Network tab → `/api/event` → 200 OK → response from plausible.io
    - [ ] CSP headers correct: `script-src 'self'` (no third-party), `style-src 'self' 'unsafe-inline'`
 
@@ -162,13 +162,14 @@ If critical issue discovered post-deploy:
 
 ## Reference: File Changes This Deploy Enables
 
-| File                                         | Change                                                      | ADR      |
-| -------------------------------------------- | ----------------------------------------------------------- | -------- |
-| `middleware.ts`                              | Edge Middleware for conditional Plausible proxy             | ADR-0020 |
-| `vercel.json`                                | Removed static Plausible rewrites; SPA fallback only        | ADR-0020 |
-| `src/lib/analytics.ts`                       | Uses `/js/script.js` + `/api/event` (proxied by middleware) | ADR-0013 |
-| `.env.example`                               | Documents all 5 deploy-time variables                       | —        |
-| `bundle-baseline-gzip.json` + `-brotli.json` | Updated if regression accepted (Step 4)                     | ADR-0018 |
+| File                                                     | Change                                                                                                   | ADR      |
+| -------------------------------------------------------- | -------------------------------------------------------------------------------------------------------- | -------- |
+| `middleware.ts`                                          | Edge Middleware for conditional Plausible proxy                                                          | ADR-0020 |
+| `vercel.json`                                            | Removed static Plausible rewrites; SPA fallback only                                                     | ADR-0020 |
+| `src/lib/analytics.ts`                                   | Uses `/js/script.js` + `/api/event` (proxied by middleware)                                              | ADR-0013 |
+| `.env.example`                                           | Documents all 5 deploy-time variables                                                                    | —        |
+| `src/lib/dist-finalize.ts` + `scripts/finalize-dist.mjs` | Postbuild: absolute og:image, JSON-LD `url`, `Sitemap:` line in `dist/` only when `VITE_SITE_URL` is set | —        |
+| `bundle-baseline-gzip.json` + `-brotli.json`             | Updated if regression accepted (Step 4)                                                                  | ADR-0018 |
 
 ---
 
