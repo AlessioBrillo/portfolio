@@ -78,7 +78,7 @@ disciplines × AVIF/WebP/JPG at 2 widths) are committed under
 referenced URL exists, and every committed derivative is referenced.
 
 CSP note (deliberate tradeoffs in `vercel.json`): `style-src 'unsafe-inline'`
-is required by the Framer Motion / GSAP inline style attributes that drive
+is required by the GSAP-driven inline style attributes that drive
 the tonal signature, and `img-src 'self' data:` admits only same-origin
 images plus inline data (photo derivatives live in `public/photos/`); the
 moment a CDN origin is chosen, `img-src` must be widened to that exact
@@ -141,15 +141,17 @@ the reduced-motion project emulates `prefers-reduced-motion` via the
 settle-based waits removed the load-dependent flakes.
 
 Two Phase-6 readiness edges are closed ahead of the domain: the CI coverage
-comment now matches the real gate (100% in `vitest.config.ts`, not the old
-"80%" wording), and the canonical policy is explicit — with `VITE_SITE_URL`
+comment now matches the real gate (98.3% statements / 95.5% branches / 99%
+functions / 99% lines in `vitest.config.ts`, not the old "80%" wording),
+and the canonical policy is explicit — with `VITE_SITE_URL`
 unset no canonical link is emitted anywhere (`src/lib/site.ts`), so a
 public-repo preview or fork can never advertise a throwaway origin as the
 authoritative one. The day the domain lands, set `VITE_SITE_URL` and the
 canonical links appear on every case-study route with no code change.
 
-The bundle gate (ADR-0018) is expected to trip on the next study — that is
-the gate working, not a failure. The re-baseline protocol: write the study,
+The bundle gate (ADR-0018) currently has wide headroom after the vendor
+split (measured ~171 kB total vs the 225 kB budget). When it trips — that is
+the gate working, not a failure — the re-baseline protocol: write the study,
 `npm run build`, then `npm run bundle:report` to measure. Over budget?
 Either shave the chunk (inline tables and heavy sections are the usual
 suspects) or accept the regression deliberately: raise `entryChunkKb` /

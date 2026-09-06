@@ -1,5 +1,6 @@
 /**
- * Vercel Edge Function for conditional Plausible proxy (ADR-0020).
+ * Vercel Edge Function for conditional Plausible proxy (ADR-0024, which
+ * supersedes ADR-0020 on the mechanism).
  *
  * Only activates the proxy rewrites when BOTH VITE_PLAUSIBLE_SRC and
  * VITE_PLAUSIBLE_DOMAIN environment variables are set. This keeps preview
