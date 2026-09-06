@@ -187,9 +187,10 @@ BASE_URL=https://<domain> npm run e2e
 If critical issue discovered post-deploy:
 
 1. Vercel Dashboard → Deployments → Find last known-good deployment
-2. Click "..." → "Promote to Production"
-3. DNS TTL (3600s) means traffic shifts within ~1 hour
-4. Create hotfix branch from `main`, fix, PR, merge
+2. Click "..." → "Promote to Production" (instant — DNS already points at
+   Vercel after the first cutover, so no TTL wait; the 3600s TTL only
+   mattered when the apex first moved)
+3. Create hotfix branch from `main`, fix, PR, merge
 
 ---
 
