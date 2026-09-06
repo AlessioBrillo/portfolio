@@ -17,6 +17,7 @@
     "bundle:check:ci": "node scripts/check-bundle.mjs --ci",
     "deploy:check": "node scripts/check-deploy-routing.mjs",
     "photos:check": "node scripts/check-photo-assets.mjs",
+    "smoke": "node scripts/smoke-deploy.mjs",
     "preview": "vite preview",
     "analyze": "cross-env ANALYZE=true vite build",
     "images": "node scripts/optimize-images.mjs",
