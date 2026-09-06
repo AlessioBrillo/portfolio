@@ -17,11 +17,13 @@ export default defineConfig({
   plugins: [
     { enforce: 'pre', ...mdx({ providerImportSource: '@mdx-js/react' }) },
     react(),
-    // Machine-readable bundle stats, emitted on every build: the input for the
-    // bundle-size gate (ADR-0018, `npm run bundle:check`). Cheap to produce,
-    // and a build without stats cannot be reviewed against the budget.
+    // Machine-readable bundle stats, emitted on every build into the
+    // git-ignored stats/ directory (never into dist/: build output is
+    // deployed as-is, so anything under dist/ would ship publicly).
+    // Human-facing analysis input only — the bundle-size gate (ADR-0018,
+    // `npm run bundle:check`) measures the real files in dist/ itself.
     visualizer({
-      filename: 'dist/stats.json',
+      filename: 'stats/stats.json',
       template: 'raw-data',
       gzipSize: true,
       brotliSize: true,
@@ -29,7 +31,7 @@ export default defineConfig({
     ...(process.env.ANALYZE
       ? [
           visualizer({
-            filename: 'dist/stats.html',
+            filename: 'stats/stats.html',
             gzipSize: true,
             brotliSize: true,
           }) as PluginOption,
