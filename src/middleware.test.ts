@@ -107,6 +107,44 @@ describe('plausible edge middleware', () => {
     expect(anonymous.headers.get('access-control-allow-origin')).toBe('https://site.test');
   });
 
+  it('forwards client IPs for unique counting, omits them when absent', async () => {
+    const fetchMock = vi.fn(async () => new Response('{}'));
+    vi.stubGlobal('fetch', fetchMock);
+    await middleware(
+      request('/api/event', {
+        method: 'POST',
+        headers: {
+          Origin: 'https://site.test',
+          'X-Forwarded-For': '203.0.113.7',
+          'X-Real-IP': '203.0.113.7',
+        },
+        body: '{}',
+      }),
+    );
+    expect(fetchMock).toHaveBeenCalledOnce();
+    const calls = fetchMock.mock.calls as unknown as Array<
+      [string, { headers: Record<string, string> }]
+    >;
+    expect(calls).toHaveLength(1);
+    expect(calls[0]?.[1].headers['X-Forwarded-For']).toBe('203.0.113.7');
+    expect(calls[0]?.[1].headers['X-Real-IP']).toBe('203.0.113.7');
+
+    fetchMock.mockClear();
+    await middleware(
+      request('/api/event', {
+        method: 'POST',
+        headers: { Origin: 'https://site.test' },
+        body: '{}',
+      }),
+    );
+    const anonymousCalls = fetchMock.mock.calls as unknown as Array<
+      [string, { headers: Record<string, string> }]
+    >;
+    const anonymousHeaders = anonymousCalls[0]?.[1].headers;
+    expect(anonymousHeaders && 'X-Forwarded-For' in anonymousHeaders).toBe(false);
+    expect(anonymousHeaders && 'X-Real-IP' in anonymousHeaders).toBe(false);
+  });
+
   it('refuses cross-origin beacons with 403 (no open relay)', async () => {
     vi.stubGlobal(
       'fetch',

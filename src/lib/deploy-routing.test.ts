@@ -100,4 +100,23 @@ describe('vercel.json SPA-fallback contract', () => {
     expect(isSpaFallbackRewrite('/js/script.js', source!)).toBe(false);
     expect(isSpaFallbackRewrite('/api/event', source!)).toBe(false);
   });
+
+  it('never rewrites versioned font files', () => {
+    expect(source).toBeDefined();
+    expect(isSpaFallbackRewrite('/fonts/Archivo.woff2', source!)).toBe(false);
+  });
+});
+
+describe('vercel.json immutable cache headers', () => {
+  const config = JSON.parse(readFileSync(join(ROOT, 'vercel.json'), 'utf8')) as {
+    headers?: Array<{ source: string; headers: Array<{ key: string; value: string }> }>;
+  };
+
+  it.each(['/assets/(.*)', '/photos/(.*)', '/fonts/(.*)'])('serves %s immutable', (route) => {
+    const entry = config.headers?.find((h) => h.source === route);
+    expect(entry).toBeDefined();
+    const cache = entry?.headers.find((h) => h.key === 'Cache-Control')?.value ?? '';
+    expect(cache).toContain('max-age=31536000');
+    expect(cache).toContain('immutable');
+  });
 });

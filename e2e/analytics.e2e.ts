@@ -22,7 +22,7 @@ test.describe('plausible analytics proxy middleware', () => {
     expect(body).not.toContain('<html'); // Not SPA fallback
 
     // Verify caching headers: short max-age + SWR (third-party body,
-    // never immutable — see ADR-0022).
+    // never immutable — see ADR-0024).
     expect(response!.headers()['cache-control']).toContain('max-age=3600');
     expect(response!.headers()['cache-control']).toContain('stale-while-revalidate=86400');
     expect(response!.headers()['cache-control']).not.toContain('immutable');

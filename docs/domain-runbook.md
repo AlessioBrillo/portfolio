@@ -70,6 +70,16 @@ openssl dgst -sha384 -binary /tmp/plausible-script.js | base64
 
 **Why**: Hardens the self-proxied script against supply-chain compromise (ADR-0013).
 
+> **Rotation protocol**: the hash pins the exact bytes Plausible serves today.
+> The proxied script is cached for an hour (`max-age=3600`, ADR-0024), but an
+> upstream Plausible rotation changes the bytes under the same URL — the next
+> deploy then ships a stale hash and browsers block the script silently.
+> After any analytics outage with no deploy of ours, re-run the commands above
+> and compare with the value in Vercel: mismatch means rotation. Update
+> `VITE_PLAUSIBLE_INTEGRITY` (Production) and **rebuild/redeploy** — the client
+> bakes the hash at build time (ADR-0024). If rotation churn ever becomes
+> operational noise, drop the hash and rely on the same-origin proxy + CSP.
+
 ---
 
 ## Step 4: Local Verification Build
