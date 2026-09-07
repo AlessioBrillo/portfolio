@@ -43,3 +43,4 @@ temp-raw-photos/
 
 # --- Bundle analysis (local-only visualizer output, never deployed) ---
 stats/
+.env.production
