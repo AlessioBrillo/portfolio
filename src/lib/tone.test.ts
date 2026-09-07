@@ -10,6 +10,7 @@ import {
   TONAL_TRANSITIONS,
   backdropColorAt,
   contrastRatio,
+  publishedToneFor,
   relativeLuminance,
 } from '@/lib/tone';
 import type { SectionId } from '@/types/domain';
@@ -194,6 +195,28 @@ describe('flip lines (ADR-0012)', () => {
           expect(contrastRatio(incoming, after)).toBeGreaterThan(contrastRatio(outgoing, after));
         }
       }
+    }
+  });
+});
+
+describe('publishedToneFor', () => {
+  it('rests dark only on night', () => {
+    expect(publishedToneFor('night')).toBe('night');
+  });
+
+  it('resolves every intermediate backdrop to the light family', () => {
+    // Intermediates carry no text family of their own (ADR-0011): scene text
+    // is always ink- or phosphor-family, so the engine never publishes a
+    // backdrop name consumers cannot look up in SCENE_SOFT_TEXT.
+    expect(publishedToneFor('paper')).toBe('paper');
+    expect(publishedToneFor('foschia')).toBe('paper');
+    expect(publishedToneFor('alba')).toBe('paper');
+  });
+
+  it('maps every flight transition end to a ToneName', () => {
+    for (const transition of TONAL_TRANSITIONS) {
+      expect(publishedToneFor(transition.from)).toMatch(/^(paper|night)$/);
+      expect(publishedToneFor(transition.to)).toMatch(/^(paper|night)$/);
     }
   });
 });

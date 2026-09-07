@@ -10,6 +10,7 @@ import {
   TONAL_TRANSITIONS,
   BACKDROP_TONES,
   FLIP_PROGRESS,
+  publishedToneFor,
   type ToneName,
 } from '@/lib/tone';
 
@@ -140,10 +141,13 @@ describe('useTonalEngine', () => {
       renderEngine(onToneChange, onSoftToneChange);
       await waitFor(() => expect(mocks.fromTo).toHaveBeenCalledTimes(TONAL_TRANSITIONS.length));
 
-      const climb = TONAL_TRANSITIONS[0];
+      // The mosaic window (foschia -> night) is the directional case: the
+      // published tones cross the light/dark boundary, unlike the who window
+      // whose both ends resolve to the light family.
+      const climb = TONAL_TRANSITIONS[1];
       if (!climb) throw new Error('expected a climb transition');
 
-      const call = mocks.fromTo.mock.calls[0]?.[2] as FromToConfig;
+      const call = mocks.fromTo.mock.calls[1]?.[2] as FromToConfig;
       const onUpdate = call.scrollTrigger.onUpdate;
 
       // Use the precomputed FLIP_PROGRESS for the trigger (which matches the engine)
@@ -157,16 +161,51 @@ describe('useTonalEngine', () => {
       expect(onSoftToneChange).not.toHaveBeenCalled();
 
       onUpdate({ progress: bodyLine + 0.01, getVelocity: () => 600 });
-      expect(onToneChange).toHaveBeenLastCalledWith(climb.to);
+      expect(onToneChange).toHaveBeenLastCalledWith(publishedToneFor(climb.to));
 
       onUpdate({ progress: softLine + 0.01, getVelocity: () => 600 });
-      expect(onSoftToneChange).toHaveBeenLastCalledWith(climb.to);
+      expect(onSoftToneChange).toHaveBeenLastCalledWith(publishedToneFor(climb.to));
 
       onUpdate({ progress: softLine - 0.01, getVelocity: () => -600 });
-      expect(onSoftToneChange).toHaveBeenLastCalledWith(climb.from);
+      expect(onSoftToneChange).toHaveBeenLastCalledWith(publishedToneFor(climb.from));
 
       onUpdate({ progress: bodyLine - 0.01, getVelocity: () => -600 });
-      expect(onToneChange).toHaveBeenLastCalledWith(climb.from);
+      expect(onToneChange).toHaveBeenLastCalledWith(publishedToneFor(climb.from));
+    });
+
+    it('publishes the light family for intermediate backdrops, never the backdrop name', async () => {
+      const onToneChange = vi.fn();
+      const onSoftToneChange = vi.fn();
+      renderEngine(onToneChange, onSoftToneChange);
+      await waitFor(() => expect(mocks.fromTo).toHaveBeenCalledTimes(TONAL_TRANSITIONS.length));
+
+      // The who window (paper -> foschia) never leaves the light family:
+      // crossing its body line must publish paper, not the backdrop name —
+      // SCENE_SOFT_TEXT is keyed by ToneName only.
+      const who = TONAL_TRANSITIONS[0];
+      if (!who) throw new Error('expected the who transition');
+      const whoLines = FLIP_PROGRESS[who.trigger];
+      if (!whoLines) throw new Error(`no flip lines for trigger ${who.trigger}`);
+      const whoUpdate = (mocks.fromTo.mock.calls[0]?.[2] as FromToConfig).scrollTrigger.onUpdate;
+
+      whoUpdate({ progress: whoLines.body - 0.01, getVelocity: () => 0 });
+      expect(onToneChange).not.toHaveBeenCalled();
+      whoUpdate({ progress: Math.min(1, whoLines.body + 0.01), getVelocity: () => 600 });
+      expect(onToneChange).toHaveBeenLastCalledWith('paper');
+
+      // The descent opener (night -> alba) hands off dark -> light.
+      const descent = TONAL_TRANSITIONS[2];
+      if (!descent) throw new Error('expected a descent transition');
+      const descentLines = FLIP_PROGRESS[descent.trigger];
+      if (!descentLines) throw new Error(`no flip lines for trigger ${descent.trigger}`);
+      const descentUpdate = (mocks.fromTo.mock.calls[2]?.[2] as FromToConfig).scrollTrigger
+        .onUpdate;
+
+      descentUpdate({ progress: descentLines.body - 0.01, getVelocity: () => 0 });
+      descentUpdate({ progress: descentLines.body + 0.01, getVelocity: () => 600 });
+      expect(onToneChange).toHaveBeenLastCalledWith('paper');
+      descentUpdate({ progress: descentLines.body - 0.01, getVelocity: () => -600 });
+      expect(onToneChange).toHaveBeenLastCalledWith('night');
     });
 
     it('anchors fades to the explicit data-tone-trigger marker when present', async () => {
@@ -436,15 +475,37 @@ describe('useTonalEngine', () => {
       expect(mocks.set).toHaveBeenCalledWith(ref.current, {
         backgroundColor: BACKDROP_TONES[descent.to],
       });
-      expect(onToneChange).toHaveBeenLastCalledWith(descent.to);
-      expect(onSoftToneChange).toHaveBeenLastCalledWith(descent.to);
+      expect(onToneChange).toHaveBeenLastCalledWith(publishedToneFor(descent.to));
+      expect(onSoftToneChange).toHaveBeenLastCalledWith(publishedToneFor(descent.to));
 
       config.onLeaveBack();
       expect(mocks.set).toHaveBeenCalledWith(ref.current, {
         backgroundColor: BACKDROP_TONES[descent.from],
       });
-      expect(onToneChange).toHaveBeenLastCalledWith(descent.from);
-      expect(onSoftToneChange).toHaveBeenLastCalledWith(descent.from);
+      expect(onToneChange).toHaveBeenLastCalledWith(publishedToneFor(descent.from));
+      expect(onSoftToneChange).toHaveBeenLastCalledWith(publishedToneFor(descent.from));
+    });
+
+    it('publishes the light family for intermediate backdrops under reduced motion', async () => {
+      const onToneChange = vi.fn();
+      const onSoftToneChange = vi.fn();
+      renderEngine(onToneChange, onSoftToneChange);
+      await waitFor(() => expect(mocks.create).toHaveBeenCalledTimes(TONAL_TRANSITIONS.length));
+
+      // The who window (paper -> foschia) rests light on both sides.
+      const whoConfig = mocks.create.mock.calls[0]?.[0] as CreateConfig;
+      whoConfig.onEnter();
+      expect(onToneChange).toHaveBeenLastCalledWith('paper');
+      expect(onSoftToneChange).toHaveBeenLastCalledWith('paper');
+      whoConfig.onLeaveBack();
+      expect(onToneChange).toHaveBeenLastCalledWith('paper');
+
+      // The descent opener (night -> alba) hands off dark -> light.
+      const descentConfig = mocks.create.mock.calls[2]?.[0] as CreateConfig;
+      descentConfig.onEnter();
+      expect(onToneChange).toHaveBeenLastCalledWith('paper');
+      descentConfig.onLeaveBack();
+      expect(onToneChange).toHaveBeenLastCalledWith('night');
     });
 
     it('does not create fromTo tweens', async () => {

@@ -34,6 +34,19 @@ export const TONE = {
 export type ToneName = keyof typeof TONE;
 
 /**
+ * The scene text tone published when the backdrop rests on `backdrop`.
+ *
+ * Intermediate backdrop tones (foschia, alba) carry no text family of their
+ * own — scene text is always either the ink or the phosphor family — so they
+ * resolve to the light family. Only cruise/night rests dark. Centralises the
+ * `=== 'night'` check every consumer already performs, and keeps
+ * `SCENE_SOFT_TEXT` lookups total (it is keyed by `ToneName` only).
+ */
+export function publishedToneFor(backdrop: BackdropToneName): ToneName {
+  return backdrop === 'night' ? 'night' : 'paper';
+}
+
+/**
  * The scene's body text family (ADR-0012): the ink-family colour that sits
  * on each committed backdrop tone, mirroring the CSS tokens `--color-ink` /
  * `--color-phosphor`. The two values are tuned so the equal-legibility flip
