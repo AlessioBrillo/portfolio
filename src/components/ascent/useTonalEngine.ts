@@ -7,6 +7,7 @@ import {
   BACKDROP_TONES,
   TONAL_TRANSITIONS,
   FLIP_PROGRESS,
+  publishedToneFor,
   type TonalTransition,
   type ToneName,
 } from '@/lib/tone';
@@ -129,13 +130,13 @@ export function useTonalEngine(
                 start: startPos,
                 onEnter: () => {
                   gsap.set(el, { backgroundColor: BACKDROP_TONES[transition.to] });
-                  const toneName = transition.to as ToneName;
+                  const toneName = publishedToneFor(transition.to);
                   onToneChangeRef.current?.(toneName);
                   onSoftToneChangeRef.current?.(toneName);
                 },
                 onLeaveBack: () => {
                   gsap.set(el, { backgroundColor: BACKDROP_TONES[transition.from] });
-                  const toneName = transition.from as ToneName;
+                  const toneName = publishedToneFor(transition.from);
                   onToneChangeRef.current?.(toneName);
                   onSoftToneChangeRef.current?.(toneName);
                 },
@@ -172,19 +173,19 @@ export function useTonalEngine(
 
                       // Body flip: fire when crossing the body equal-legibility line
                       if (prevProgress < lines.body && progress >= lines.body) {
-                        const toneName = transition.to as ToneName;
+                        const toneName = publishedToneFor(transition.to);
                         onToneChangeRef.current?.(toneName);
                       } else if (prevProgress >= lines.body && progress < lines.body) {
-                        const toneName = transition.from as ToneName;
+                        const toneName = publishedToneFor(transition.from);
                         onToneChangeRef.current?.(toneName);
                       }
 
                       // Soft flip: fire when crossing the soft equal-legibility line
                       if (prevProgress < lines.soft && progress >= lines.soft) {
-                        const toneName = transition.to as ToneName;
+                        const toneName = publishedToneFor(transition.to);
                         onSoftToneChangeRef.current?.(toneName);
                       } else if (prevProgress >= lines.soft && progress < lines.soft) {
-                        const toneName = transition.from as ToneName;
+                        const toneName = publishedToneFor(transition.from);
                         onSoftToneChangeRef.current?.(toneName);
                       }
                     },
