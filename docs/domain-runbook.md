@@ -6,6 +6,31 @@
 
 ---
 
+## Execution Mode
+
+### Automated Path (Recommended)
+
+Run the idempotent orchestrator that executes every step below in order,
+with pre-condition validation, rollback instructions, and dry-run support:
+
+```bash
+# Preview what would happen (safe, no mutations)
+npm run domain:land:dry
+
+# Execute the full landing sequence
+npm run domain:land
+```
+
+The orchestrator (`scripts/domain-landing.mjs`) runs Steps 1–8 below
+automatically. It exits with distinct codes per failure mode and prints
+rollback commands. Re-run from a specific step with `--step=N` after fixing.
+
+### Manual Path (Fallback)
+
+Follow Steps 1–8 manually if automation is unavailable or for audit.
+
+---
+
 ## Prerequisites (Verify Before Starting)
 
 - [ ] Domain purchased and DNS control available
@@ -15,6 +40,8 @@
   ```bash
   npm run typecheck && npm run lint && npm run format:check && npm test && npm run build && npm run photos:check && npm run bundle:check
   ```
+- [ ] `.env.production.local` populated with `VITE_SITE_URL=https://<domain>`
+      (and optionally `VITE_PLAUSIBLE_SRC`, `VITE_PLAUSIBLE_DOMAIN`)
 
 ---
 
