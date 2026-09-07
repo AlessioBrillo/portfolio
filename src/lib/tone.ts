@@ -242,3 +242,45 @@ export const BODY_FLIP_LINE: FlipLine = flipLineFor(TEXT_TONE, TONAL_TRANSITIONS
  * direction (sky-sport soft fires *before* its body line).
  */
 export const SOFT_FLIP_LINE: FlipLine = flipLineFor(SOFT_TEXT_TONE, TONAL_TRANSITIONS[1]!);
+
+/**
+ * Generates the static flight gradient CSS for the fixed 8-band flight profile.
+ * This is the single source of truth for the fallback gradient — it matches
+ * the exact same segments and percentages that the live GSAP engine paints,
+ * so text flip-lines (BODY_FLIP_LINE, SOFT_FLIP_LINE) remain correct even
+ * when GSAP fails to load.
+ *
+ * The flight profile (ADR-0010) has 8 bands × 12.5% each:
+ * 0. Hero:        paper   (0%      → 12.5%)
+ * 1. Who:         foschia (12.5%   → 25%)
+ * 2. Mosaic:      night   (25%     → 37.5%)
+ * 3. AiPhysics:   night   (37.5%   → 50%)
+ * 4. WorkSchool:  night   (50%     → 62.5%)
+ * 5. SkySport:    alba    (62.5%   → 75%)
+ * 6. Experiences: paper   (75%     → 87.5%)
+ * 7. Contact:     night   (87.5%   → 100%)
+ *
+ * Note: Contact paints its own solid night outside TonalScene, but the
+ * fallback gradient includes it for visual continuity when GSAP fails.
+ */
+export function computeStaticFlightGradient(): string {
+  const stops = [
+    `${BACKDROP_TONES.paper} 0%`,
+    `${BACKDROP_TONES.paper} 12.5%`,
+    `${BACKDROP_TONES.foschia} 12.5%`,
+    `${BACKDROP_TONES.foschia} 25%`,
+    `${BACKDROP_TONES.night} 25%`,
+    `${BACKDROP_TONES.night} 37.5%`,
+    `${BACKDROP_TONES.night} 37.5%`,
+    `${BACKDROP_TONES.night} 50%`,
+    `${BACKDROP_TONES.night} 50%`,
+    `${BACKDROP_TONES.night} 62.5%`,
+    `${BACKDROP_TONES.alba} 62.5%`,
+    `${BACKDROP_TONES.alba} 75%`,
+    `${BACKDROP_TONES.paper} 75%`,
+    `${BACKDROP_TONES.paper} 87.5%`,
+    `${BACKDROP_TONES.night} 87.5%`,
+    `${BACKDROP_TONES.night} 100%`,
+  ];
+  return `linear-gradient(to bottom, ${stops.join(', ')})`;
+}

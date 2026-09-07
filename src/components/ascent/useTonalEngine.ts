@@ -8,6 +8,7 @@ import {
   TONAL_TRANSITIONS,
   FLIP_PROGRESS,
   publishedToneFor,
+  computeStaticFlightGradient,
   type TonalTransition,
   type ToneName,
 } from '@/lib/tone';
@@ -80,33 +81,9 @@ function prefersReducedMotion(): boolean {
   return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 }
 
-/**
- * Renders the static flight gradient as a fallback when GSAP fails to load.
- * Pure function — no React, no side effects except mutating the element's style.
- * The gradient matches the flight profile (ADR-0010): 8 sections ≈ 12.5% each.
- * paper (ground/hero) -> foschia (climb/who) -> night (cruise/mosaic,ai-physics,work-school)
- * -> alba (descent/sky-sport) -> paper (descent/experiences) -> night (contact)
- */
+/** Renders the static flight gradient as a fallback when GSAP fails to load. */
 export function renderStaticFlightGradient(el: HTMLElement): void {
-  el.style.backgroundImage = `
-    linear-gradient(
-      to bottom,
-      ${BACKDROP_TONES.paper} 0%,
-      ${BACKDROP_TONES.paper} 12.5%,
-      ${BACKDROP_TONES.foschia} 12.5%,
-      ${BACKDROP_TONES.foschia} 25%,
-      ${BACKDROP_TONES.night} 25%,
-      ${BACKDROP_TONES.night} 62.5%,
-      ${BACKDROP_TONES.alba} 62.5%,
-      ${BACKDROP_TONES.alba} 75%,
-      ${BACKDROP_TONES.paper} 75%,
-      ${BACKDROP_TONES.paper} 87.5%,
-      ${BACKDROP_TONES.night} 87.5%,
-      ${BACKDROP_TONES.night} 100%
-    )
-  `
-    .replace(/\s+/g, ' ')
-    .trim();
+  el.style.backgroundImage = computeStaticFlightGradient();
   el.style.backgroundColor = 'transparent';
 }
 
