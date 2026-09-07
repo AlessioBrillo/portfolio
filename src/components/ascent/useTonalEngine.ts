@@ -20,6 +20,28 @@ type ScrollTriggerType = {
 };
 
 /**
+ * Upper bound for the font-settling wait before `ScrollTrigger.refresh()`.
+ * `document.fonts.ready` resolves even on font failure, but a hung font
+ * stack must never stall the engine-ready signal indefinitely — past this
+ * bound the engine measures with current geometry (the window `load` and
+ * `resize` refreshes still heal any residual shift). A late font failure
+ * after the timeout is swallowed: tearing down a running engine for it
+ * would be worse than the shift it reports.
+ */
+const FONT_SETTLE_TIMEOUT_MS = 2000;
+
+/** Resolves once the display fonts settle (variable fonts need explicit `load()`). */
+async function settleFonts(fonts: FontFaceSet): Promise<void> {
+  await fonts.ready;
+  // Variable fonts (Archivo, JetBrains Mono) need explicit load()
+  // because document.fonts.ready resolves before font-variation-settings settle.
+  const variableFonts = Array.from(fonts).filter(
+    (f) => f.family.includes('Archivo') || f.family.includes('JetBrains'),
+  );
+  await Promise.all(variableFonts.map((f) => f.load()));
+}
+
+/**
  * The element a transition's `start`/`end` marks are measured against. A
  * section's own heading, not its outer `<section>`, is the actual content
  * whose legibility the crossfade must protect -- anchoring to the section
@@ -201,14 +223,18 @@ export function useTonalEngine(
         // CRITICAL: Wait for fonts to fully load AFTER GSAP context creation.
         // document.fonts.ready resolves before font-variation-settings settle on variable fonts.
         // We must refresh ScrollTrigger after fonts settle to capture final geometry.
+        // The wait is bounded (FONT_SETTLE_TIMEOUT_MS): a hung font stack resolves
+        // via timeout instead of stalling refresh indefinitely.
         if (document.fonts) {
-          await document.fonts.ready;
-          // Variable fonts (Archivo, JetBrains Mono) need explicit load()
-          // because document.fonts.ready resolves before font-variation-settings settle.
-          const variableFonts = Array.from(document.fonts).filter(
-            (f) => f.family.includes('Archivo') || f.family.includes('JetBrains'),
-          );
-          await Promise.all(variableFonts.map((f) => f.load()));
+          const settle = settleFonts(document.fonts);
+          // Swallow a late rejection once the timeout has won: the rejection
+          // still reaches the race (and the fallback below) when it arrives
+          // first, but must never surface as unhandled when it arrives late.
+          settle.catch(() => undefined);
+          await Promise.race([
+            settle,
+            new Promise<void>((resolve) => setTimeout(resolve, FONT_SETTLE_TIMEOUT_MS)),
+          ]);
         }
 
         // Check if component was unmounted during font loading

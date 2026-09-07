@@ -335,6 +335,24 @@ describe('useTonalEngine', () => {
       expect(mocks.refresh).not.toHaveBeenCalled();
     });
 
+    it('bounds the font wait: refreshes after the timeout when fonts hang', async () => {
+      // A font stack whose ready promise never settles must not stall the
+      // engine-ready signal past FONT_SETTLE_TIMEOUT_MS (2s, real timers).
+      const hangingFonts = {
+        ready: new Promise<void>(() => {}),
+        *[Symbol.iterator]() {},
+      };
+      Object.defineProperty(document, 'fonts', {
+        configurable: true,
+        value: hangingFonts,
+      });
+
+      renderEngine();
+      await waitFor(() => expect(mocks.registerPlugin).toHaveBeenCalled());
+      expect(mocks.refresh).not.toHaveBeenCalled();
+      await waitFor(() => expect(mocks.refresh).toHaveBeenCalledTimes(1), { timeout: 5000 });
+    });
+
     it('registers load and resize listeners after GSAP initializes', async () => {
       const regularFont = { family: 'JetBrains Mono', load: vi.fn().mockResolvedValue(undefined) };
       const fontSet = {
