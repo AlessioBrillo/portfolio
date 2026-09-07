@@ -107,16 +107,31 @@ describe('vercel.json SPA-fallback contract', () => {
   });
 });
 
-describe('vercel.json immutable cache headers', () => {
+describe('vercel.json cache headers', () => {
   const config = JSON.parse(readFileSync(join(ROOT, 'vercel.json'), 'utf8')) as {
     headers?: Array<{ source: string; headers: Array<{ key: string; value: string }> }>;
   };
 
-  it.each(['/assets/(.*)', '/photos/(.*)', '/fonts/(.*)'])('serves %s immutable', (route) => {
+  it.each(['/assets/(.*)', '/photos/(.*)'])('serves %s immutable', (route) => {
+    // Hashed URLs only: Vite content-hashes /assets/*, and the photo
+    // pipeline embeds a content hash in every derivative (ADR-0016) — a
+    // replaced file is a new URL, so immutable can never serve stale bytes.
     const entry = config.headers?.find((h) => h.source === route);
     expect(entry).toBeDefined();
     const cache = entry?.headers.find((h) => h.key === 'Cache-Control')?.value ?? '';
     expect(cache).toContain('max-age=31536000');
     expect(cache).toContain('immutable');
+  });
+
+  it('serves /fonts/(.*) short-lived, never immutable', () => {
+    // Font binaries carry stable, unhashed names (ADR-0025): re-subsetting
+    // reuses the same URLs with new bytes, so a year-long immutable pin
+    // would serve stale glyphs. Same bounded policy as the proxied script.
+    const entry = config.headers?.find((h) => h.source === '/fonts/(.*)');
+    expect(entry).toBeDefined();
+    const cache = entry?.headers.find((h) => h.key === 'Cache-Control')?.value ?? '';
+    expect(cache).toContain('max-age=3600');
+    expect(cache).toContain('stale-while-revalidate');
+    expect(cache).not.toContain('immutable');
   });
 });
