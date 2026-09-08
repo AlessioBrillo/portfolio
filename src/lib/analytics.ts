@@ -1,23 +1,20 @@
 /**
- * Privacy-first analytics bootstrap (ADR-0013, ADR-0020). Loads the Plausible script —
- * self-proxied through the site's own origin via Edge Middleware — only when the
- * deployment sets `VITE_PLAUSIBLE_SRC` + `VITE_PLAUSIBLE_DOMAIN`.
+ * Privacy-first analytics bootstrap (ADR-0013, ADR-0020, ADR-0024). Loads the
+ * Plausible script — self-proxied through the site's own origin via Edge
+ * Middleware.
  *
- * Without the env pair (dev, tests, pre-domain deploys) this module is a
- * no-op, so the page stays free of third-party requests until the real domain
- * lands. The strict CSP in `vercel.json` keeps working unchanged: the
- * self-proxied script and beacon are same-origin (`script-src 'self'`,
- * `connect-src 'self'`), and an optional SRI hash hardens the script itself.
+ * The client ALWAYS injects the script. The Edge Middleware (`middleware.ts`)
+ * is the SOLE gate: it returns 404 for `/js/script.js` and `/api/event` when
+ * `VITE_PLAUSIBLE_SRC` + `VITE_PLAUSIBLE_DOMAIN` are not both set. This
+ * eliminates the client/middleware desync risk (build-time vs runtime env).
  *
- * The Edge Middleware (`middleware.ts`) conditionally rewrites:
- *   - /js/script.js -> plausible.io/js/script.js (from VITE_PLAUSIBLE_SRC)
- *   - /api/event    -> plausible.io/api/event
- * only when VITE_PLAUSIBLE_SRC and VITE_PLAUSIBLE_DOMAIN are both set.
+ * Dev, tests, pre-domain deploys: middleware returns 404 → script fails
+ * silently (no third-party request). Domain deploys: middleware proxies to
+ * plausible.io. CSP `script-src 'self'` + `connect-src 'self'` stays strict.
  */
 export function initAnalytics(): void {
   const dataDomain = import.meta.env.VITE_PLAUSIBLE_DOMAIN;
-  const scriptSrc = import.meta.env.VITE_PLAUSIBLE_SRC;
-  if (!scriptSrc || !dataDomain) return;
+  if (!dataDomain) return;
   if (typeof document === 'undefined') return;
 
   const existing = document.head.querySelector<HTMLScriptElement>(
@@ -26,13 +23,13 @@ export function initAnalytics(): void {
   if (existing) return;
 
   const script = document.createElement('script');
-  // The middleware rewrites /js/script.js to the plausible.io URL from VITE_PLAUSIBLE_SRC
+  // Proxied by middleware; returns 404 if env vars not configured (ADR-0024)
   script.src = '/js/script.js';
   script.setAttribute('async', '');
   script.setAttribute('defer', '');
   script.dataset.domain = dataDomain;
 
-  // The middleware rewrites /api/event to plausible.io/api/event
+  // Proxied by middleware; same-origin guard enforced there
   script.dataset.api = '/api/event';
 
   const integrity = import.meta.env.VITE_PLAUSIBLE_INTEGRITY;

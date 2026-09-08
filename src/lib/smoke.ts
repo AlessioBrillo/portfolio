@@ -23,6 +23,8 @@ export interface SmokeOptions {
   readonly apexHost?: string;
 }
 
+const PROXY_HEADER = 'X-Plausible-Proxy';
+
 function check(name: string, status: SmokeCheck['status'], detail: string): SmokeCheck {
   return { name, status, detail };
 }
@@ -79,14 +81,25 @@ export async function runSmokeChecks(
   const script = await fetchFn(`${origin}/js/script.js`);
   const scriptCt = contentType(script.headers);
   const scriptBody = await script.text();
+  const scriptProxyHeader = script.headers.get(PROXY_HEADER) ?? 'missing';
   if (script.status === 200) {
     results.push(
       scriptCt.includes('application/javascript') && !scriptBody.includes('<html')
-        ? check('analytics-script', 'pass', 'proxy active, JS body')
+        ? check(
+            'analytics-script',
+            'pass',
+            `proxy active, JS body (${PROXY_HEADER}=${scriptProxyHeader})`,
+          )
         : check('analytics-script', 'fail', `200 but content-type=${scriptCt} (fallback leak?)`),
     );
   } else if (script.status === 404 && scriptCt.includes('text/plain')) {
-    results.push(check('analytics-script', 'pass', 'proxy inert pre-domain (404 text/plain)'));
+    results.push(
+      check(
+        'analytics-script',
+        'pass',
+        `proxy inert pre-domain (404 text/plain, ${PROXY_HEADER}=${scriptProxyHeader})`,
+      ),
+    );
   } else {
     results.push(
       check('analytics-script', 'fail', `GET /js/script.js → ${script.status} ${scriptCt}`),
@@ -100,6 +113,37 @@ export async function runSmokeChecks(
   });
   await beacon.text();
   const beaconCt = contentType(beacon.headers);
+  const beaconProxyHeader = beacon.headers.get(PROXY_HEADER) ?? 'missing';
+
+  // Plausible proxy sync: verify middleware state is consistent between script and beacon paths
+  const syncMismatch = scriptProxyHeader !== beaconProxyHeader;
+  const syncActive = scriptProxyHeader === 'active' && beaconProxyHeader === 'active';
+  const syncInactive = scriptProxyHeader === 'inactive' && beaconProxyHeader === 'inactive';
+
+  if (syncMismatch) {
+    results.push(
+      check(
+        'plausible-sync',
+        'fail',
+        `script ${PROXY_HEADER}=${scriptProxyHeader} vs beacon ${PROXY_HEADER}=${beaconProxyHeader}`,
+      ),
+    );
+  } else if (syncActive) {
+    results.push(check('plausible-sync', 'pass', 'middleware proxy active on both paths'));
+  } else if (syncInactive) {
+    results.push(
+      check('plausible-sync', 'pass', 'middleware proxy inert on both paths (pre-domain)'),
+    );
+  } else {
+    results.push(
+      check(
+        'plausible-sync',
+        'fail',
+        `unexpected proxy header values: script=${scriptProxyHeader} beacon=${beaconProxyHeader}`,
+      ),
+    );
+  }
+
   if (beaconCt.includes('text/html')) {
     results.push(
       check('analytics-beacon', 'fail', `POST /api/event answered HTML (${beacon.status})`),

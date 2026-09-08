@@ -41,7 +41,7 @@ Follow Steps 1–8 manually if automation is unavailable or for audit.
   npm run typecheck && npm run lint && npm run format:check && npm test && npm run build && npm run photos:check && npm run bundle:check
   ```
 - [ ] `.env.production.local` populated with `VITE_SITE_URL=https://<domain>`
-      (and optionally `VITE_PLAUSIBLE_SRC`, `VITE_PLAUSIBLE_DOMAIN`)
+      (and optionally `VITE_PLAUSIBLE_SRC`, `VITE_PLAUSIBLE_DOMAIN` for middleware)
 
 ---
 
@@ -68,12 +68,9 @@ Follow Steps 1–8 manually if automation is unavailable or for audit.
 
 ## Step 3: Environment Variables (Vercel Project Settings → Environment Variables)
 
-Set **all** variables for **Production** and **Preview** environments:
+Set variables for **Production** and **Preview** environments:
 
-> After changing any variable below, **rebuild/redeploy** — the client bakes
-> the `VITE_*` pair at build time while the Edge middleware reads it at
-> request time (ADR-0024). An env-only change without a rebuild desyncs them
-> (script injected but proxy 404, or vice versa).
+> `VITE_PLAUSIBLE_SRC` + `VITE_PLAUSIBLE_DOMAIN` are read **only by the Edge Middleware** at request time. The client **always** injects the script; the middleware returns 404 when the pair is unset. **No desync is possible** — an env-only change (without rebuild) activates/deactivates the proxy immediately.
 
 | Variable                   | Value                               | Example                     | Scope                |
 | -------------------------- | ----------------------------------- | --------------------------- | -------------------- |
@@ -82,11 +79,7 @@ Set **all** variables for **Production** and **Preview** environments:
 | `VITE_PLAUSIBLE_DOMAIN`    | `<domain>`                          | `alessiobrillo.com`         | Production + Preview |
 | `VITE_PLAUSIBLE_INTEGRITY` | `sha384-<hash>`                     | See Step 3.1                | Production           |
 
-> Preview shares the env pair on purpose (Step 5 verifies the active proxy
-> before production), but preview traffic then counts under the same
-> `data-domain`: exclude the `*.vercel.app` hostnames in the Plausible
-> dashboard (Settings → Segments / filtered views) so launch-day numbers
-> reflect the apex only.
+> Preview shares the env pair on purpose (Step 5 verifies the active proxy before production), but preview traffic then counts under the same `data-domain`: exclude the `*.vercel.app` hostnames in the Plausible dashboard (Settings → Segments / filtered views) so launch-day numbers reflect the apex only.
 
 ### Step 3.1: Generate SRI Hash (Production Only)
 
@@ -225,10 +218,11 @@ If critical issue discovered post-deploy:
 
 | File                                                     | Change                                                                                                   | ADR      |
 | -------------------------------------------------------- | -------------------------------------------------------------------------------------------------------- | -------- |
-| `middleware.ts`                                          | Edge Middleware for conditional Plausible proxy                                                          | ADR-0020 |
+| `middleware.ts`                                          | Edge Middleware for conditional Plausible proxy; sole gate via `X-Plausible-Proxy` header                | ADR-0020 |
 | `vercel.json`                                            | Removed static Plausible rewrites; SPA fallback only                                                     | ADR-0020 |
-| `src/lib/analytics.ts`                                   | Uses `/js/script.js` + `/api/event` (proxied by middleware)                                              | ADR-0013 |
-| `.env.example`                                           | Documents all 5 deploy-time variables                                                                    | —        |
+| `src/lib/analytics.ts`                                   | Always injects script; middleware is sole gate (Option B)                                                | ADR-0013 |
+| `src/lib/smoke.ts` + `scripts/smoke-deploy.mjs`          | `plausible-sync` check verifies middleware state consistency                                             | ADR-0024 |
+| `.env.example`                                           | Documents all 4 deploy-time variables                                                                    | —        |
 | `src/lib/dist-finalize.ts` + `scripts/finalize-dist.mjs` | Postbuild: absolute og:image, JSON-LD `url`, `Sitemap:` line in `dist/` only when `VITE_SITE_URL` is set | —        |
 | `bundle-baseline-gzip.json` + `-brotli.json`             | Updated if regression accepted (Step 4)                                                                  | ADR-0018 |
 
@@ -242,5 +236,5 @@ If critical issue discovered post-deploy:
 
 ---
 
-**Last Updated**: 2026-08-26
+**Last Updated**: 2026-09-08
 **Next Review**: After first production deploy

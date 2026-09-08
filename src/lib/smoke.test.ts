@@ -38,11 +38,11 @@ function greenRoutes(): Record<string, StubRoute> {
   return {
     [`GET ${ORIGIN}/`]: { headers: VERCEL_HEADERS, body: '<html></html>' },
     [`GET ${ORIGIN}/js/script.js`]: {
-      headers: { 'content-type': 'application/javascript' },
+      headers: { 'content-type': 'application/javascript', 'X-Plausible-Proxy': 'active' },
       body: '/* plausible */',
     },
     [`POST ${ORIGIN}/api/event`]: {
-      headers: { 'content-type': 'application/json' },
+      headers: { 'content-type': 'application/json', 'X-Plausible-Proxy': 'active' },
       body: '{}',
     },
     [`GET ${ORIGIN}/sitemap.xml`]: {
@@ -93,10 +93,10 @@ describe('runSmokeChecks', () => {
         ...routes,
         [`GET ${ORIGIN}/js/script.js`]: {
           status: 404,
-          headers: { 'content-type': 'text/plain; charset=utf-8' },
+          headers: { 'content-type': 'text/plain; charset=utf-8', 'X-Plausible-Proxy': 'inactive' },
           body: 'Not found',
         },
-        [`POST ${ORIGIN}/api/event`]: { status: 404 },
+        [`POST ${ORIGIN}/api/event`]: { status: 404, headers: { 'X-Plausible-Proxy': 'inactive' } },
         [`GET ${ORIGIN}/sitemap.xml`]: { status: 404 },
         [`GET ${ORIGIN}/robots.txt`]: {
           headers: { 'content-type': 'text/plain' },

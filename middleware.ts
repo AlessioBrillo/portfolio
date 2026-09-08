@@ -26,28 +26,35 @@ const PLAUSIBLE_SCRIPT_PATH = '/js/script.js';
 const PLAUSIBLE_EVENT_PATH = '/api/event';
 const PLAUSIBLE_TARGET_ORIGIN = 'https://plausible.io';
 
+/** Header added to all proxy responses for observability (smoke gate, debugging). */
+const PROXY_HEADER = 'X-Plausible-Proxy';
+
+function withProxyHeader(headers: Record<string, string>, active: boolean): Record<string, string> {
+  return { ...headers, [PROXY_HEADER]: active ? 'active' : 'inactive' };
+}
+
 function notFound(): Response {
   return new Response('Not found', {
     status: 404,
-    headers: { 'Content-Type': 'text/plain; charset=utf-8', 'Cache-Control': 'no-store' },
+    headers: withProxyHeader({ 'Content-Type': 'text/plain; charset=utf-8', 'Cache-Control': 'no-store' }, false),
   });
 }
 
 function methodNotAllowed(): Response {
   return new Response('Method not allowed', {
     status: 405,
-    headers: { 'Content-Type': 'text/plain; charset=utf-8', 'Cache-Control': 'no-store' },
+    headers: withProxyHeader({ 'Content-Type': 'text/plain; charset=utf-8', 'Cache-Control': 'no-store' }, true),
   });
 }
 
 function forbidden(): Response {
   return new Response('Forbidden', {
     status: 403,
-    headers: {
+    headers: withProxyHeader({
       'Content-Type': 'text/plain; charset=utf-8',
       'Cache-Control': 'no-store',
       Vary: 'Origin',
-    },
+    }, true),
   });
 }
 
@@ -112,11 +119,11 @@ export default async function middleware(request: Request): Promise<Response | u
       // upstream rotation (ADR-0024).
       return new Response(response.body, {
         status: 200,
-        headers: {
+        headers: withProxyHeader({
           'Content-Type': 'application/javascript',
           'Cache-Control': 'public, max-age=3600, stale-while-revalidate=86400',
           'Content-Security-Policy': "default-src 'self'; script-src 'self'",
-        },
+        }, true),
       });
     }
 
@@ -139,13 +146,13 @@ export default async function middleware(request: Request): Promise<Response | u
         }
         return new Response(null, {
           status: 204,
-          headers: {
+          headers: withProxyHeader({
             'Access-Control-Allow-Origin': pageOrigin,
             'Access-Control-Allow-Methods': 'POST, OPTIONS',
             'Access-Control-Allow-Headers': 'Content-Type',
             Vary: 'Origin',
             'Cache-Control': 'no-store',
-          },
+          }, true),
         });
       }
 
@@ -180,7 +187,7 @@ export default async function middleware(request: Request): Promise<Response | u
         'Access-Control-Allow-Methods': 'POST, OPTIONS',
         'Access-Control-Allow-Headers': 'Content-Type',
       };
-      return new Response(response.body, { status: response.status, headers });
+      return new Response(response.body, { status: response.status, headers: withProxyHeader(headers, true) });
     }
 
     return undefined;
