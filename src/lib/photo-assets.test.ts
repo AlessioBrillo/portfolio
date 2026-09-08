@@ -1,16 +1,27 @@
 import { readdirSync } from 'node:fs';
 import { join, resolve } from 'node:path';
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import type { ImageAsset } from '@/types/domain';
 import { getAllImageAssets } from '@/content/assets';
 import {
   collectReferencedPhotoPaths,
   findMissingPhotoFiles,
   findOrphanPhotoDerivatives,
+  validateImageDimensions,
 } from '@/lib/photo-assets';
 
 const AVIF_SRCSET =
   '/photos/vds-volo-01-480-a1b2c3d4.avif 480w, /photos/vds-volo-01-960-a1b2c3d4.avif 960w, /photos/vds-volo-01-1600-a1b2c3d4.avif 1600w';
+
+const { mockSharp } = vi.hoisted(() => ({
+  mockSharp: {
+    metadata: vi.fn().mockResolvedValue({ width: 960, height: 720 }),
+  },
+}));
+
+vi.mock('sharp', () => ({
+  default: vi.fn(() => mockSharp),
+}));
 
 describe('collectReferencedPhotoPaths', () => {
   it('returns an empty list for an asset without src or sources', () => {
@@ -105,6 +116,76 @@ describe('findOrphanPhotoDerivatives', () => {
       '/photos/vds-volo-01-480-a1b2c3d4.avif',
     ];
     expect(findOrphanPhotoDerivatives(committed, referenced)).toEqual([]);
+  });
+});
+
+describe('validateImageDimensions', () => {
+  it('returns no violations when dimensions match', async () => {
+    mockSharp.metadata.mockResolvedValue({ width: 960, height: 720 });
+    const assets: ImageAsset[] = [
+      {
+        alt: 'test',
+        src: '/photos/test-960-abc123.jpg',
+        width: 960,
+        height: 720,
+      },
+    ];
+    const violations = await validateImageDimensions(assets, '/tmp/photos');
+    expect(violations).toEqual([]);
+  });
+
+  it('returns violation when width mismatches', async () => {
+    mockSharp.metadata.mockResolvedValueOnce({ width: 800, height: 720 });
+    const assets: ImageAsset[] = [
+      {
+        alt: 'test',
+        src: '/photos/test-960-abc123.jpg',
+        width: 960,
+        height: 720,
+      },
+    ];
+    const violations = await validateImageDimensions(assets, '/tmp/photos');
+    expect(violations).toHaveLength(1);
+    expect(violations[0]).toContain('declared 960x720 but actual is 800x720');
+  });
+
+  it('returns violation when height mismatches', async () => {
+    mockSharp.metadata.mockResolvedValueOnce({ width: 960, height: 600 });
+    const assets: ImageAsset[] = [
+      {
+        alt: 'test',
+        src: '/photos/test-960-abc123.jpg',
+        width: 960,
+        height: 720,
+      },
+    ];
+    const violations = await validateImageDimensions(assets, '/tmp/photos');
+    expect(violations).toHaveLength(1);
+    expect(violations[0]).toContain('declared 960x720 but actual is 960x600');
+  });
+
+  it('skips assets without src or dimensions', async () => {
+    mockSharp.metadata.mockResolvedValue({ width: 960, height: 720 });
+    const assets: ImageAsset[] = [
+      { alt: 'test', src: '/photos/test-960-abc123.jpg' },
+      { alt: 'test', src: 'https://cdn.example.com/test.jpg', width: 960, height: 720 },
+    ];
+    const violations = await validateImageDimensions(assets, '/tmp/photos');
+    expect(violations).toEqual([]);
+  });
+
+  it('skips asset if sharp throws (file missing)', async () => {
+    mockSharp.metadata.mockRejectedValueOnce(new Error('File not found'));
+    const assets: ImageAsset[] = [
+      {
+        alt: 'test',
+        src: '/photos/missing-960-abc123.jpg',
+        width: 960,
+        height: 720,
+      },
+    ];
+    const violations = await validateImageDimensions(assets, '/tmp/photos');
+    expect(violations).toEqual([]);
   });
 });
 
