@@ -9,6 +9,7 @@
  *     cache headers;
  *   - every committed derivative is referenced by a content module — dead
  *     weight in the repository and the deployment.
+ *   - declared width/height match actual file dimensions — prevents CLS.
  *
  * The pure logic lives in `src/lib/photo-assets.ts` (unit-tested); this file
  * is the thin CLI wrapper, following the same split as
@@ -32,6 +33,7 @@ import {
   collectReferencedPhotoPaths,
   findMissingPhotoFiles,
   findOrphanPhotoDerivatives,
+  validateImageDimensions,
 } from '../src/lib/photo-assets.ts';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
@@ -54,6 +56,7 @@ const committed = listPhotoFiles(PHOTOS_DIR);
 const referenced = collectReferencedPhotoPaths(getAllImageAssets());
 const missing = findMissingPhotoFiles(referenced, committed);
 const orphans = findOrphanPhotoDerivatives(committed, referenced);
+const dimensionViolations = await validateImageDimensions(getAllImageAssets(), PHOTOS_DIR);
 
 let violations = 0;
 if (missing.length > 0) {
@@ -74,10 +77,22 @@ if (orphans.length > 0) {
   }
   console.error('[photos] Remove them from the repo, or reference them in a content module.');
 }
+if (dimensionViolations.length > 0) {
+  violations += 1;
+  console.error(
+    '[photos] VIOLATION: declared width/height mismatch actual file dimensions (CLS risk):',
+  );
+  for (const v of dimensionViolations) {
+    console.error(`  ${v}`);
+  }
+  console.error(
+    '[photos] Fix the ImageAsset blocks in the content modules to match actual dimensions.',
+  );
+}
 
 if (violations > 0) {
   process.exit(1);
 }
 console.log(
-  `[photos] asset contract holds (${referenced.length} referenced, ${committed.length} committed).`,
+  `[photos] asset contract holds (${referenced.length} referenced, ${committed.length} committed, ${dimensionViolations.length} dimension checks).`,
 );

@@ -86,3 +86,40 @@ export function findOrphanPhotoDerivatives(
     (path) => path.startsWith(PHOTO_PREFIX) && path !== PHOTOS_README && !referenced.has(path),
   );
 }
+
+/**
+ * Validates that the `width` and `height` declared in ImageAsset blocks
+ * match the actual intrinsic dimensions of the referenced primary file.
+ * Prevents CLS (Cumulative Layout Shift) caused by mismatched dimensions.
+ * Returns violations as human-readable strings.
+ */
+export async function validateImageDimensions(
+  assets: readonly ImageAsset[],
+  photoDir: string,
+): Promise<readonly string[]> {
+  const violations: string[] = [];
+  const sharp = await import('sharp');
+
+  for (const asset of assets) {
+    if (!asset.src?.startsWith(PHOTO_ROUTE)) continue;
+    if (asset.width === undefined || asset.height === undefined) continue;
+
+    const filename = asset.src.replace(/^\//, '');
+    const filepath = `${photoDir}/${filename}`;
+
+    try {
+      const metadata = sharp.default(filepath);
+      const { width: actualWidth, height: actualHeight } = await metadata.metadata();
+
+      if (actualWidth !== asset.width || actualHeight !== asset.height) {
+        violations.push(
+          `Image ${filename}: declared ${asset.width}x${asset.height} but actual is ${actualWidth}x${actualHeight}`,
+        );
+      }
+    } catch {
+      // File doesn't exist or can't be read - findMissingPhotoFiles will catch it
+    }
+  }
+
+  return violations;
+}
