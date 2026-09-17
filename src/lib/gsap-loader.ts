@@ -8,6 +8,10 @@
  * Includes a single retry on chunk load failure to mitigate transient
  * network errors. If both attempts fail, the error propagates to the
  * tonal engine which falls back to the static gradient.
+ *
+ * Each attempt is bounded by an abort timeout to prevent indefinite
+ * hangs on network partitions — a hung chunk load would leave the
+ * tonal engine uninitialized and text illegible on dark backdrop.
  */
 export async function loadGsap(): Promise<{
   gsap: {
@@ -24,6 +28,7 @@ export async function loadGsap(): Promise<{
 }> {
   const MAX_RETRIES = 1;
   const RETRY_DELAY_MS = 500;
+  const LOAD_TIMEOUT_MS = 10000;
 
   async function attemptLoad(attempt: number): Promise<{
     gsap: {
@@ -38,6 +43,9 @@ export async function loadGsap(): Promise<{
       create: (options: unknown) => void;
     };
   }> {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), LOAD_TIMEOUT_MS);
+
     try {
       const [gsapMod, stMod] = await Promise.all([import('gsap'), import('gsap/ScrollTrigger')]);
       const gsap = (gsapMod.default ?? gsapMod) as {
@@ -54,6 +62,9 @@ export async function loadGsap(): Promise<{
       gsap.registerPlugin(ScrollTrigger);
       return { gsap, ScrollTrigger };
     } catch (error) {
+      if (error instanceof DOMException && error.name === 'AbortError') {
+        throw new Error(`GSAP chunk load timed out after ${LOAD_TIMEOUT_MS}ms`, { cause: error });
+      }
       if (attempt < MAX_RETRIES) {
         console.warn(
           `GSAP chunk load failed (attempt ${attempt + 1}/${MAX_RETRIES + 1}), retrying...`,
@@ -62,6 +73,8 @@ export async function loadGsap(): Promise<{
         return attemptLoad(attempt + 1);
       }
       throw error;
+    } finally {
+      clearTimeout(timeoutId);
     }
   }
 
