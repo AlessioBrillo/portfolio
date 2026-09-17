@@ -87,6 +87,68 @@ export function renderStaticFlightGradient(el: HTMLElement): void {
   el.style.backgroundColor = 'transparent';
 }
 
+/**
+ * Computes the published scene tone for a given scroll progress (0..1)
+ * based on the static flight gradient profile. Used in fallback mode
+ * when GSAP fails to load, so scene text still flips at correct positions.
+ *
+ * Static gradient bands (each 12.5%):
+ * 0. Hero:        paper   (0%      → 12.5%)  → publishes paper
+ * 1. Who:         foschia (12.5%   → 25%)    → publishes paper
+ * 2. Mosaic:      night   (25%     → 37.5%)  → publishes night
+ * 3. AiPhysics:   night   (37.5%   → 50%)    → publishes night
+ * 4. WorkSchool:  night   (50%     → 62.5%)  → publishes night
+ * 5. SkySport:    alba    (62.5%   → 75%)    → publishes paper
+ * 6. Experiences: paper   (75%     → 87.5%)  → publishes paper
+ * 7. Contact:     night   (87.5%   → 100%)   → publishes night (outside scene)
+ */
+function publishedToneForProgress(progress: number): ToneName {
+  if (progress < 0.25) return 'paper'; // ground + climb (foschia)
+  if (progress < 0.625) return 'night'; // cruise (night x3)
+  if (progress < 0.875) return 'paper'; // descent (alba + paper)
+  return 'night'; // contact (night) - outside scene but included for completeness
+}
+
+/**
+ * Sets up scroll-based tone publishing for the static fallback gradient.
+ * Computes scroll progress and publishes the corresponding tone so text
+ * remains legible through the flight even without GSAP.
+ */
+function setupStaticFallbackTonePublishing(
+  onToneChange: (tone: ToneName) => void,
+  onSoftToneChange: (tone: ToneName) => void,
+): () => void {
+  let lastPublishedTone: ToneName = 'paper';
+  let lastPublishedSoftTone: ToneName = 'paper';
+
+  const updateToneFromScroll = (): void => {
+    const scrollTop = window.scrollY || document.documentElement.scrollTop;
+    const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+    const progress = docHeight > 0 ? Math.max(0, Math.min(1, scrollTop / docHeight)) : 0;
+    const tone = publishedToneForProgress(progress);
+    if (tone !== lastPublishedTone) {
+      lastPublishedTone = tone;
+      onToneChange(tone);
+    }
+    if (tone !== lastPublishedSoftTone) {
+      lastPublishedSoftTone = tone;
+      onSoftToneChange(tone);
+    }
+  };
+
+  // Initial publish
+  updateToneFromScroll();
+
+  // Throttled scroll listener
+  const throttledUpdate = debounce(updateToneFromScroll, 50);
+  window.addEventListener('scroll', throttledUpdate, { passive: true });
+
+  return () => {
+    window.removeEventListener('scroll', throttledUpdate);
+    throttledUpdate.cancel();
+  };
+}
+
 export function useTonalEngine(
   backdropRef: RefObject<HTMLDivElement | null>,
   onToneChange?: (tone: ToneName) => void,
@@ -108,6 +170,7 @@ export function useTonalEngine(
 
     let cancelled = false;
     let revert: (() => void) | undefined;
+    let fallbackCleanup: (() => void) | undefined;
 
     async function setup(): Promise<void> {
       try {
@@ -221,6 +284,9 @@ export function useTonalEngine(
         // This handles any late layout shifts after variable fonts settle.
         ScrollTrigger.refresh();
 
+        // Clean up any fallback tone publishing that was active
+        fallbackCleanup?.();
+
         // Dispatch success event for health telemetry
         if (typeof window !== 'undefined' && !cancelled) {
           window.dispatchEvent(
@@ -235,6 +301,12 @@ export function useTonalEngine(
         console.error('Tonal engine: GSAP failed to load; applying degraded static gradient.', err);
         if (el && typeof window !== 'undefined') {
           renderStaticFlightGradient(el);
+          // Set up scroll-based tone publishing for the static gradient
+          // so scene text still flips at correct positions
+          fallbackCleanup = setupStaticFallbackTonePublishing(
+            (tone) => onToneChangeRef.current?.(tone),
+            (tone) => onSoftToneChangeRef.current?.(tone),
+          );
         }
         if (typeof window !== 'undefined') {
           window.dispatchEvent(
@@ -265,6 +337,7 @@ export function useTonalEngine(
       cancelled = true;
       window.removeEventListener('resize', debouncedRefresh);
       debouncedRefresh.cancel();
+      fallbackCleanup?.();
       revert?.();
     };
   }, [backdropRef]);
