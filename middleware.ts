@@ -20,11 +20,16 @@
  *
  * Uses standard Web APIs (Request, Response, fetch) — no Next.js dependency.
  * Declared in vercel.json under functions.middleware.ts with runtime: edge.
+ *
+ * All upstream fetches are bounded by a timeout to prevent edge function
+ * hangs on slow Plausible responses — an unbounded fetch could consume the
+ * entire edge CPU budget and return 502 for all proxied requests.
  */
 
 const PLAUSIBLE_SCRIPT_PATH = '/js/script.js';
 const PLAUSIBLE_EVENT_PATH = '/api/event';
 const PLAUSIBLE_TARGET_ORIGIN = 'https://plausible.io';
+const PROXY_FETCH_TIMEOUT_MS = 8000;
 
 /** Header added to all proxy responses for observability (smoke gate, debugging). */
 const PROXY_HEADER = 'X-Plausible-Proxy';
@@ -70,6 +75,22 @@ function configuredScriptOrigin(): string | undefined {
   }
 }
 
+/** Fetch with timeout using AbortController — prevents edge function hangs. */
+async function fetchWithTimeout(url: string, options: RequestInit = {}): Promise<Response> {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), PROXY_FETCH_TIMEOUT_MS);
+  try {
+    return await fetch(url, { ...options, signal: controller.signal });
+  } catch (error) {
+    if (error instanceof DOMException && error.name === 'AbortError') {
+      throw new Error(`Proxy fetch timed out after ${PROXY_FETCH_TIMEOUT_MS}ms`);
+    }
+    throw error;
+  } finally {
+    clearTimeout(timeoutId);
+  }
+}
+
 export default async function middleware(request: Request): Promise<Response | undefined> {
   const url = new URL(request.url);
   const { pathname } = url;
@@ -100,7 +121,7 @@ export default async function middleware(request: Request): Promise<Response | u
         return methodNotAllowed();
       }
       // Proxy the Plausible script
-      const response = await fetch(plausibleSrc, {
+      const response = await fetchWithTimeout(plausibleSrc, {
         method: 'GET',
         headers: {
           'User-Agent': request.headers.get('User-Agent') || '',
@@ -164,7 +185,7 @@ export default async function middleware(request: Request): Promise<Response | u
       const requestBody = await request.text();
       const forwardedFor = request.headers.get('x-forwarded-for');
       const realIp = request.headers.get('x-real-ip');
-      const response = await fetch(`${PLAUSIBLE_TARGET_ORIGIN}/api/event`, {
+      const response = await fetchWithTimeout(`${PLAUSIBLE_TARGET_ORIGIN}/api/event`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
