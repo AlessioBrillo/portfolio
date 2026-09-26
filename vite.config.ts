@@ -42,13 +42,8 @@ export default defineConfig({
     port: 5173,
   },
   optimizeDeps: {
-    // GSAP is only referenced through the dynamic import in gsap-loader.ts,
-    // which the startup dep scanner does not crawl: without this, the first
-    // dynamic import races on-demand optimization and intermittently 404s,
-    // dropping the tonal engine into its static-gradient fallback (and
-    // failing the signature e2e harness). Pre-bundle it so dev serves it
-    // from the first request. Build chunking is unaffected (manualChunks).
-    include: ['gsap', 'gsap/ScrollTrigger'],
+    // No heavy deps to pre-bundle — tonal engine uses native CSS Scroll-driven Animations
+    // Case study MDX bodies are lazy-loaded via router code-splitting
   },
   build: {
     outDir: 'dist',
@@ -57,7 +52,6 @@ export default defineConfig({
     rollupOptions: {
       output: {
         manualChunks(id) {
-          if (id.includes('gsap') || id.includes('ScrollTrigger')) return 'gsap-engine';
           if (id.includes('react') || id.includes('react-dom') || id.includes('react-router-dom')) return 'react-vendor';
           if (id.includes('@mdx-js/react')) return 'mdx-runtime';
         },

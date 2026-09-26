@@ -16,8 +16,8 @@ import { gzipSync, brotliCompressSync } from 'node:zlib';
  * Two budgets per compression algorithm, both in kB:
  *  - `entryChunkKb` — the single module entry script (`index.html`'s module
  *    script). This is the chunk a visitor's first interaction waits on.
- *  - `totalJsKb` — every JS chunk summed (entry + lazy routes + lazy vendor
- *    like GSAP). This is the whole-JS cost of the site.
+ *  - `totalJsKb` — every JS chunk summed (entry + lazy routes). This is the
+ *    whole-JS cost of the site.
  *
  * Optional per-chunk baseline (`chunks`) enables `--fail-on-increase` which
  * fails if ANY individual chunk exceeds its recorded baseline (not just the

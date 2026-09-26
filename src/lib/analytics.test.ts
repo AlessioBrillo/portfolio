@@ -89,12 +89,12 @@ describe('sendBeacon', () => {
     const sendBeaconMock = vi.fn().mockReturnValue(true);
     vi.stubGlobal('navigator', { sendBeacon: sendBeaconMock });
 
-    sendBeacon('/api/health', { engine: 'gsap', status: 'loaded' });
+    sendBeacon('/api/health', { engine: 'css-scroll-animations', status: 'loaded' });
 
     expect(sendBeaconMock).toHaveBeenCalledTimes(1);
     expect(sendBeaconMock).toHaveBeenCalledWith(
       '/api/health',
-      new Blob([JSON.stringify({ engine: 'gsap', status: 'loaded' })], {
+      new Blob([JSON.stringify({ engine: 'css-scroll-animations', status: 'loaded' })], {
         type: 'application/json',
       }),
     );

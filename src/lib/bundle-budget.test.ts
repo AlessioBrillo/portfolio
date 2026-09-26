@@ -23,7 +23,7 @@ const BASELINE_WITH_CHUNKS: BudgetBaseline = {
   totalJsKb: { gzip: 225, brotli: 200 },
   chunks: [
     { name: 'assets/index-abc.js', gzipKb: 140, brotliKb: 125 },
-    { name: 'assets/gsap-abc.js', gzipKb: 25, brotliKb: 22 },
+    { name: 'assets/lazy-vendor-abc.js', gzipKb: 25, brotliKb: 22 },
     { name: 'assets/lazy-abc.js', gzipKb: 15, brotliKb: 13 },
   ],
 };
@@ -154,7 +154,7 @@ describe('checkBundle', () => {
     const result = checkBundle(
       [
         chunk('assets/index-abc.js', 140 * 1024, 125 * 1024),
-        chunk('assets/gsap-abc.js', 40 * 1024, 35 * 1024),
+        chunk('assets/lazy-vendor-abc.js', 40 * 1024, 35 * 1024),
       ],
       'assets/index-abc.js',
       BASELINE,
@@ -210,7 +210,7 @@ describe('checkBundle', () => {
     const result = checkBundle(
       [
         chunk('assets/index-abc.js', 150 * 1024, 135 * 1024),
-        chunk('assets/gsap-abc.js', 80 * 1024, 75 * 1024), // both over total
+        chunk('assets/lazy-vendor-abc.js', 80 * 1024, 75 * 1024), // both over total
       ],
       'assets/index-abc.js',
       BASELINE,
@@ -224,7 +224,7 @@ describe('checkBundle', () => {
     const result = checkBundle(
       [
         chunk('assets/index-abc.js', 150 * 1024, 120 * 1024),
-        chunk('assets/gsap-abc.js', 80 * 1024, 70 * 1024), // gzip over total, brotli under
+        chunk('assets/lazy-vendor-abc.js', 80 * 1024, 70 * 1024), // gzip over total, brotli under
       ],
       'assets/index-abc.js',
       BASELINE,
@@ -248,7 +248,7 @@ describe('checkBundle', () => {
     const result = checkBundle(
       [
         chunk('assets/index-abc.js', 180 * 1024, 170 * 1024), // both over entry budget
-        chunk('assets/gsap-abc.js', 90 * 1024, 85 * 1024), // both over total
+        chunk('assets/lazy-vendor-abc.js', 90 * 1024, 85 * 1024), // both over total
       ],
       'assets/index-abc.js',
       BASELINE,
@@ -275,7 +275,7 @@ describe('checkBundle', () => {
       const result = checkBundle(
         [
           chunk('assets/index-abc.js', 140 * 1024, 125 * 1024),
-          chunk('assets/gsap-abc.js', 25 * 1024, 22 * 1024),
+          chunk('assets/lazy-vendor-abc.js', 25 * 1024, 22 * 1024),
           chunk('assets/lazy-abc.js', 15 * 1024, 13 * 1024),
         ],
         'assets/index-abc.js',
@@ -290,7 +290,7 @@ describe('checkBundle', () => {
       const result = checkBundle(
         [
           chunk('assets/index-abc.js', 140 * 1024, 125 * 1024),
-          chunk('assets/gsap-abc.js', 30 * 1024, 25 * 1024), // both increased from baseline
+          chunk('assets/lazy-vendor-abc.js', 30 * 1024, 25 * 1024), // both increased from baseline
           chunk('assets/lazy-abc.js', 15 * 1024, 13 * 1024),
         ],
         'assets/index-abc.js',
@@ -299,7 +299,7 @@ describe('checkBundle', () => {
       );
 
       expect(result.violations).toContain(
-        'chunk assets/gsap-abc.js increased to 30.0 kB gzip (baseline 25 kB) and 25.0 kB brotli (baseline 22 kB) — both exceed baseline',
+        'chunk assets/lazy-vendor-abc.js increased to 30.0 kB gzip (baseline 25 kB) and 25.0 kB brotli (baseline 22 kB) — both exceed baseline',
       );
     });
 
@@ -307,7 +307,7 @@ describe('checkBundle', () => {
       const result = checkBundle(
         [
           chunk('assets/index-abc.js', 140 * 1024, 125 * 1024),
-          chunk('assets/gsap-abc.js', 30 * 1024, 22 * 1024), // gzip increased, brotli same
+          chunk('assets/lazy-vendor-abc.js', 30 * 1024, 22 * 1024), // gzip increased, brotli same
           chunk('assets/lazy-abc.js', 15 * 1024, 13 * 1024),
         ],
         'assets/index-abc.js',
