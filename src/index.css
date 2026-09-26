@@ -3,6 +3,7 @@
 @import './styles/typography.css';
 @import './styles/grid.css';
 @import './styles/texture.css';
+@import './styles/flight.css';
 
 @layer base {
   :root {

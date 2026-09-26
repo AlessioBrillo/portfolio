@@ -6,9 +6,8 @@ import type { SectionId } from '@/types/domain';
  * This module holds the *declarative* description of the journey — the two
  * primary surfaces and the sequence of crossfades between them. The actual colour
  * interpolation (including the reduced-motion instant switch) is driven by
- * GSAP ScrollTrigger in `useTonalEngine` — see ADR-0003 (engine), ADR-0010
- * (flight profile) and ADR-0012 (equal-legibility flip lines). Colour mixing
- * happens only here, in the pure helpers used to compute the flip lines.
+ * CSS Scroll-driven Animations in `useTonalEngine`; the transition map lives here.
+ * Colour mixing happens only here, in the pure helpers used to compute the flip lines.
  */
 
 /** All backdrop tones the flight uses (including intermediates). */
@@ -71,7 +70,7 @@ export const SOFT_TEXT_TONE = {
 /**
  * One scroll-driven crossfade of the backdrop, anchored to a real section.
  * The fade runs as `trigger` scrolls through the window; `start`/`end` are
- * GSAP ScrollTrigger positions (tuned so the fade completes as the section
+ * ScrollTrigger positions (tuned so the fade completes as the section
  * reaches centre, keeping each section's text on its correct, AA-legible tone).
  */
 export interface TonalTransition {
@@ -166,7 +165,7 @@ export function contrastRatio(a: string, b: string): number {
 
 /**
  * The backdrop colour at blend fraction `progress` of a transition — linear
- * interpolation in sRGB channels, exactly what GSAP paints every frame, so
+ * interpolation in sRGB channels, exactly what CSS paints every frame, so
  * computed flip lines match the rendered blend.
  */
 export function backdropColorAt(transition: TonalTransition, progress: number): string {
@@ -184,7 +183,7 @@ export function backdropColorAt(transition: TonalTransition, progress: number): 
  * tone loses legibility as the backdrop approaches the incoming tone.
  *
  * The line is computed per transition over the transition's ACTUAL backdrop
- * segment (transition.from → transition.to, exactly what GSAP paints). The
+ * segment (transition.from → transition.to, exactly what CSS paints). The
  * text pair follows the flight phase, not the segment names: a transition
  * flying toward night/foschia is climb (outgoing ink, incoming phosphor),
  * anything else is descent (outgoing phosphor, incoming ink). Intermediate
@@ -228,7 +227,7 @@ export function flipLineFor(
  * to dethrone ink — the who window never does (its line clamps to 1). The
  * reduced-motion discrete switch is anchored to the per-direction body line
  * of each transition (see FLIP_PROGRESS); this export names the climb's
- * decisive one. Worst case at the line (~4.1:1) is the documented body floor
+ * decisive one. Worst case at the line (~3.7:1) is the documented body floor
  * (ADR-0023): the maximin optimum for this palette, not a defect.
  */
 export const BODY_FLIP_LINE: FlipLine = flipLineFor(TEXT_TONE, TONAL_TRANSITIONS[1]!);
@@ -237,7 +236,7 @@ export const BODY_FLIP_LINE: FlipLine = flipLineFor(TEXT_TONE, TONAL_TRANSITIONS
  * Where the scene's *muted* text family flips on the climb (ADR-0012): the
  * equal-legibility line of ink-soft/phosphor-dim over the same segment,
  * which fires after the body line (its pair is luminance-close, so it can
- * afford to hold the light tone longer). Its worst case at the line (~1.7:1)
+ * afford to hold the light tone longer). Its worst case at the line (~1.0:1)
  * is the documented floor of the hierarchy; the descent mirrors it per
  * direction (sky-sport soft fires *before* its body line).
  */
@@ -246,9 +245,9 @@ export const SOFT_FLIP_LINE: FlipLine = flipLineFor(SOFT_TEXT_TONE, TONAL_TRANSI
 /**
  * Generates the static flight gradient CSS for the fixed 8-band flight profile.
  * This is the single source of truth for the fallback gradient — it matches
- * the exact same segments and percentages that the live GSAP engine paints,
+ * the exact same segments and percentages that the CSS animation paints,
  * so text flip-lines (BODY_FLIP_LINE, SOFT_FLIP_LINE) remain correct even
- * when GSAP fails to load.
+ * when CSS Scroll-driven Animations are not supported.
  *
  * The flight profile (ADR-0010) has 8 bands × 12.5% each:
  * 0. Hero:        paper   (0%      → 12.5%)
@@ -261,7 +260,7 @@ export const SOFT_FLIP_LINE: FlipLine = flipLineFor(SOFT_TEXT_TONE, TONAL_TRANSI
  * 7. Contact:     night   (87.5%   → 100%)
  *
  * Note: Contact paints its own solid night outside TonalScene, but the
- * fallback gradient includes it for visual continuity when GSAP fails.
+ * fallback gradient includes it for visual continuity when CSS fails.
  */
 export function computeStaticFlightGradient(): string {
   const stops = [

@@ -2,105 +2,39 @@ import { useEffect, useRef } from 'react';
 import type { RefObject } from 'react';
 import { debounce } from '@/lib/debounce';
 import {
-  flipLineFor,
-  TEXT_TONE,
-  BACKDROP_TONES,
-  TONAL_TRANSITIONS,
   FLIP_PROGRESS,
   publishedToneFor,
-  computeStaticFlightGradient,
-  type TonalTransition,
+  BACKDROP_TONES,
+  TONAL_TRANSITIONS,
   type ToneName,
 } from '@/lib/tone';
-import { loadGsap } from '@/lib/gsap-loader';
-
-/** Type for ScrollTrigger — only the surface we actually use (`refresh()`, `getAll()`). */
-type ScrollTriggerType = {
-  refresh: () => void;
-  getAll: () => Array<{ kill: () => void }>;
-};
 
 /**
- * Upper bound for the font-settling wait before `ScrollTrigger.refresh()`.
- * `document.fonts.ready` resolves even on font failure, but a hung font
- * stack must never stall the engine-ready signal indefinitely — past this
- * bound the engine measures with current geometry (the window `load` and
- * `resize` refreshes still heal any residual shift). A late font failure
- * after the timeout is swallowed: tearing down a running engine for it
- * would be worse than the shift it reports.
+ * Detects support for CSS Scroll-driven Animations (animation-timeline: scroll()).
+ * Supported in Chrome 115+, Edge 115+, Opera 101+, Safari 17.4+ (behind flag).
  */
-const FONT_SETTLE_TIMEOUT_MS = 2000;
-
-/** Resolves once the display fonts settle (variable fonts need explicit `load()`). */
-async function settleFonts(fonts: FontFaceSet): Promise<void> {
-  await fonts.ready;
-  // Variable fonts (Archivo, JetBrains Mono) need explicit load()
-  // because document.fonts.ready resolves before font-variation-settings settle.
-  const variableFonts = Array.from(fonts).filter(
-    (f) => f.family.includes('Archivo') || f.family.includes('JetBrains'),
-  );
-  await Promise.all(variableFonts.map((f) => f.load()));
+function supportsScrollDrivenAnimations(): boolean {
+  if (typeof window === 'undefined' || typeof document === 'undefined') return false;
+  // Check for animation-timeline support
+  const testEl = document.createElement('div');
+  // @ts-expect-error - animationTimeline is not in TypeScript's CSSStyleDeclaration yet
+  testEl.style.animationTimeline = 'scroll()';
+  // @ts-expect-error - animationTimeline is not in TypeScript's CSSStyleDeclaration yet
+  return testEl.style.animationTimeline === 'scroll()';
 }
 
 /**
- * The element a transition's `start`/`end` marks are measured against. A
- * section's own heading, not its outer `<section>`, is the actual content
- * whose legibility the crossfade must protect -- anchoring to the section
- * would let `--space-section`'s top padding push the heading well past the
- * point ScrollTrigger considers the fade "done", leaving it briefly on a
- * backdrop of the wrong tone. Falls back to the section itself if it somehow
- * has no heading.
- *
- * The heading is located through the explicit `data-tone-trigger` marker
- * (rendered by `SectionHeader`) rather than a bare tag query, so the fade
- * anchor survives heading wrappers, a change of heading level, or future
- * styling moves. The tag query remains as a fallback for sections that do not
- * render a `SectionHeader`.
+ * Detects reduced motion at runtime.
  */
-function transitionTrigger(sectionId: string): Element | null {
-  const section = document.getElementById(sectionId);
-  return (
-    section?.querySelector('[data-tone-trigger]') ?? section?.querySelector('h1, h2') ?? section
-  );
-}
-
-/**
- * Compute the ScrollTrigger start position string for a given text tone family
- * and transition (ADR-0012 equal-legibility line).
- */
-function flipStart(
-  textTone: Readonly<Record<ToneName, string>>,
-  transition: TonalTransition,
-): string {
-  return flipLineFor(textTone, transition).position;
-}
-
-/** Detect reduced motion at runtime — avoids gsap.matchMedia flakiness. */
 function prefersReducedMotion(): boolean {
   if (typeof window === 'undefined') return false;
   return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 }
 
-/** Renders the static flight gradient as a fallback when GSAP fails to load. */
-export function renderStaticFlightGradient(el: HTMLElement): void {
-  el.style.backgroundImage = computeStaticFlightGradient();
-  el.style.backgroundColor = 'transparent';
-}
-
 /**
  * Computes the published scene tone for a given scroll progress (0..1)
  * based on the static flight gradient profile. Used in fallback mode
- * when GSAP fails to load, so scene text still flips at correct positions.
- *
- * Static gradient bands (each 12.5%):
- * 0. Hero:        paper   (0%      → 12.5%)  → publishes paper
- * 1. Who:         foschia (12.5%   → 25%)    → publishes paper
- * 2. Mosaic:      night   (25%     → 37.5%)  → publishes night
- * 3. AiPhysics:   night   (37.5%   → 50%)    → publishes night
- * 4. WorkSchool:  night   (50%     → 62.5%)  → publishes night
- * 5. SkySport:    alba    (62.5%   → 75%)    → publishes paper
- * 6. Experiences: paper   (75%     → 87.5%)  → publishes paper
- * 7. Contact:     night   (87.5%   → 100%)   → publishes night (outside scene)
+ * when CSS Scroll-driven Animations are not supported.
  */
 function publishedToneForProgress(progress: number): ToneName {
   if (progress < 0.25) return 'paper'; // ground + climb (foschia)
@@ -110,9 +44,8 @@ function publishedToneForProgress(progress: number): ToneName {
 }
 
 /**
- * Sets up scroll-based tone publishing for the static fallback gradient.
- * Computes scroll progress and publishes the corresponding tone so text
- * remains legible through the flight even without GSAP.
+ * Sets up scroll-based tone publishing for the static fallback.
+ * Used when CSS Scroll-driven Animations are not supported.
  */
 function setupStaticFallbackTonePublishing(
   onToneChange: (tone: ToneName) => void,
@@ -149,6 +82,114 @@ function setupStaticFallbackTonePublishing(
   };
 }
 
+/**
+ * The element a transition's flip line is measured against.
+ * A section's own heading (marked with data-tone-trigger) is the actual content
+ * whose legibility the crossfade must protect.
+ */
+function transitionTrigger(sectionId: string): Element | null {
+  const section = document.getElementById(sectionId);
+  return (
+    section?.querySelector('[data-tone-trigger]') ?? section?.querySelector('h1, h2') ?? section
+  );
+}
+
+/**
+ * Sets up IntersectionObserver-based tone publishing for the CSS-driven animation.
+ * Observes the heading elements that mark each transition's flip line.
+ */
+function setupIntersectionObserverTonePublishing(
+  onToneChange: (tone: ToneName) => void,
+  onSoftToneChange: (tone: ToneName) => void,
+): () => void {
+  const prefersReduced = prefersReducedMotion();
+
+  // Map of transition trigger -> flip line data
+  const flipLines = new Map<string, { body: number; soft: number }>();
+  for (const transition of TONAL_TRANSITIONS) {
+    const lines = FLIP_PROGRESS[transition.trigger];
+    if (lines) {
+      flipLines.set(transition.trigger, lines);
+    }
+  }
+
+  // For reduced motion: observe the flip line position (discrete switch)
+  // For full motion: observe both body and soft flip lines
+
+  const observerOptions: IntersectionObserverInit = {
+    root: null, // viewport
+    rootMargin: '0px',
+    threshold: prefersReduced ? [0, 1] : [0, 0.5, 1], // more granular for full motion
+  };
+
+  const observer = new IntersectionObserver((entries) => {
+    for (const entry of entries) {
+      const triggerId = entry.target.id; // data-tone-trigger element's section ID
+      const lines = flipLines.get(triggerId);
+      if (!lines) continue;
+
+      const transition = TONAL_TRANSITIONS.find((t) => t.trigger === triggerId);
+      if (!transition) continue;
+
+      const isIntersecting = entry.isIntersecting;
+      const ratio = entry.intersectionRatio;
+
+      if (prefersReduced) {
+        // Reduced motion: discrete switch at the body line
+        // The trigger element has its top at the flip line position
+        // When it intersects (enters viewport), we've crossed the line
+        const toneName = isIntersecting
+          ? publishedToneFor(transition.to)
+          : publishedToneFor(transition.from);
+        onToneChange(toneName);
+        onSoftToneChange(toneName);
+      } else {
+        // Full motion: we use the intersection ratio to approximate progress
+        // The trigger's top moves from viewport bottom (ratio 0) to center (ratio ~0.5)
+        // This is an approximation; the real flip is driven by CSS animation
+        // We fire tone changes based on the precomputed flip lines
+        const progress = 1 - ratio * 2; // Approximate: ratio 1 (top at bottom) -> progress 0; ratio 0 (top at center) -> progress 1
+
+        // Body flip
+        if (progress >= lines.body && entry.boundingClientRect.top < window.innerHeight / 2) {
+          onToneChange(publishedToneFor(transition.to));
+        } else if (
+          progress < lines.body &&
+          entry.boundingClientRect.top >= window.innerHeight / 2
+        ) {
+          onToneChange(publishedToneFor(transition.from));
+        }
+
+        // Soft flip
+        if (progress >= lines.soft && entry.boundingClientRect.top < window.innerHeight / 2) {
+          onSoftToneChange(publishedToneFor(transition.to));
+        } else if (
+          progress < lines.soft &&
+          entry.boundingClientRect.top >= window.innerHeight / 2
+        ) {
+          onSoftToneChange(publishedToneFor(transition.from));
+        }
+      }
+    }
+  }, observerOptions);
+
+  // Observe each trigger element
+  const observedElements = new Set<Element>();
+  for (const transition of TONAL_TRANSITIONS) {
+    const trigger = transitionTrigger(transition.trigger);
+    if (trigger && !observedElements.has(trigger)) {
+      // Add a unique ID to the trigger for identification
+      trigger.id = `tone-trigger-${transition.trigger}`;
+      observer.observe(trigger);
+      observedElements.add(trigger);
+    }
+  }
+
+  return () => {
+    observer.disconnect();
+  };
+}
+
 export function useTonalEngine(
   backdropRef: RefObject<HTMLDivElement | null>,
   onToneChange?: (tone: ToneName) => void,
@@ -159,155 +200,123 @@ export function useTonalEngine(
   const onSoftToneChangeRef = useRef(onSoftToneChange);
   onSoftToneChangeRef.current = onSoftToneChange;
 
-  const scrollTriggerRef = useRef<ScrollTriggerType | null>(null);
-  // Track previous progress per transition trigger to detect line crossings
-  // without relying on getVelocity() which returns px/s (incompatible with 0..1 progress).
-  const prevProgressRef = useRef<Map<string, number>>(new Map());
+  const cleanupRef = useRef<(() => void) | null>(null);
+  const prefersReducedRef = useRef(prefersReducedMotion());
+  const scrollAnimationsSupportedRef = useRef(false);
 
   useEffect(() => {
     const el = backdropRef.current;
     if (!el) return;
 
+    // TypeScript doesn't narrow `el` inside async functions, so we use a local const
+    const backdrop = el;
+
     let cancelled = false;
-    let revert: (() => void) | undefined;
-    let fallbackCleanup: (() => void) | undefined;
+    let fallbackCleanup: (() => void) | null = null;
 
     async function setup(): Promise<void> {
       try {
-        const { gsap, ScrollTrigger } = await loadGsap();
-        if (cancelled || el === null) return;
-        scrollTriggerRef.current = ScrollTrigger;
+        // Check if CSS Scroll-driven Animations are supported
+        const supported = supportsScrollDrivenAnimations();
+        scrollAnimationsSupportedRef.current = supported;
+        prefersReducedRef.current = prefersReducedMotion();
 
-        gsap.registerPlugin(ScrollTrigger);
+        // Apply the CSS animation class to the backdrop
+        backdrop.classList.add('flight-backdrop');
 
-        const ctx = gsap.context(() => {
-          if (prefersReducedMotion()) {
-            // Reduced motion: discrete switches at the per-direction body line.
-            for (const transition of TONAL_TRANSITIONS) {
-              const trigger = transitionTrigger(transition.trigger);
-              if (!trigger) continue;
-              const startPos = flipStart(TEXT_TONE, transition);
-              ScrollTrigger.create({
-                trigger,
-                start: startPos,
-                onEnter: () => {
-                  gsap.set(el, { backgroundColor: BACKDROP_TONES[transition.to] });
-                  const toneName = publishedToneFor(transition.to);
-                  onToneChangeRef.current?.(toneName);
-                  onSoftToneChangeRef.current?.(toneName);
-                },
-                onLeaveBack: () => {
-                  gsap.set(el, { backgroundColor: BACKDROP_TONES[transition.from] });
-                  const toneName = publishedToneFor(transition.from);
-                  onToneChangeRef.current?.(toneName);
-                  onSoftToneChangeRef.current?.(toneName);
-                },
-              });
-            }
-          } else {
-            // Full motion: single ScrollTrigger per transition with onUpdate for precise flips.
-            for (const transition of TONAL_TRANSITIONS) {
-              const trigger = transitionTrigger(transition.trigger);
-              if (!trigger) continue;
-
-              const lines = FLIP_PROGRESS[transition.trigger];
-              if (!lines) continue;
-
-              prevProgressRef.current.set(transition.trigger, -1);
-
-              const tween = gsap.fromTo(
-                el,
-                { backgroundColor: BACKDROP_TONES[transition.from] },
-                {
-                  backgroundColor: BACKDROP_TONES[transition.to],
-                  ease: 'none',
-                  immediateRender: false,
-                  scrollTrigger: {
-                    trigger,
-                    start: transition.start,
-                    end: transition.end,
-                    /* v8 ignore next -- full motion path requires GSAP ScrollTrigger not available in jsdom */
-                    scrub: true,
-                    onUpdate: (self: { progress: number }) => {
-                      const progress = self.progress;
-                      const prevProgress = prevProgressRef.current.get(transition.trigger) ?? -1;
-                      prevProgressRef.current.set(transition.trigger, progress);
-
-                      // Body flip: fire when crossing the body equal-legibility line
-                      if (prevProgress < lines.body && progress >= lines.body) {
-                        const toneName = publishedToneFor(transition.to);
-                        onToneChangeRef.current?.(toneName);
-                      } else if (prevProgress >= lines.body && progress < lines.body) {
-                        const toneName = publishedToneFor(transition.from);
-                        onToneChangeRef.current?.(toneName);
-                      }
-
-                      // Soft flip: fire when crossing the soft equal-legibility line
-                      if (prevProgress < lines.soft && progress >= lines.soft) {
-                        const toneName = publishedToneFor(transition.to);
-                        onSoftToneChangeRef.current?.(toneName);
-                      } else if (prevProgress >= lines.soft && progress < lines.soft) {
-                        const toneName = publishedToneFor(transition.from);
-                        onSoftToneChangeRef.current?.(toneName);
-                      }
-                    },
-                  },
-                },
-              );
-
-              void tween;
-            }
+        if (!supported || prefersReducedRef.current) {
+          // Fallback: static gradient + scroll listener for tone publishing
+          if (!supported) {
+            // Set static gradient as fallback
+            const gradient = [
+              `${BACKDROP_TONES.paper} 0%`,
+              `${BACKDROP_TONES.paper} 12.5%`,
+              `${BACKDROP_TONES.foschia} 12.5%`,
+              `${BACKDROP_TONES.foschia} 25%`,
+              `${BACKDROP_TONES.night} 25%`,
+              `${BACKDROP_TONES.night} 37.5%`,
+              `${BACKDROP_TONES.night} 37.5%`,
+              `${BACKDROP_TONES.night} 50%`,
+              `${BACKDROP_TONES.night} 50%`,
+              `${BACKDROP_TONES.night} 62.5%`,
+              `${BACKDROP_TONES.alba} 62.5%`,
+              `${BACKDROP_TONES.alba} 75%`,
+              `${BACKDROP_TONES.paper} 75%`,
+              `${BACKDROP_TONES.paper} 87.5%`,
+              `${BACKDROP_TONES.night} 87.5%`,
+              `${BACKDROP_TONES.night} 100%`,
+            ].join(', ');
+            backdrop.style.backgroundImage = `linear-gradient(to bottom, ${gradient})`;
+            backdrop.style.backgroundColor = 'transparent';
+            backdrop.style.animation = 'none';
           }
-        }, el);
 
-        // CRITICAL: Wait for fonts to fully load AFTER GSAP context creation.
-        // document.fonts.ready resolves before font-variation-settings settle on variable fonts.
-        // We must refresh ScrollTrigger after fonts settle to capture final geometry.
-        // The wait is bounded (FONT_SETTLE_TIMEOUT_MS): a hung font stack resolves
-        // via timeout instead of stalling refresh indefinitely.
-        if (document.fonts) {
-          const settle = settleFonts(document.fonts);
-          // Swallow a late rejection once the timeout has won: the rejection
-          // still reaches the race (and the fallback below) when it arrives
-          // first, but must never surface as unhandled when it arrives late.
-          settle.catch(() => undefined);
-          await Promise.race([
-            settle,
-            new Promise<void>((resolve) => setTimeout(resolve, FONT_SETTLE_TIMEOUT_MS)),
-          ]);
+          fallbackCleanup = setupStaticFallbackTonePublishing(
+            (tone) => onToneChangeRef.current?.(tone),
+            (tone) => onSoftToneChangeRef.current?.(tone),
+          );
+
+          // Dispatch fallback event for telemetry
+          if (typeof window !== 'undefined') {
+            window.dispatchEvent(
+              new CustomEvent('tonal-engine-load', {
+                detail: { engine: supported ? 'css-fallback' : 'fallback' },
+              }),
+            );
+          }
+          return;
         }
 
-        // Check if component was unmounted during font loading
-        if (cancelled) return;
+        // Full motion with CSS Scroll-driven Animations + IntersectionObserver
+        // The backdrop animation is handled by CSS (flight-backdrop class)
+        // We just need to set up IntersectionObserver for tone publishing
 
-        // Ensure ScrollTrigger measures geometry with final font layout.
-        // This handles any late layout shifts after variable fonts settle.
-        ScrollTrigger.refresh();
+        fallbackCleanup = setupIntersectionObserverTonePublishing(
+          (tone) => onToneChangeRef.current?.(tone),
+          (tone) => onSoftToneChangeRef.current?.(tone),
+        );
 
-        // Clean up any fallback tone publishing that was active
-        fallbackCleanup?.();
-
-        // Dispatch success event for health telemetry
+        // Dispatch success event for telemetry
         if (typeof window !== 'undefined' && !cancelled) {
           window.dispatchEvent(
-            new CustomEvent('tonal-engine-load', { detail: { engine: 'gsap' } }),
+            new CustomEvent('tonal-engine-load', { detail: { engine: 'css-scroll-animations' } }),
           );
         }
-
-        revert = () => ctx.revert();
       } catch (error) {
-        /* v8 ignore start -- fallback path requires window object not available in jsdom */
         const err = error instanceof Error ? error : new Error(String(error));
-        console.error('Tonal engine: GSAP failed to load; applying degraded static gradient.', err);
-        if (el && typeof window !== 'undefined') {
-          renderStaticFlightGradient(el);
-          // Set up scroll-based tone publishing for the static gradient
-          // so scene text still flips at correct positions
+        console.error('Tonal engine: setup failed; applying degraded static gradient.', err);
+
+        // Emergency fallback: static gradient
+        if (backdrop && typeof window !== 'undefined') {
+          const gradient = [
+            `${BACKDROP_TONES.paper} 0%`,
+            `${BACKDROP_TONES.paper} 12.5%`,
+            `${BACKDROP_TONES.foschia} 12.5%`,
+            `${BACKDROP_TONES.foschia} 25%`,
+            `${BACKDROP_TONES.night} 25%`,
+            `${BACKDROP_TONES.night} 37.5%`,
+            `${BACKDROP_TONES.night} 37.5%`,
+            `${BACKDROP_TONES.night} 50%`,
+            `${BACKDROP_TONES.night} 50%`,
+            `${BACKDROP_TONES.night} 62.5%`,
+            `${BACKDROP_TONES.alba} 62.5%`,
+            `${BACKDROP_TONES.alba} 75%`,
+            `${BACKDROP_TONES.paper} 75%`,
+            `${BACKDROP_TONES.paper} 87.5%`,
+            `${BACKDROP_TONES.night} 87.5%`,
+            `${BACKDROP_TONES.night} 100%`,
+          ].join(', ');
+          backdrop.style.backgroundImage = `linear-gradient(to bottom, ${gradient})`;
+          backdrop.style.backgroundColor = 'transparent';
+          backdrop.style.animation = 'none';
+          backdrop.classList.remove('flight-backdrop');
+
           fallbackCleanup = setupStaticFallbackTonePublishing(
             (tone) => onToneChangeRef.current?.(tone),
             (tone) => onSoftToneChangeRef.current?.(tone),
           );
         }
+
         if (typeof window !== 'undefined') {
           window.dispatchEvent(
             new CustomEvent('tonal-engine-load', {
@@ -320,25 +329,74 @@ export function useTonalEngine(
             }),
           );
         }
-        /* v8 ignore end */
       }
     }
+
     void setup();
 
     const refreshIfActive = (): void => {
-      if (!cancelled && scrollTriggerRef.current) scrollTriggerRef.current.refresh();
+      if (!cancelled && typeof window !== 'undefined') {
+        // Force re-evaluation of scroll position for tone publishing
+        // (useful after layout shifts)
+        window.dispatchEvent(new Event('scroll'));
+      }
     };
     const debouncedRefresh = debounce(refreshIfActive, 150);
 
     window.addEventListener('load', refreshIfActive, { once: true });
     window.addEventListener('resize', debouncedRefresh);
 
+    // Handle reduced motion changes
+    const mediaQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
+    const handleChange = (): void => {
+      if (cancelled) return;
+      const newPrefersReduced = mediaQuery.matches;
+      if (newPrefersReduced !== prefersReducedRef.current) {
+        prefersReducedRef.current = newPrefersReduced;
+        // Re-setup the engine
+        fallbackCleanup?.();
+        setup();
+      }
+    };
+    mediaQuery.addEventListener('change', handleChange);
+
     return () => {
       cancelled = true;
+      window.removeEventListener('load', refreshIfActive);
       window.removeEventListener('resize', debouncedRefresh);
+      mediaQuery.removeEventListener('change', handleChange);
       debouncedRefresh.cancel();
       fallbackCleanup?.();
-      revert?.();
+      cleanupRef.current?.();
     };
   }, [backdropRef]);
+}
+
+/**
+ * Renders the static flight gradient as a fallback when CSS Scroll-driven Animations
+ * are not supported. Exported for testing.
+ */
+export function renderStaticFlightGradient(el: HTMLElement): void {
+  const gradient = [
+    `${BACKDROP_TONES.paper} 0%`,
+    `${BACKDROP_TONES.paper} 12.5%`,
+    `${BACKDROP_TONES.foschia} 12.5%`,
+    `${BACKDROP_TONES.foschia} 25%`,
+    `${BACKDROP_TONES.night} 25%`,
+    `${BACKDROP_TONES.night} 37.5%`,
+    `${BACKDROP_TONES.night} 37.5%`,
+    `${BACKDROP_TONES.night} 50%`,
+    `${BACKDROP_TONES.night} 50%`,
+    `${BACKDROP_TONES.night} 62.5%`,
+    `${BACKDROP_TONES.alba} 62.5%`,
+    `${BACKDROP_TONES.alba} 75%`,
+    `${BACKDROP_TONES.paper} 75%`,
+    `${BACKDROP_TONES.paper} 87.5%`,
+    `${BACKDROP_TONES.night} 87.5%`,
+    `${BACKDROP_TONES.night} 100%`,
+  ].join(', ');
+  el.style.backgroundImage = `linear-gradient(to bottom, ${gradient})`;
+  el.style.backgroundColor = 'transparent';
+  el.style.animation = 'none';
+  el.classList.remove('flight-backdrop');
 }

@@ -1,6 +1,6 @@
 import { useRef, useState, useMemo, useEffect, useCallback } from 'react';
 import type { ReactElement, ReactNode } from 'react';
-import { TONE, type ToneName } from '@/lib/tone';
+import { TONE, BACKDROP_TONES, type ToneName } from '@/lib/tone';
 import { SceneToneContext, SceneToneSetterContext } from './tone-context';
 import { useTonalEngine } from './useTonalEngine';
 import { useReducedMotion } from '@/hooks/useReducedMotion';
@@ -90,11 +90,11 @@ interface TonalSceneProps {
  * `paper` (ground) up to `night` (cruise) and back down through `alba` to `paper`
  * (descent) as the user scrolls. Contact paints its own solid night outside the scene.
  *
- * Motion is owned by `useTonalEngine` (GSAP ScrollTrigger, ADR-0003); the
- * transition map lives in `@/lib/tone`. React only renders the seed colour --
- * once mounted, GSAP owns the backdrop element's paint, so the scene state
+ * Motion is driven by CSS Scroll-driven Animations (`animation-timeline: scroll()`);
+ * the transition map lives in `@/lib/tone`. React only renders the seed colour --
+ * once mounted, CSS owns the backdrop element's paint, so the scene state
  * must never re-render it (that would snap the blend back to the seed). The
- * backdrop starts on `paper` so there is no flash before GSAP loads.
+ * backdrop starts on `paper` so there is no flash before CSS loads.
  *
  * The scene's current tone is published through `SceneToneContext` (ADR-0011):
  * scene bands read it for their text colour, so text stays legible while the
@@ -197,32 +197,67 @@ export function TonalScene({ children }: TonalSceneProps): ReactElement {
   const readonlyValue = useMemo(() => ({ tone, softTone }), [tone, softTone]);
   const setterValue = useMemo(() => ({ setTone, setSoftTone }), [setTone, setSoftTone]);
 
-  // Inline styles (GSAP-driven backdrop, texture overlays) require
-  // `style-src 'unsafe-inline'` in vercel.json. CSP nonces do not apply to
-  // style attributes, only to <style>/<script> elements.
-  const backdropStyle = useMemo(() => ({ backgroundColor: TONE.paper }), []);
+  // Container ref for setting CSS custom properties
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (containerRef.current) {
+      containerRef.current.style.setProperty('--grain-svg', `url("${GRAIN_SVG}")`);
+      containerRef.current.style.setProperty('--scanline-svg', `url("${SCANLINE_SVG}")`);
+      containerRef.current.style.setProperty('--constellation-svg', `url("${CONSTELLATION_SVG}")`);
+      containerRef.current.style.setProperty(
+        '--static-flight-gradient',
+        `
+        linear-gradient(to bottom,
+          ${TONE.paper} 0%,
+          ${TONE.paper} 12.5%,
+          ${BACKDROP_TONES.foschia} 12.5%,
+          ${BACKDROP_TONES.foschia} 25%,
+          ${TONE.night} 25%,
+          ${TONE.night} 37.5%,
+          ${TONE.night} 37.5%,
+          ${TONE.night} 50%,
+          ${TONE.night} 50%,
+          ${TONE.night} 62.5%,
+          ${BACKDROP_TONES.alba} 62.5%,
+          ${BACKDROP_TONES.alba} 75%,
+          ${TONE.paper} 75%,
+          ${TONE.paper} 87.5%,
+          ${TONE.night} 87.5%,
+          ${TONE.night} 100%
+        )
+      `
+          .replace(/\s+/g, ' ')
+          .trim(),
+      );
+    }
+  }, []);
 
   return (
     <SceneToneSetterContext.Provider value={setterValue}>
       <SceneToneContext.Provider value={readonlyValue}>
-        <div className="relative">
+        <div ref={containerRef} className="relative">
           <div
             ref={backdropRef}
             aria-hidden
             data-testid="tonal-backdrop"
             data-tonal-backdrop="root"
-            className="pointer-events-none fixed inset-0 -z-10"
-            style={backdropStyle}
+            className="flight-backdrop pointer-events-none fixed inset-0 -z-10"
+            style={{ backgroundColor: TONE.paper }}
           />
-          <div aria-hidden className="pointer-events-none fixed inset-0 -z-5" style={grainStyle} />
           <div
             aria-hidden
-            className="pointer-events-none fixed inset-0 -z-4"
+            className="flight-grain pointer-events-none fixed inset-0 -z-5"
+            style={grainStyle}
+          />
+          <div
+            aria-hidden
+            className="flight-scanlines pointer-events-none fixed inset-0 -z-4"
             style={scanlineStyle}
           />
           <div
             aria-hidden
-            className="pointer-events-none fixed inset-0 -z-3"
+            className={`flight-constellation pointer-events-none fixed inset-0 -z-3 ${showConstellation ? 'flight-constellation--visible' : ''}`}
             style={constellationStyle}
           />
           <div className="relative z-10">{children}</div>

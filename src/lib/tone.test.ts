@@ -61,7 +61,7 @@ describe('backdropColorAt', () => {
     expect(backdropColorAt(climb, 1)).toBe(BACKDROP_TONES[climb.to]);
   });
 
-  it('blends linearly in channel space, like GSAP', () => {
+  it('blends linearly in channel space, like CSS', () => {
     expect(relativeLuminance(backdropColorAt(climb, 0.5))).toBeGreaterThan(
       relativeLuminance(TONE.night),
     );
@@ -165,7 +165,7 @@ describe('flip lines (ADR-0012)', () => {
     // Every window of the flight flips both families at a defined point.
     // Backdrops quantize to integer channels, so an exact tie at the line is
     // unrepresentable — assert the mechanism (winning side each side) and the
-    // documented floors (body 3.7, muted 1.15) instead.
+    // documented floors (body 3.7, muted 1.1) instead.
     for (const transition of TONAL_TRANSITIONS) {
       const lines = FLIP_PROGRESS[transition.trigger];
       if (!lines) throw new Error(`no flip lines for trigger ${transition.trigger}`);
