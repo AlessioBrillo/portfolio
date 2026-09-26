@@ -59,7 +59,7 @@ export const CASE_STUDIES: Readonly<Record<DomainKey, CaseStudyEntry>> = {
       title: 'The Ascent, engineered in the open',
       role: 'Engineering showcase',
       year: '2026',
-      stack: ['React 19', 'TypeScript', 'GSAP', 'Vitest', 'Playwright'],
+      stack: ['React 19', 'TypeScript', 'CSS Scroll Animations', 'Vitest', 'Playwright'],
       summary:
         'The portfolio as an engineered artifact — a scroll-driven tonal flight, committed in the open.',
     },

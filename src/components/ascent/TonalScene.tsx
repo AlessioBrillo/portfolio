@@ -1,85 +1,10 @@
 import { useRef, useState, useMemo, useEffect, useCallback } from 'react';
 import type { ReactElement, ReactNode } from 'react';
-import { TONE, BACKDROP_TONES, type ToneName } from '@/lib/tone';
+import { type ToneName } from '@/lib/tone';
 import { SceneToneContext, SceneToneSetterContext } from './tone-context';
-import { useTonalEngine } from './useTonalEngine';
+import { useSceneTonePublisher } from '@/hooks/useSceneTonePublisher';
 import { useReducedMotion } from '@/hooks/useReducedMotion';
 import { useForcedColors } from '@/hooks/useForcedColors';
-
-/** Subtle grain overlay (SVG noise, ~2.5% opacity) — breaks digital flatness without external assets. */
-const GRAIN_SVG = `data:image/svg+xml;base64,${btoa(
-  `<svg viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg">
-    <filter id="noise">
-      <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="4" stitchTiles="stitch"/>
-    </filter>
-    <rect width="100%" height="100%" filter="url(#noise)" opacity="0.025"/>
-  </svg>`,
-)}`;
-
-/** CRT scanline overlay — active only on night, disabled under reduced motion. */
-const SCANLINE_SVG = `data:image/svg+xml;base64,${btoa(
-  `<svg viewBox="0 0 100 4" xmlns="http://www.w3.org/2000/svg">
-    <defs>
-      <pattern id="scanlines" patternUnits="userSpaceOnUse" width="100" height="4">
-        <rect x="0" y="0" width="100" height="2" fill="rgba(0,0,0,0.08)" />
-        <rect x="0" y="2" width="100" height="2" fill="rgba(0,0,0,0.08)" />
-      </pattern>
-    </defs>
-    <rect width="100%" height="100%" fill="url(#scanlines)" />
-  </svg>`,
-)}`;
-
-/** Constellation overlay — easter egg: press ↑ on night to reveal a subtle star field. */
-const CONSTELLATION_SVG = `data:image/svg+xml;base64,${btoa(
-  `<svg viewBox="0 0 800 600" xmlns="http://www.w3.org/2000/svg">
-    <defs>
-      <radialGradient id="starGlow" cx="50%" cy="50%" r="50%">
-        <stop offset="0%" stop-color="#FBF8F2" stop-opacity="1"/>
-        <stop offset="60%" stop-color="#FBF8F2" stop-opacity="0.3"/>
-        <stop offset="100%" stop-color="#FBF8F2" stop-opacity="0"/>
-      </radialGradient>
-    </defs>
-    <!-- Major stars (brighter, larger) -->
-    <circle cx="120" cy="85" r="2.5" fill="url(#starGlow)" opacity="0.9"/>
-    <circle cx="340" cy="45" r="2" fill="url(#starGlow)" opacity="0.85"/>
-    <circle cx="580" cy="95" r="2.2" fill="url(#starGlow)" opacity="0.88"/>
-    <circle cx="720" cy="160" r="1.8" fill="url(#starGlow)" opacity="0.8"/>
-    <circle cx="95" cy="220" r="2.8" fill="url(#starGlow)" opacity="0.95"/>
-    <circle cx="420" cy="190" r="1.5" fill="url(#starGlow)" opacity="0.75"/>
-    <circle cx="650" cy="180" r="2" fill="url(#starGlow)" opacity="0.82"/>
-    <circle cx="280" cy="310" r="1.8" fill="url(#starGlow)" opacity="0.78"/>
-    <circle cx="510" cy="285" r="2.3" fill="url(#starGlow)" opacity="0.88"/>
-    <circle cx="760" cy="340" r="1.6" fill="url(#starGlow)" opacity="0.7"/>
-    <circle cx="180" cy="410" r="2.1" fill="url(#starGlow)" opacity="0.85"/>
-    <circle cx="390" cy="380" r="1.9" fill="url(#starGlow)" opacity="0.8"/>
-    <circle cx="620" cy="420" r="2.4" fill="url(#starGlow)" opacity="0.9"/>
-    <circle cx="70" cy="520" r="1.7" fill="url(#starGlow)" opacity="0.72"/>
-    <circle cx="480" cy="490" r="2" fill="url(#starGlow)" opacity="0.82"/>
-    <circle cx="730" cy="480" r="1.8" fill="url(#starGlow)" opacity="0.75"/>
-    <!-- Minor stars (smaller, dimmer) -->
-    <circle cx="200" cy="60" r="0.8" fill="#FBF8F2" opacity="0.5"/>
-    <circle cx="290" cy="110" r="0.6" fill="#FBF8F2" opacity="0.45"/>
-    <circle cx="460" cy="70" r="0.7" fill="#FBF8F2" opacity="0.48"/>
-    <circle cx="520" cy="130" r="0.5" fill="#FBF8F2" opacity="0.4"/>
-    <circle cx="680" cy="110" r="0.6" fill="#FBF8F2" opacity="0.42"/>
-    <circle cx="150" cy="180" r="0.7" fill="#FBF8F2" opacity="0.45"/>
-    <circle cx="370" cy="160" r="0.5" fill="#FBF8F2" opacity="0.4"/>
-    <circle cx="590" cy="210" r="0.8" fill="#FBF8F2" opacity="0.5"/>
-    <circle cx="240" cy="250" r="0.6" fill="#FBF8F2" opacity="0.42"/>
-    <circle cx="440" cy="240" r="0.5" fill="#FBF8F2" opacity="0.38"/>
-    <circle cx="690" cy="260" r="0.7" fill="#FBF8F2" opacity="0.45"/>
-    <circle cx="110" cy="340" r="0.5" fill="#FBF8F2" opacity="0.38"/>
-    <circle cx="330" cy="350" r="0.7" fill="#FBF8F2" opacity="0.42"/>
-    <circle cx="560" cy="320" r="0.6" fill="#FBF8F2" opacity="0.4"/>
-    <circle cx="780" cy="380" r="0.5" fill="#FBF8F2" opacity="0.35"/>
-    <circle cx="260" cy="440" r="0.7" fill="#FBF8F2" opacity="0.4"/>
-    <circle cx="420" cy="460" r="0.5" fill="#FBF8F2" opacity="0.38"/>
-    <circle cx="670" cy="450" r="0.6" fill="#FBF8F2" opacity="0.4"/>
-    <circle cx="40" cy="560" r="0.5" fill="#FBF8F2" opacity="0.35"/>
-    <circle cx="520" cy="540" r="0.7" fill="#FBF8F2" opacity="0.42"/>
-    <circle cx="790" cy="510" r="0.5" fill="#FBF8F2" opacity="0.35"/>
-  </svg>`,
-)}`;
 
 interface TonalSceneProps {
   children: ReactNode;
@@ -101,9 +26,9 @@ interface TonalSceneProps {
  * backdrop blends instead of sitting on a static per-band tone.
  *
  * Texture layers:
- * - Global mechanical noise (GRAIN_SVG) — always present
- * - CRT scanlines (SCANLINE_SVG) — only when tone === 'night', disabled under reduced motion
- * - Constellation (CONSTELLATION_SVG) — easter egg: press ↑ on night to reveal
+ * - Global mechanical noise (--grain-svg CSS custom property) — always present
+ * - CRT scanlines (--scanline-svg) — only when tone === 'night', disabled under reduced motion
+ * - Constellation (--constellation-svg) — easter egg: press ↑ on night to reveal
  * **Stacking contract:** the backdrop must paint *behind all page content*,
  * not just behind the scene's own children. The wrapper divs carry no
  * `z-index`, so they do not create a stacking context -- the backdrop's
@@ -121,7 +46,13 @@ export function TonalScene({ children }: TonalSceneProps): ReactElement {
   const [showConstellation, setShowConstellation] = useState(false);
   const prefersReducedMotion = useReducedMotion();
   const prefersForcedColors = useForcedColors();
-  useTonalEngine(backdropRef, setTone, setSoftTone);
+
+  // Use the new native CSS Scroll-driven Animations engine
+  useSceneTonePublisher({
+    backdropRef,
+    onToneChange: setTone,
+    onSoftToneChange: setSoftTone,
+  });
 
   useEffect(() => {
     function handleEngineError(
@@ -151,109 +82,41 @@ export function TonalScene({ children }: TonalSceneProps): ReactElement {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [handleKeyDown]);
 
-  const grainStyle = useMemo(() => {
-    /* v8 ignore next -- forced-colors path not exercised in jsdom */
-    if (prefersForcedColors) return { display: 'none' };
-    return {
-      backgroundImage: `url("${GRAIN_SVG}")`,
-      backgroundRepeat: 'repeat',
-      backgroundSize: '400px 400px',
-      opacity: 1,
-    };
-  }, [prefersForcedColors]);
-
+  // Texture layer styles now use CSS custom properties defined in flight.css
+  // The inline styles are only for conditional display logic
   const scanlineStyle = useMemo(() => {
-    if (prefersReducedMotion) return { display: 'none' };
-    /* v8 ignore next -- forced-colors path not exercised in jsdom */
-    if (prefersForcedColors) return { display: 'none' };
-    /* v8 ignore next -- tone check not exercised in jsdom */
-    if (tone !== 'night') return { display: 'none' };
-    return {
-      backgroundImage: `url("${SCANLINE_SVG}")`,
-      backgroundRepeat: 'repeat',
-      backgroundSize: '100% 4px',
-      opacity: 0.5,
-    };
+    if (prefersReducedMotion) return { display: 'none' as const };
+    if (prefersForcedColors) return { display: 'none' as const };
+    if (tone !== 'night') return { display: 'none' as const };
+    return { display: 'block' as const };
   }, [tone, prefersReducedMotion, prefersForcedColors]);
 
   const constellationStyle = useMemo(() => {
-    if (!showConstellation) return { display: 'none' };
-    /* v8 ignore next -- reduced-motion path not exercised in jsdom */
-    if (prefersReducedMotion) return { display: 'none' };
-    /* v8 ignore next -- forced-colors path not exercised in jsdom */
-    if (prefersForcedColors) return { display: 'none' };
-    /* v8 ignore next -- tone check not exercised in jsdom */
-    if (tone !== 'night') return { display: 'none' };
-    return {
-      backgroundImage: `url("${CONSTELLATION_SVG}")`,
-      backgroundRepeat: 'no-repeat',
-      backgroundPosition: 'center center',
-      backgroundSize: 'cover',
-      opacity: 0.15,
-      animation: 'constellationFade 8s ease-out forwards',
-    };
+    if (!showConstellation) return { display: 'none' as const };
+    if (prefersReducedMotion) return { display: 'none' as const };
+    if (prefersForcedColors) return { display: 'none' as const };
+    if (tone !== 'night') return { display: 'none' as const };
+    return { display: 'block' as const };
   }, [showConstellation, tone, prefersReducedMotion, prefersForcedColors]);
 
   const readonlyValue = useMemo(() => ({ tone, softTone }), [tone, softTone]);
   const setterValue = useMemo(() => ({ setTone, setSoftTone }), [setTone, setSoftTone]);
 
-  // Container ref for setting CSS custom properties
-  const containerRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    if (containerRef.current) {
-      containerRef.current.style.setProperty('--grain-svg', `url("${GRAIN_SVG}")`);
-      containerRef.current.style.setProperty('--scanline-svg', `url("${SCANLINE_SVG}")`);
-      containerRef.current.style.setProperty('--constellation-svg', `url("${CONSTELLATION_SVG}")`);
-      containerRef.current.style.setProperty(
-        '--static-flight-gradient',
-        `
-        linear-gradient(to bottom,
-          ${TONE.paper} 0%,
-          ${TONE.paper} 12.5%,
-          ${BACKDROP_TONES.foschia} 12.5%,
-          ${BACKDROP_TONES.foschia} 25%,
-          ${TONE.night} 25%,
-          ${TONE.night} 37.5%,
-          ${TONE.night} 37.5%,
-          ${TONE.night} 50%,
-          ${TONE.night} 50%,
-          ${TONE.night} 62.5%,
-          ${BACKDROP_TONES.alba} 62.5%,
-          ${BACKDROP_TONES.alba} 75%,
-          ${TONE.paper} 75%,
-          ${TONE.paper} 87.5%,
-          ${TONE.night} 87.5%,
-          ${TONE.night} 100%
-        )
-      `
-          .replace(/\s+/g, ' ')
-          .trim(),
-      );
-    }
-  }, []);
-
   return (
     <SceneToneSetterContext.Provider value={setterValue}>
       <SceneToneContext.Provider value={readonlyValue}>
-        <div ref={containerRef} className="relative">
+        <div className="relative">
           <div
             ref={backdropRef}
             aria-hidden
             data-testid="tonal-backdrop"
             data-tonal-backdrop="root"
             className="flight-backdrop pointer-events-none fixed inset-0 -z-10"
-            style={{ backgroundColor: TONE.paper }}
           />
+          <div aria-hidden className="flight-grain pointer-events-none fixed inset-0 -z-5" />
           <div
             aria-hidden
-            className="flight-grain pointer-events-none fixed inset-0 -z-5"
-            style={grainStyle}
-          />
-          <div
-            aria-hidden
-            className="flight-scanlines pointer-events-none fixed inset-0 -z-4"
-            style={scanlineStyle}
+            className={`flight-scanlines pointer-events-none fixed inset-0 -z-4 ${scanlineStyle.display === 'block' ? 'flight-scanlines--active' : ''}`}
           />
           <div
             aria-hidden

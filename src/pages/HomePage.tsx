@@ -27,7 +27,7 @@ const TonalScene = lazy(() =>
  * the live tone published by `TonalScene` (ADR-0011) and follow the blends
  * instead of a static per-section tone.
  *
- * `TonalScene` is lazy-loaded to keep GSAP and the tonal engine out of the
+ * `TonalScene` is lazy-loaded to keep the tonal engine out of the
  * entry chunk. The Suspense fallback paints the paper tone so there is no
  * flash before the engine mounts.
  */

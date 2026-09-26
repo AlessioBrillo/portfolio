@@ -5,10 +5,10 @@ import { TonalScene } from '@/components/ascent/TonalScene';
 import { useSceneTone, useSceneToneSetter } from '@/components/ascent/tone-context';
 import { TONE } from '@/lib/tone';
 
-// The GSAP engine is exercised in useTonalEngine.test.ts; here we only assert
-// the scene's rendering contract, so we stub the hook to keep GSAP out of jsdom.
-vi.mock('@/components/ascent/useTonalEngine', () => ({
-  useTonalEngine: vi.fn(),
+// The tonal engine is now native CSS Scroll-driven Animations; we stub the hook
+// to keep browser APIs out of jsdom.
+vi.mock('@/hooks/useSceneTonePublisher', () => ({
+  useSceneTonePublisher: vi.fn(),
 }));
 
 // useReducedMotion is mocked at top level; tests control its return value
@@ -41,16 +41,20 @@ describe('TonalScene', () => {
     expect(screen.getByText('inside the scene')).toBeInTheDocument();
   });
 
-  it('renders a fixed, decorative backdrop seeded on the paper tone', () => {
+  it('renders a fixed, decorative backdrop with flight-backdrop class', () => {
     const { container } = render(
       <TonalScene>
         <span>content</span>
       </TonalScene>,
     );
-    const backdrop = container.querySelector('.pointer-events-none.fixed.inset-0.-z-10');
+    const backdrop = container.querySelector('.flight-backdrop');
     expect(backdrop).toBeInTheDocument();
     expect(backdrop).toHaveAttribute('aria-hidden');
-    expect(backdrop).toHaveStyle({ backgroundColor: TONE.paper });
+    expect(backdrop).toHaveClass('flight-backdrop');
+    expect(backdrop).toHaveClass('pointer-events-none');
+    expect(backdrop).toHaveClass('fixed');
+    expect(backdrop).toHaveClass('inset-0');
+    expect(backdrop).toHaveClass('-z-10');
   });
 
   it('paints the backdrop below all page content (negative z, no wrapper stacking context)', () => {
@@ -80,7 +84,7 @@ describe('TonalScene', () => {
     expect(parent).toHaveClass('z-10');
   });
 
-  it('publishes the scene tone to children without re-painting the GSAP-owned backdrop', () => {
+  it('publishes the scene tone to children without re-painting the CSS-owned backdrop', () => {
     const { container } = render(
       <TonalScene>
         <ToneProbe />
@@ -93,8 +97,11 @@ describe('TonalScene', () => {
 
     // React owns the seed colour only; the engine paints the backdrop after
     // mount, so a state flip must never snap it back to a React-driven value.
-    const backdrop = container.querySelector('.pointer-events-none.fixed.inset-0.-z-10');
-    expect(backdrop).toHaveStyle({ backgroundColor: TONE.paper });
+    const backdrop = container.querySelector('.flight-backdrop');
+    expect(backdrop).toHaveClass('flight-backdrop');
+    // The backdrop should NOT have a React-driven backgroundColor inline style
+    // (it's painted by CSS). In jsdom without CSS, we just verify the class is present.
+    expect(backdrop).not.toHaveStyle({ backgroundColor: TONE.paper });
   });
 
   it('handles tonal engine error event and sets error state', async () => {
@@ -107,7 +114,7 @@ describe('TonalScene', () => {
     // Dispatch the tonal-engine-error event to trigger the error handler
     window.dispatchEvent(
       new CustomEvent('tonal-engine-error', {
-        detail: { message: 'GSAP failed', cause: new Error('test'), stack: 'stack' },
+        detail: { message: 'Engine failed', cause: new Error('test'), stack: 'stack' },
       }),
     );
 
@@ -117,19 +124,39 @@ describe('TonalScene', () => {
     });
   });
 
-  it('renders scanlines hidden when prefers-reduced-motion is true', () => {
-    // Mock prefersReducedMotion to return true
-    vi.mocked(useReducedMotion).mockReturnValue(true);
-
-    render(
+  it('renders scanlines with flight-scanlines class (hidden by default CSS)', () => {
+    const { container } = render(
       <TonalScene>
         <span>content</span>
       </TonalScene>,
     );
 
-    // The scanline layer should have display: none
-    const scanlineLayer = document.querySelector('.pointer-events-none.fixed.inset-0.-z-4');
-    expect(scanlineLayer).toHaveStyle({ display: 'none' });
+    const scanlineLayer = container.querySelector('.flight-scanlines');
+    expect(scanlineLayer).toBeInTheDocument();
+    expect(scanlineLayer).toHaveClass('flight-scanlines');
+    expect(scanlineLayer).toHaveClass('pointer-events-none');
+    expect(scanlineLayer).toHaveClass('fixed');
+    expect(scanlineLayer).toHaveClass('inset-0');
+    expect(scanlineLayer).toHaveClass('-z-4');
+  });
+
+  it('renders scanlines hidden when prefers-reduced-motion is true (CSS handles display)', () => {
+    // Mock prefersReducedMotion to return true
+    vi.mocked(useReducedMotion).mockReturnValue(true);
+
+    const { container } = render(
+      <TonalScene>
+        <span>content</span>
+      </TonalScene>,
+    );
+
+    // The scanline layer should have the base class (CSS handles display: none via media query)
+    // In jsdom, we verify the class is present and the active modifier class is absent
+    const scanlineLayer = container.querySelector('.flight-scanlines');
+    expect(scanlineLayer).toBeInTheDocument();
+    expect(scanlineLayer).toHaveClass('flight-scanlines');
+    // When reduced motion, the --active modifier class should NOT be present
+    expect(scanlineLayer).not.toHaveClass('flight-scanlines--active');
   });
 
   it('shows constellation on ArrowUp keydown when tone is night and reduced motion is false', async () => {
@@ -147,9 +174,10 @@ describe('TonalScene', () => {
     // Press ArrowUp key
     fireEvent.keyDown(window, { key: 'ArrowUp' });
 
-    // Constellation layer should be visible (not display: none)
-    const constellationLayer = document.querySelector('.pointer-events-none.fixed.inset-0.-z-3');
-    expect(constellationLayer).not.toHaveStyle({ display: 'none' });
+    // Constellation layer should be visible (has --visible modifier class)
+    const constellationLayer = document.querySelector('.flight-constellation');
+    expect(constellationLayer).toBeInTheDocument();
+    expect(constellationLayer).toHaveClass('flight-constellation--visible');
   });
 
   it('hides constellation on ArrowUp when prefers-reduced-motion is true', () => {
@@ -166,9 +194,10 @@ describe('TonalScene', () => {
 
     fireEvent.keyDown(window, { key: 'ArrowUp' });
 
-    // Constellation layer should be hidden when reduced motion
-    const constellationLayer = document.querySelector('.pointer-events-none.fixed.inset-0.-z-3');
-    expect(constellationLayer).toHaveStyle({ display: 'none' });
+    // Constellation layer should be hidden (no --visible modifier class)
+    const constellationLayer = document.querySelector('.flight-constellation');
+    expect(constellationLayer).toBeInTheDocument();
+    expect(constellationLayer).not.toHaveClass('flight-constellation--visible');
   });
 
   it('hides constellation on ArrowUp when tone is not night', () => {
@@ -181,8 +210,9 @@ describe('TonalScene', () => {
 
     fireEvent.keyDown(window, { key: 'ArrowUp' });
 
-    // Constellation layer should be hidden when tone is not night
-    const constellationLayer = document.querySelector('.pointer-events-none.fixed.inset-0.-z-3');
-    expect(constellationLayer).toHaveStyle({ display: 'none' });
+    // Constellation layer should be hidden (no --visible modifier class)
+    const constellationLayer = document.querySelector('.flight-constellation');
+    expect(constellationLayer).toBeInTheDocument();
+    expect(constellationLayer).not.toHaveClass('flight-constellation--visible');
   });
 });

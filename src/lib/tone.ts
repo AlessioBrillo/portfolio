@@ -6,7 +6,7 @@ import type { SectionId } from '@/types/domain';
  * This module holds the *declarative* description of the journey — the two
  * primary surfaces and the sequence of crossfades between them. The actual colour
  * interpolation (including the reduced-motion instant switch) is driven by
- * CSS Scroll-driven Animations in `useTonalEngine`; the transition map lives here.
+ * CSS Scroll-driven Animations in `useSceneTonePublisher`; the transition map lives here.
  * Colour mixing happens only here, in the pure helpers used to compute the flip lines.
  */
 
@@ -70,7 +70,7 @@ export const SOFT_TEXT_TONE = {
 /**
  * One scroll-driven crossfade of the backdrop, anchored to a real section.
  * The fade runs as `trigger` scrolls through the window; `start`/`end` are
- * ScrollTrigger positions (tuned so the fade completes as the section
+ * Scroll Timeline positions (tuned so the fade completes as the section
  * reaches centre, keeping each section's text on its correct, AA-legible tone).
  */
 export interface TonalTransition {
@@ -87,7 +87,7 @@ export interface TonalTransition {
  * climb (paper → foschia → night) into cruise, then descent (night → alba → paper)
  * back to daylight, finally night landing at Contact.
  *
- * `trigger` is the ScrollTrigger anchor — the section that fade flies *into*.
+ * `trigger` is the Scroll Timeline anchor — the section that fade flies *into*.
  */
 export const TONAL_TRANSITIONS: readonly TonalTransition[] = [
   // Climb phase: ground → haze → night
@@ -128,7 +128,7 @@ export interface FlipLine {
   /** Blend fraction (0..1) of the fade window at which the flip fires. */
   progress: number;
   /**
-   * Equivalent ScrollTrigger position (`top <pct>%` of the trigger heading).
+   * Equivalent Scroll Timeline position (`top <pct>%` of the trigger heading).
    * The heading travels `top bottom` (100%) -> `top center` (50%) across the
    * fade, so the flip's viewport percentage is `100 - 50 * progress`.
    */
