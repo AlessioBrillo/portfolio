@@ -590,10 +590,11 @@ describe('renderStaticFlightGradient', () => {
 
     const style = el.style.backgroundImage;
     // Browser converts hex to rgb() in computed styles
-    expect(style).toContain('rgb(244, 244, 240)'); // paper
-    expect(style).toContain('rgb(122, 122, 122)'); // foschia
-    expect(style).toContain('rgb(10, 10, 10)'); // night
-    expect(style).toContain('rgb(133, 133, 133)'); // alba
+    // Paper spec palette: Carta #F4EFE6, Foschia #84837F, Notte #14161D, Alba #84837F
+    expect(style).toContain('rgb(244, 239, 230)'); // paper (Carta)
+    expect(style).toContain('rgb(132, 131, 127)'); // foschia
+    expect(style).toContain('rgb(20, 22, 29)'); // night (Notte)
+    expect(style).toContain('rgb(132, 131, 127)'); // alba
 
     // Verify the gradient stops match the flight profile (8 sections ≈ 12.5% each)
     expect(style).toContain('0%');

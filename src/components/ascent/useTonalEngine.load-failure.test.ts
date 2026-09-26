@@ -55,31 +55,62 @@ describe('useTonalEngine — GSAP load failure', () => {
     const gradient = result.current.current?.style.backgroundImage;
     expect(gradient).toBeDefined();
     if (!gradient) return;
+
+    // Paper spec palette: Carta #F4EFE6, Foschia #84837F, Notte #14161D, Alba #84837F
     const paperRgb = hexToRgb(BACKDROP_TONES.paper);
     const foschiaRgb = hexToRgb(BACKDROP_TONES.foschia);
     const nightRgb = hexToRgb(BACKDROP_TONES.night);
     const albaRgb = hexToRgb(BACKDROP_TONES.alba);
 
+    // Verify all four tones appear in the gradient
     expect(gradient).toContain(paperRgb);
     expect(gradient).toContain(foschiaRgb);
     expect(gradient).toContain(nightRgb);
     expect(gradient).toContain(albaRgb);
 
-    // Verify order: paper -> foschia -> night -> alba -> paper -> night
-    const paperIndex = gradient.indexOf(paperRgb);
-    const foschiaIndex = gradient.indexOf(foschiaRgb);
-    const nightIndex = gradient.indexOf(nightRgb);
-    const albaIndex = gradient.indexOf(albaRgb);
+    // Note: foschia and alba share the same color value (#84837F) in the paper spec,
+    // so indexOf will find the first occurrence for both. Instead, verify the
+    // gradient structure matches the expected flight profile by checking the
+    // stop percentages in the computed gradient.
+    expect(gradient).toContain('0%');
+    expect(gradient).toContain('12.5%');
+    expect(gradient).toContain('25%');
+    expect(gradient).toContain('37.5%');
+    expect(gradient).toContain('50%');
+    expect(gradient).toContain('62.5%');
+    expect(gradient).toContain('75%');
+    expect(gradient).toContain('87.5%');
+    expect(gradient).toContain('100%');
 
-    expect(paperIndex).toBeLessThan(foschiaIndex);
-    expect(foschiaIndex).toBeLessThan(nightIndex);
-    expect(nightIndex).toBeLessThan(albaIndex);
+    // Check that each stop's colour and position appears in the actual gradient
+    // by verifying the canonical sequence is a subsequence of the actual.
+    const actual = gradient.replace(/\s+/g, '').toLowerCase();
+    const expectedStops = [
+      `${paperRgb}0%`,
+      `${paperRgb}12.5%`,
+      `${foschiaRgb}12.5%`,
+      `${foschiaRgb}25%`,
+      `${nightRgb}25%`,
+      `${nightRgb}37.5%`,
+      `${nightRgb}37.5%`,
+      `${nightRgb}50%`,
+      `${nightRgb}50%`,
+      `${nightRgb}62.5%`,
+      `${albaRgb}62.5%`,
+      `${albaRgb}75%`,
+      `${paperRgb}75%`,
+      `${paperRgb}87.5%`,
+      `${nightRgb}87.5%`,
+      `${nightRgb}100%`,
+    ].map((s) => s.replace(/\s+/g, '').toLowerCase());
 
-    // alba should appear before the final paper/night sequence
-    const lastPaperIndex = gradient.lastIndexOf(paperRgb);
-    const lastNightIndex = gradient.lastIndexOf(nightRgb);
-    expect(albaIndex).toBeLessThan(lastPaperIndex);
-    expect(lastPaperIndex).toBeLessThan(lastNightIndex);
+    // Each expected stop should appear in order in the actual gradient
+    let searchIndex = 0;
+    for (const stop of expectedStops) {
+      const found = actual.indexOf(stop, searchIndex);
+      expect(found).toBeGreaterThanOrEqual(searchIndex);
+      searchIndex = found + 1;
+    }
 
     errorSpy.mockRestore();
   });
