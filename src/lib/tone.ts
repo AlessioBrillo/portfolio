@@ -13,14 +13,14 @@ import type { SectionId } from '@/types/domain';
 
 /** All backdrop tones the flight uses (including intermediates). */
 export const BACKDROP_TONES = {
-  /** Newsprint — light substrate (ground) */
-  paper: '#F4F4F0',
-  /** Haze — intermediate climb tone */
-  foschia: '#7A7A7A',
-  /** Deactivated CRT — dark substrate (cruise/night) */
-  night: '#0A0A0A',
-  /** Dawn — intermediate descent tone */
-  alba: '#858585',
+  /** Carta — light substrate (ground) */
+  paper: '#F4EFE6',
+  /** Foschia — intermediate climb tone (haze) */
+  foschia: '#84837F',
+  /** Notte — dark substrate (cruise/night) */
+  night: '#14161D',
+  /** Alba — intermediate descent tone (dawn) */
+  alba: '#84837F',
 } as const;
 
 export type BackdropToneName = keyof typeof BACKDROP_TONES;
@@ -53,8 +53,8 @@ export function publishedToneFor(backdrop: BackdropToneName): ToneName {
  * (see `flipLineFor`) clears WCAG AA (4.5:1) at every instant of the blend.
  */
 export const TEXT_TONE = {
-  paper: '#050505',
-  night: '#EAEAEA',
+  paper: '#2A2722', // Inchiostro
+  night: '#FBF8F2', // Panna
 } as const;
 
 /**
@@ -64,8 +64,8 @@ export const TEXT_TONE = {
  * worst case to a documented floor instead of clearing AA.
  */
 export const SOFT_TEXT_TONE = {
-  paper: '#48453F',
-  night: '#8D8D8D',
+  paper: '#8A8377',
+  night: '#7B8190',
 } as const;
 
 /**
@@ -284,3 +284,23 @@ export function computeStaticFlightGradient(): string {
   ];
   return `linear-gradient(to bottom, ${stops.join(', ')})`;
 }
+
+/** Export the gradient stops for CSS-driven animation (Scroll Timeline API) */
+export const STATIC_FLIGHT_GRADIENT_STOPS = [
+  { color: BACKDROP_TONES.paper, position: '0%' },
+  { color: BACKDROP_TONES.paper, position: '12.5%' },
+  { color: BACKDROP_TONES.foschia, position: '12.5%' },
+  { color: BACKDROP_TONES.foschia, position: '25%' },
+  { color: BACKDROP_TONES.night, position: '25%' },
+  { color: BACKDROP_TONES.night, position: '37.5%' },
+  { color: BACKDROP_TONES.night, position: '37.5%' },
+  { color: BACKDROP_TONES.night, position: '50%' },
+  { color: BACKDROP_TONES.night, position: '50%' },
+  { color: BACKDROP_TONES.night, position: '62.5%' },
+  { color: BACKDROP_TONES.alba, position: '62.5%' },
+  { color: BACKDROP_TONES.alba, position: '75%' },
+  { color: BACKDROP_TONES.paper, position: '75%' },
+  { color: BACKDROP_TONES.paper, position: '87.5%' },
+  { color: BACKDROP_TONES.night, position: '87.5%' },
+  { color: BACKDROP_TONES.night, position: '100%' },
+] as const;
