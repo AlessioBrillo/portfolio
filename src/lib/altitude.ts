@@ -1,33 +1,15 @@
-import type { AltitudeStop, SectionId } from '@/types/domain';
+import type { SectionId } from '@/types/domain';
+import { SECTION_ORDER, ALTITUDE_STOPS } from '@/lib/flight-profile';
 
 /**
  * The flight profile, top (ground) to landing (night). Order matches the on-page
  * section order so the altitude gauge and scroll position stay aligned. The
  * profile rises and falls — cruise sits above the cloud deck (dark sky), descent
  * breaks back into daylight before the night landing. See ADR-0010.
+ *
+ * Re-exported from flight-profile.ts (single source of truth).
  */
-export const ALTITUDE_STOPS: readonly AltitudeStop[] = [
-  { band: 'ground', label: 'GROUND', target: 'hero' },
-  { band: 'climb', label: 'CLIMB', target: 'who' },
-  { band: 'climb', label: 'MOSAIC', target: 'mosaic' },
-  { band: 'cruise', label: 'CRUISE', target: 'ai-physics' },
-  { band: 'cruise', label: 'OPS LOG', target: 'work-school' },
-  { band: 'descent', label: 'DESCENT', target: 'sky-sport' },
-  { band: 'descent', label: 'ARCHIVE', target: 'experiences' },
-  { band: 'night', label: 'NIGHT', target: 'contact' },
-];
-
-/** Section order, top to bottom — the structural backbone of the page. */
-export const SECTION_ORDER: readonly SectionId[] = [
-  'hero',
-  'who',
-  'mosaic',
-  'ai-physics',
-  'work-school',
-  'sky-sport',
-  'experiences',
-  'contact',
-];
+export { SECTION_ORDER, ALTITUDE_STOPS };
 
 /**
  * The gauge's rise-and-fall fill (ADR-0006, ADR-0010): the flight's altitude
