@@ -23,7 +23,7 @@ import {
  * Progressive enhancement strategy:
  * 1. Native support (Chrome 115+, Edge 115+, Safari 17.4+) → use native CSS Scroll-driven Animations
  * 2. No native support but polyfill available (Firefox, older Safari) → load polyfill, then use CSS animations
- * 3. Reduced motion → static gradient + IntersectionObserver for tone flips
+ * 3. Reduced motion → static gradient + IntersectionObserver for tone flips (NO polyfill)
  * 4. No polyfill / polyfill failed → static gradient + scroll listener fallback
  */
 interface TonePublisherOptions {
@@ -56,6 +56,8 @@ export function useSceneTonePublisher({
   const onSoftToneChangeRef = useRef(onSoftToneChange);
   onSoftToneChangeRef.current = onSoftToneChange;
 
+  // Polyfill loading is only relevant for FULL MOTION mode.
+  // In reduced motion we use CSS static gradient fallback, so polyfill is never needed.
   const loadPolyfill = useCallback(async (): Promise<boolean> => {
     if (typeof window === 'undefined') return false;
     if (polyfillLoaded) return true;
@@ -86,7 +88,9 @@ export function useSceneTonePublisher({
     // Apply the CSS animation class to the backdrop
     backdrop.classList.add('flight-backdrop');
 
-    // Reduced motion always uses static gradient + IntersectionObserver
+    // Reduced motion: ALWAYS use static gradient + IntersectionObserver.
+    // Never load polyfill in reduced motion — it would patch global APIs
+    // and break the CSS-based static gradient fallback.
     if (prefersReduced) {
       backdrop.style.animation = 'none';
 
@@ -107,7 +111,7 @@ export function useSceneTonePublisher({
     // Full motion: check native support first
     let supported = supportsScrollDrivenAnimations();
 
-    // If no native support, try to load polyfill
+    // If no native support, try to load polyfill (only in full motion mode)
     if (!supported) {
       const polyfillSuccess = await loadPolyfill();
       if (polyfillSuccess) {
