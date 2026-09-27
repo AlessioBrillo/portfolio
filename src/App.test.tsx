@@ -48,10 +48,11 @@ describe('App', () => {
       </Suspense>,
     );
     // The h1 lives inside the TonalScene boundary (HomePage): allow the
-    // assertion to outlive the default 1s waitFor budget on slow or
+    // assertion to outlive the default waitFor budget on slow or
     // coverage-instrumented runners, where the lazy chunk resolves late.
+    // Coverage instrumentation adds significant overhead; give it a generous window.
     await waitFor(() => expect(screen.getByRole('heading', { level: 1 })).toBeInTheDocument(), {
-      timeout: 5000,
+      timeout: 15000,
     });
   });
 });
