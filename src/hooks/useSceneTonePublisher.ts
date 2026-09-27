@@ -1,4 +1,4 @@
-import { useEffect, useRef, useCallback } from 'react';
+import { useEffect, useRef, useCallback, useState } from 'react';
 import type { ToneName } from '@/lib/tone';
 import { computeStaticFlightGradient } from '@/lib/tone';
 import { useReducedMotion } from './useReducedMotion';
@@ -19,6 +19,12 @@ import {
  *
  * The backdrop animation is entirely CSS-driven. This hook only publishes
  * the current tone to React context via the provided setters.
+ *
+ * Progressive enhancement strategy:
+ * 1. Native support (Chrome 115+, Edge 115+, Safari 17.4+) → use native CSS Scroll-driven Animations
+ * 2. No native support but polyfill available (Firefox, older Safari) → load polyfill, then use CSS animations
+ * 3. Reduced motion → static gradient + IntersectionObserver for tone flips
+ * 4. No polyfill / polyfill failed → static gradient + scroll listener fallback
  */
 interface TonePublisherOptions {
   /** Called when the body text tone should flip */
@@ -29,12 +35,15 @@ interface TonePublisherOptions {
   backdropRef: React.RefObject<HTMLDivElement | null>;
 }
 
+type EngineMode = 'css-scroll-animations' | 'polyfill' | 'css-fallback' | 'fallback';
+
 export function useSceneTonePublisher({
   onToneChange,
   onSoftToneChange,
   backdropRef,
 }: TonePublisherOptions): void {
   const prefersReducedMotion = useReducedMotion();
+  const [polyfillLoaded, setPolyfillLoaded] = useState(false);
   const cleanupRef = useRef<(() => void) | null>(null);
   const prefersReducedRef = useRef(prefersReducedMotion);
   const scrollAnimationsSupportedRef = useRef(false);
@@ -47,6 +56,23 @@ export function useSceneTonePublisher({
   const onSoftToneChangeRef = useRef(onSoftToneChange);
   onSoftToneChangeRef.current = onSoftToneChange;
 
+  const loadPolyfill = useCallback(async (): Promise<boolean> => {
+    if (typeof window === 'undefined') return false;
+    if (polyfillLoaded) return true;
+
+    try {
+      // Dynamic import of the polyfill — only loads when needed.
+      // Use a variable to prevent static analysis by the bundler.
+      const polyfillModule = 'scroll-timeline-polyfill';
+      await import(/* @vite-ignore */ polyfillModule);
+      setPolyfillLoaded(true);
+      return true;
+    } catch (error) {
+      console.warn('[TonalEngine] Polyfill failed to load:', error);
+      return false;
+    }
+  }, [polyfillLoaded]);
+
   const setupEngine = useCallback(async () => {
     const backdrop = backdropRefCurrent.current;
     if (!backdrop) return;
@@ -54,21 +80,47 @@ export function useSceneTonePublisher({
     // Clean up previous setup
     cleanupRef.current?.();
 
-    const supported = supportsScrollDrivenAnimations();
     const prefersReduced = getPrefersReducedMotion();
-    scrollAnimationsSupportedRef.current = supported;
     prefersReducedRef.current = prefersReduced;
 
     // Apply the CSS animation class to the backdrop
     backdrop.classList.add('flight-backdrop');
 
-    if (!supported || prefersReduced) {
-      // Fallback: static gradient + scroll listener for tone publishing
-      if (!supported) {
-        // The static gradient is already in CSS via --static-flight-gradient custom property
-        // Just ensure the backdrop uses it
-        backdrop.style.animation = 'none';
+    // Reduced motion always uses static gradient + IntersectionObserver
+    if (prefersReduced) {
+      backdrop.style.animation = 'none';
+
+      cleanupRef.current = setupIntersectionObserver(
+        (tone) => onToneChangeRef.current?.(tone),
+        (tone) => onSoftToneChangeRef.current?.(tone),
+        true,
+      );
+
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(
+          new CustomEvent('tonal-engine-load', { detail: { engine: 'css-fallback' } }),
+        );
       }
+      return;
+    }
+
+    // Full motion: check native support first
+    let supported = supportsScrollDrivenAnimations();
+
+    // If no native support, try to load polyfill
+    if (!supported) {
+      const polyfillSuccess = await loadPolyfill();
+      if (polyfillSuccess) {
+        // Re-check after polyfill load — it polyfills the API so the feature detect should pass
+        supported = supportsScrollDrivenAnimations();
+      }
+    }
+
+    scrollAnimationsSupportedRef.current = supported;
+
+    if (!supported) {
+      // No native support and polyfill failed/unavailable → static gradient + scroll listener
+      backdrop.style.animation = 'none';
 
       cleanupRef.current = setupScrollListenerFallback(
         (tone) => onToneChangeRef.current?.(tone),
@@ -77,36 +129,36 @@ export function useSceneTonePublisher({
 
       if (typeof window !== 'undefined') {
         window.dispatchEvent(
-          new CustomEvent('tonal-engine-load', {
-            detail: { engine: supported ? 'css-fallback' : 'fallback' },
-          }),
+          new CustomEvent('tonal-engine-load', { detail: { engine: 'fallback' } }),
         );
       }
       return;
     }
 
-    // Full motion with CSS Scroll-driven Animations + IntersectionObserver
+    // Full motion with CSS Scroll-driven Animations (native or polyfilled) + IntersectionObserver
     // The backdrop animation is handled by CSS (flight-backdrop class)
     // We just need to set up IntersectionObserver for tone publishing
 
     cleanupRef.current = setupIntersectionObserver(
       (tone) => onToneChangeRef.current?.(tone),
       (tone) => onSoftToneChangeRef.current?.(tone),
-      prefersReduced,
+      false,
     );
+
+    const engineMode: EngineMode = polyfillLoaded ? 'polyfill' : 'css-scroll-animations';
 
     if (typeof window !== 'undefined') {
       window.dispatchEvent(
-        new CustomEvent('tonal-engine-load', { detail: { engine: 'css-scroll-animations' } }),
+        new CustomEvent('tonal-engine-load', { detail: { engine: engineMode } }),
       );
     }
-  }, []);
+  }, [loadPolyfill, polyfillLoaded]);
 
   useEffect(() => {
     let cancelled = false;
 
     // Initial setup
-    const initialize = async () => {
+    const initialize = async (): Promise<void> => {
       await setupEngine();
     };
     void initialize();
@@ -119,7 +171,7 @@ export function useSceneTonePublisher({
     };
 
     let resizeTimeout: ReturnType<typeof setTimeout>;
-    const debouncedRefresh = () => {
+    const debouncedRefresh = (): void => {
       clearTimeout(resizeTimeout);
       resizeTimeout = setTimeout(refreshIfActive, 150);
     };
