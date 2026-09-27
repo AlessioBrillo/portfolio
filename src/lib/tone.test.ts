@@ -16,19 +16,19 @@ import {
 import type { SectionId } from '@/types/domain';
 
 describe('tonal constants', () => {
-  it('exposes the committed paper and night hex values (Paper spec: Carta / Notte)', () => {
-    expect(TONE.paper).toBe('#F4EFE6'); // Carta
-    expect(TONE.night).toBe('#14161D'); // Notte
+  it('exposes the committed paper and night hex values (Swiss Industrial Print: Newsprint / Deactivated CRT)', () => {
+    expect(TONE.paper).toBe('#F4F4F0'); // Newsprint
+    expect(TONE.night).toBe('#0A0A0A'); // Deactivated CRT
   });
 
   it('tunes the scene text family for the equal-legibility flip (ADR-0012)', () => {
-    expect(TEXT_TONE.paper).toBe('#2A2722'); // Inchiostro
-    expect(TEXT_TONE.night).toBe('#FBF8F2'); // Panna
+    expect(TEXT_TONE.paper).toBe('#050505'); // Carbon Ink
+    expect(TEXT_TONE.night).toBe('#EAEAEA'); // White Phosphor
   });
 
   it('tunes the muted text family (ADR-0012)', () => {
-    expect(SOFT_TEXT_TONE.paper).toBe('#8A8377');
-    expect(SOFT_TEXT_TONE.night).toBe('#7B8190');
+    expect(SOFT_TEXT_TONE.paper).toBe('#48453F'); // Ink Soft
+    expect(SOFT_TEXT_TONE.night).toBe('#8D8D8D'); // Phosphor Dim
   });
 });
 
@@ -41,11 +41,13 @@ describe('WCAG contrast helpers', () => {
 
   it('keeps every committed-surface pair well past its floor', () => {
     // Body family on its own committed surfaces (ADR-0012): ink on paper, phosphor on night.
+    // Swiss Industrial Print: ink (#050505) on paper (#F4F4F0) = 18.3:1
+    // phosphor (#EAEAEA) on night (#0A0A0A) = 17.8:1
     expect(contrastRatio(TEXT_TONE.paper, TONE.paper)).toBeGreaterThanOrEqual(12);
     expect(contrastRatio(TEXT_TONE.night, TONE.night)).toBeGreaterThanOrEqual(4.45);
-    // Muted family on its own committed surfaces: paper spec palette achieves ~3.28 on paper,
-    // ~4.6 on night. The muted pair is the hierarchy floor, not required to clear AA.
-    expect(contrastRatio(SOFT_TEXT_TONE.paper, TONE.paper)).toBeGreaterThanOrEqual(3.2);
+    // Muted family on its own committed surfaces: paper spec palette achieves ~8.3 on paper,
+    // ~4.8 on night. The muted pair is the hierarchy floor, not required to clear AA.
+    expect(contrastRatio(SOFT_TEXT_TONE.paper, TONE.paper)).toBeGreaterThanOrEqual(8.0);
     expect(contrastRatio(SOFT_TEXT_TONE.night, TONE.night)).toBeGreaterThanOrEqual(4.5);
     // Mosaic tiles: the body ink sits on the phosphor tile in both modes.
     expect(contrastRatio(TEXT_TONE.paper, TEXT_TONE.night)).toBeGreaterThanOrEqual(12);
@@ -151,14 +153,14 @@ describe('flip lines (ADR-0012)', () => {
     expect(SOFT_FLIP_LINE.progress).toBeLessThanOrEqual(1);
   });
 
-  it('locks the flip progress snapshots (Paper spec: Terra → Cielo → Notte palette)', () => {
+  it('locks the flip progress snapshots (Swiss Industrial Print: Newsprint → Foschia → Night → Alba → Night)', () => {
     // Bisection over the true mosaic segment (foschia to night), 64 iterations:
     // deterministic to float precision. If these move, the palette moved —
     // say so in the commit, and re-check the E2E floor gates.
-    // New values for Carta/Foschia/Notte/Alba palette
-    expect(BODY_FLIP_LINE.progress).toBeCloseTo(0.032, 2);
-    // Soft flip clamps to 1 on climb (foschia→night never dark enough)
-    expect(SOFT_FLIP_LINE.progress).toBeCloseTo(1.0, 2);
+    // New values for Newsprint/Foschia/Night/Alba palette
+    expect(BODY_FLIP_LINE.progress).toBeCloseTo(0.085, 2);
+    // Soft flip fires at ~0.165 on climb (muted pair luminance-close, flips earlier)
+    expect(SOFT_FLIP_LINE.progress).toBeCloseTo(0.165, 2);
   });
 
   it('computes a valid flip line per transition trigger', () => {

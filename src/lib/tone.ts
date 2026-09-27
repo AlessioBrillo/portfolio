@@ -12,22 +12,24 @@ import type { SectionId } from '@/types/domain';
 
 /** All backdrop tones the flight uses (including intermediates). */
 export const BACKDROP_TONES = {
-  /** Carta — light substrate (ground) */
-  paper: '#F4EFE6',
+  /** Carta — Newsprint light substrate (ground) */
+  paper: '#F4F4F0',
   /** Foschia — intermediate climb tone (haze) */
-  foschia: '#84837F',
-  /** Notte — dark substrate (cruise/night) */
-  night: '#14161D',
+  foschia: '#7A7A7A',
+  /** Notte — Deactivated CRT dark substrate (cruise/night) */
+  night: '#0A0A0A',
   /** Alba — intermediate descent tone (dawn) */
-  alba: '#84837F',
+  alba: '#858585',
 } as const;
 
 export type BackdropToneName = keyof typeof BACKDROP_TONES;
 
-/** The two primary surfaces (for text tone families). */
+/** The two primary surfaces (for text tone families).
+ *  Hardcoded to match CSS tokens exactly — prevents drift if BACKDROP_TONES
+ *  changes for animation but not for text tone families. */
 export const TONE = {
-  paper: BACKDROP_TONES.paper,
-  night: BACKDROP_TONES.night,
+  paper: '#F4F4F0', // Newsprint - matches --color-paper
+  night: '#0A0A0A', // Deactivated CRT - matches --color-night
 } as const;
 
 export type ToneName = keyof typeof TONE;
@@ -52,8 +54,8 @@ export function publishedToneFor(backdrop: BackdropToneName): ToneName {
  * (see `flipLineFor`) clears WCAG AA (4.5:1) at every instant of the blend.
  */
 export const TEXT_TONE = {
-  paper: '#2A2722', // Inchiostro
-  night: '#FBF8F2', // Panna
+  paper: '#050505', // Carbon Ink
+  night: '#EAEAEA', // White Phosphor
 } as const;
 
 /**
@@ -63,8 +65,8 @@ export const TEXT_TONE = {
  * worst case to a documented floor instead of clearing AA.
  */
 export const SOFT_TEXT_TONE = {
-  paper: '#8A8377',
-  night: '#7B8190',
+  paper: '#48453F', // Ink Soft
+  night: '#8D8D8D', // Phosphor Dim
 } as const;
 
 /**

@@ -11,8 +11,8 @@ import { TONE } from '@/lib/tone';
  *   --duration-normal: 300ms   →  DURATION.normal = 300
  *   --duration-slow: 600ms     →  DURATION.slow = 600
  *   --ease-out-expo: 0.16,1,0.3,1  →  EASE_OUT_EXPO = [0.16, 1, 0.3, 1]
- *   --color-paper: #F4EFE6     →  TONE.paper = '#F4EFE6'
- *   --color-night: #14161D     →  TONE.night = '#14161D'
+ *   --color-paper: #F4F4F0     →  TONE.paper = '#F4F4F0' (Newsprint)
+ *   --color-night: #0A0A0A     →  TONE.night = '#0A0A0A' (Deactivated CRT)
  */
 describe('design token sync (JS internal consistency)', () => {
   it('animation durations are positive', () => {
@@ -34,12 +34,12 @@ describe('design token sync (JS internal consistency)', () => {
     expect(REVEAL_OFFSET_PX).toBeLessThan(50);
   });
 
-  it('TONE colours are valid hex strings matching the paper spec', () => {
+  it('TONE colours are valid hex strings matching the Swiss Industrial Print spec', () => {
     expect(TONE.paper).toMatch(/^#[0-9a-fA-F]{6}$/);
     expect(TONE.night).toMatch(/^#[0-9a-fA-F]{6}$/);
     expect(TONE.paper).not.toBe(TONE.night);
-    // Exact values from the paper spec
-    expect(TONE.paper).toBe('#F4EFE6');
-    expect(TONE.night).toBe('#14161D');
+    // Exact values from the Swiss Industrial Print spec (ADR-0021)
+    expect(TONE.paper).toBe('#F4F4F0'); // Newsprint
+    expect(TONE.night).toBe('#0A0A0A'); // Deactivated CRT
   });
 });

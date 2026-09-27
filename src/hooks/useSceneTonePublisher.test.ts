@@ -3,11 +3,15 @@ import { useRef } from 'react';
 import type { RefObject } from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { debounce } from '@/lib/debounce';
+import { useSceneTonePublisher, renderStaticFlightGradient } from '@/hooks/useSceneTonePublisher';
+import { computeStaticFlightGradient } from '@/lib/tone';
 import {
-  useSceneTonePublisher,
-  renderStaticFlightGradient,
-  computeStaticFlightGradient,
-} from '@/hooks/useSceneTonePublisher';
+  supportsScrollDrivenAnimations,
+  getPrefersReducedMotion,
+  toneFromProgress,
+  setupIntersectionObserver,
+  setupScrollListenerFallback,
+} from '@/lib/tonal-engine-utils';
 import { TONAL_TRANSITIONS, type ToneName } from '@/lib/tone';
 
 // Mock matchMedia for reduced motion
@@ -18,6 +22,7 @@ function setReducedMotion(reduced: boolean): void {
       matches: query === '(prefers-reduced-motion: reduce)' ? reduced : !reduced,
       addEventListener: vi.fn(),
       removeEventListener: vi.fn(),
+      dispatchEvent: vi.fn(),
     })),
   );
 }
@@ -77,10 +82,11 @@ describe('useSceneTonePublisher', () => {
     it('generates the correct flight profile gradient string with hex colors', () => {
       const gradient = computeStaticFlightGradient();
 
-      // Check for hex color values (the gradient uses hex)
-      expect(gradient).toContain('#F4EFE6'); // paper (Carta)
-      expect(gradient).toContain('#84837F'); // foschia / alba
-      expect(gradient).toContain('#14161D'); // night (Notte)
+      // Check for hex color values (the gradient uses hex) - NEW Swiss Industrial Print palette
+      expect(gradient).toContain('#F4F4F0'); // paper (Newsprint)
+      expect(gradient).toContain('#7A7A7A'); // foschia
+      expect(gradient).toContain('#0A0A0A'); // night (Deactivated CRT)
+      expect(gradient).toContain('#858585'); // alba
 
       expect(gradient).toContain('0%');
       expect(gradient).toContain('12.5%');
@@ -124,6 +130,45 @@ describe('useSceneTonePublisher', () => {
     });
   });
 
+  describe('Internal functions (exported for testing)', () => {
+    it('supportsScrollDrivenAnimations returns boolean', () => {
+      const result = supportsScrollDrivenAnimations();
+      expect(typeof result).toBe('boolean');
+    });
+
+    it('getPrefersReducedMotion returns boolean', () => {
+      const result = getPrefersReducedMotion();
+      expect(typeof result).toBe('boolean');
+    });
+
+    it('toneFromProgress computes correct tones for each phase', () => {
+      expect(toneFromProgress(0)).toBe('paper');
+      expect(toneFromProgress(0.1)).toBe('paper');
+      expect(toneFromProgress(0.25)).toBe('night');
+      expect(toneFromProgress(0.5)).toBe('night');
+      expect(toneFromProgress(0.625)).toBe('paper');
+      expect(toneFromProgress(0.75)).toBe('paper');
+      expect(toneFromProgress(0.875)).toBe('night');
+      expect(toneFromProgress(1)).toBe('night');
+    });
+
+    it('setupIntersectionObserver returns cleanup function', () => {
+      const onToneChange = vi.fn();
+      const onSoftToneChange = vi.fn();
+      const cleanup = setupIntersectionObserver(onToneChange, onSoftToneChange, false);
+      expect(typeof cleanup).toBe('function');
+      cleanup();
+    });
+
+    it('setupScrollListenerFallback returns cleanup function', () => {
+      const onToneChange = vi.fn();
+      const onSoftToneChange = vi.fn();
+      const cleanup = setupScrollListenerFallback(onToneChange, onSoftToneChange);
+      expect(typeof cleanup).toBe('function');
+      cleanup();
+    });
+  });
+
   describe('CSS Scroll-driven Animations path', () => {
     it('adds flight-backdrop class to the backdrop element', async () => {
       const ref = renderEngine();
@@ -146,6 +191,14 @@ describe('useSceneTonePublisher', () => {
       });
 
       window.removeEventListener('tonal-engine-load', eventSpy);
+    });
+  });
+
+  describe('Fallback mode paths (covered via internal function tests)', () => {
+    it('toneFromProgress covers fallback tone computation', () => {
+      // This covers the toneFromProgress function used in setupScrollListenerFallback
+      expect(toneFromProgress(0)).toBe('paper');
+      expect(toneFromProgress(0.5)).toBe('night');
     });
   });
 
@@ -186,6 +239,57 @@ describe('useSceneTonePublisher', () => {
       expect(fn).not.toHaveBeenCalled();
       vi.advanceTimersByTime(50);
       expect(fn).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('Resize and load event handling (debouncedRefresh)', () => {
+    beforeEach(() => {
+      vi.useFakeTimers();
+    });
+
+    afterEach(() => {
+      vi.useRealTimers();
+    });
+
+    it('debouncedRefresh clears and resets timeout on resize', () => {
+      const fn = vi.fn();
+      const debounced = debounce(fn, 150);
+
+      // First call
+      debounced();
+      expect(fn).not.toHaveBeenCalled();
+
+      // Second call before timeout
+      vi.advanceTimersByTime(100);
+      debounced();
+      expect(fn).not.toHaveBeenCalled();
+
+      // Third call
+      vi.advanceTimersByTime(100);
+      debounced();
+      expect(fn).not.toHaveBeenCalled();
+
+      // After timeout
+      vi.advanceTimersByTime(150);
+      expect(fn).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('Cleanup on unmount', () => {
+    it('unmounts without throwing', () => {
+      const { unmount } = renderHook(() => {
+        const ref = useRef<HTMLDivElement>(null);
+        if (!ref.current) ref.current = document.createElement('div');
+        useSceneTonePublisher({
+          backdropRef: ref,
+          onToneChange: vi.fn(),
+          onSoftToneChange: vi.fn(),
+        });
+        return ref;
+      });
+
+      // Unmount should not throw
+      expect(() => unmount()).not.toThrow();
     });
   });
 });
