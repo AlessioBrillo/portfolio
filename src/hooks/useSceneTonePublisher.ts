@@ -19,11 +19,15 @@ import {
  * The backdrop animation is entirely CSS-driven. This hook only publishes
  * the current tone to React context via the provided setters.
  *
- * Progressive enhancement strategy:
- * 1. Native support (Chrome 115+, Edge 115+, Safari 17.4+) → use native CSS Scroll-driven Animations
- * 2. No native support but polyfill available (Firefox, older Safari) → load polyfill, then use CSS animations
- * 3. Reduced motion → static gradient + IntersectionObserver for tone flips (NO polyfill)
- * 4. No polyfill / polyfill failed → static gradient + scroll listener fallback
+ * Progressive enhancement strategy (SAFE DEFAULTS):
+ * 1. ALWAYS apply static flight gradient as base layer (guaranteed visible)
+ * 2. Reduced motion → static gradient + IntersectionObserver (NO polyfill, no animation)
+ * 3. Full motion + native support → CSS Scroll-driven Animations overlay
+ * 4. Full motion + no native support → try polyfill, then CSS animations
+ * 5. Polyfill failed/unavailable → scroll listener fallback
+ *
+ * Key principle: static gradient is ALWAYS applied first as guaranteed base layer.
+ * Animations/polyfills only enhance, never replace the guaranteed base.
  */
 interface TonePublisherOptions {
   /** Called when the body text tone should flip */
@@ -87,16 +91,16 @@ export function useSceneTonePublisher({
       // Apply the CSS animation class to the backdrop
       backdrop.classList.add('flight-backdrop');
 
-      // Reduced motion: ALWAYS use static gradient + IntersectionObserver.
-      // Never load polyfill in reduced motion — it would patch global APIs
-      // and break the CSS-based static gradient fallback.
-      // IMPORTANT: Manually apply static gradient because the CSS media query
-      // `@media (prefers-reduced-motion: reduce)` may not match in headless
-      // Chrome CI even when Playwright sets `reducedMotion: 'reduce'`.
+      // GUARANTEED BASE LAYER: Always apply static flight gradient as the
+      // absolute fallback. This ensures the tonal flight is ALWAYS visible,
+      // regardless of media query evaluation, polyfill loading, or animation support.
+      // Animations only enhance this base layer; they never replace it.
+      backdrop.style.backgroundImage = computeStaticFlightGradient();
+      backdrop.style.backgroundColor = 'transparent';
+
+      // Reduced motion: static gradient + IntersectionObserver (NO polyfill, no animation)
       if (prefersReduced) {
         backdrop.style.animation = 'none';
-        backdrop.style.backgroundImage = computeStaticFlightGradient();
-        backdrop.style.backgroundColor = 'transparent';
 
         cleanupRef.current = setupIntersectionObserver(
           (tone) => onToneChangeRef.current?.(tone),
@@ -122,23 +126,15 @@ export function useSceneTonePublisher({
         // 2. Check media query directly (immediate)
         // 3. Check media query in rAF (deferred, ensures browser evaluated media queries)
         // 4. Check media query after setTimeout (extra safety for slow CI)
-        // 5. Check computed style for static gradient (CSS fallback indicator)
-        // 6. Test environment detection (Playwright/CI)
+        // 5. Test environment detection (Playwright/CI via navigator.webdriver)
         //
         // Only load polyfill if ALL checks confirm we're NOT in reduced motion.
 
-        // Helper to check reduced motion via media query
-        const checkReducedMotion = (): boolean => {
-          if (typeof window === 'undefined') return false;
-          return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-        };
-
-        // Test environment detection — Playwright sets navigator.webdriver
-        const isTestEnvironment = typeof navigator !== 'undefined' && navigator.webdriver === true;
-
         // Immediate checks
         const prefersReducedImmediate =
-          prefersReducedRef.current || checkReducedMotion() || isTestEnvironment;
+          prefersReducedRef.current ||
+          window.matchMedia('(prefers-reduced-motion: reduce)').matches ||
+          (typeof navigator !== 'undefined' && navigator.webdriver === true);
 
         // Deferred check via rAF — ensures browser has evaluated media queries
         const checkReducedMotionDeferred = (): Promise<boolean> => {
@@ -148,7 +144,7 @@ export function useSceneTonePublisher({
               return;
             }
             requestAnimationFrame(() => {
-              resolve(checkReducedMotion());
+              resolve(window.matchMedia('(prefers-reduced-motion: reduce)').matches);
             });
           });
         };
@@ -161,7 +157,7 @@ export function useSceneTonePublisher({
               return;
             }
             setTimeout(() => {
-              resolve(checkReducedMotion());
+              resolve(window.matchMedia('(prefers-reduced-motion: reduce)').matches);
             }, 100);
           });
         };
@@ -184,19 +180,11 @@ export function useSceneTonePublisher({
               // Timeout check confirms reduced motion — don't load polyfill
               supported = false;
             } else {
-              // Safety net: also check if CSS static gradient is already applied
-              const computedStyle = window.getComputedStyle(backdrop);
-              const hasStaticGradient = computedStyle.backgroundImage.includes('gradient');
-
-              if (!hasStaticGradient) {
-                const polyfillSuccess = await loadPolyfill();
-                if (polyfillSuccess) {
-                  // Re-check after polyfill load — it polyfills the API so the feature detect should pass
-                  supported = supportsScrollDrivenAnimations();
-                }
-              } else {
-                // Static gradient already applied (reduced motion fallback) — treat as unsupported
-                supported = false;
+              // No reduced motion detected by any check — try polyfill
+              const polyfillSuccess = await loadPolyfill();
+              if (polyfillSuccess) {
+                // Re-check after polyfill load — it polyfills the API so the feature detect should pass
+                supported = supportsScrollDrivenAnimations();
               }
             }
           }
@@ -207,6 +195,7 @@ export function useSceneTonePublisher({
 
       if (!supported) {
         // No native support and polyfill failed/unavailable → static gradient + scroll listener
+        // (Static gradient already applied as base layer above)
         backdrop.style.animation = 'none';
 
         cleanupRef.current = setupScrollListenerFallback(
@@ -224,6 +213,7 @@ export function useSceneTonePublisher({
 
       // Full motion with CSS Scroll-driven Animations (native or polyfilled) + IntersectionObserver
       // The backdrop animation is handled by CSS (flight-backdrop class)
+      // The static gradient base layer remains; CSS animation changes background-color over it
       // We just need to set up IntersectionObserver for tone publishing
 
       cleanupRef.current = setupIntersectionObserver(
