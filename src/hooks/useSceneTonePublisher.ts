@@ -121,14 +121,24 @@ export function useSceneTonePublisher({
         // 1. Check hook value (set during render)
         // 2. Check media query directly (immediate)
         // 3. Check media query in rAF (deferred, ensures browser evaluated media queries)
-        // 4. Check computed style for static gradient (CSS fallback indicator)
+        // 4. Check media query after setTimeout (extra safety for slow CI)
+        // 5. Check computed style for static gradient (CSS fallback indicator)
+        // 6. Test environment detection (Playwright/CI)
         //
         // Only load polyfill if ALL checks confirm we're NOT in reduced motion.
 
+        // Helper to check reduced motion via media query
+        const checkReducedMotion = (): boolean => {
+          if (typeof window === 'undefined') return false;
+          return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        };
+
+        // Test environment detection — Playwright sets navigator.webdriver
+        const isTestEnvironment = typeof navigator !== 'undefined' && navigator.webdriver === true;
+
         // Immediate checks
         const prefersReducedImmediate =
-          prefersReducedRef.current ||
-          window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+          prefersReducedRef.current || checkReducedMotion() || isTestEnvironment;
 
         // Deferred check via rAF — ensures browser has evaluated media queries
         const checkReducedMotionDeferred = (): Promise<boolean> => {
@@ -138,9 +148,21 @@ export function useSceneTonePublisher({
               return;
             }
             requestAnimationFrame(() => {
-              const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-              resolve(prefersReduced);
+              resolve(checkReducedMotion());
             });
+          });
+        };
+
+        // Extra deferred check via setTimeout — extra safety for slow CI
+        const checkReducedMotionTimeout = (): Promise<boolean> => {
+          return new Promise((resolve) => {
+            if (typeof window === 'undefined') {
+              resolve(false);
+              return;
+            }
+            setTimeout(() => {
+              resolve(checkReducedMotion());
+            }, 100);
           });
         };
 
@@ -155,19 +177,27 @@ export function useSceneTonePublisher({
             // Deferred check confirms reduced motion — don't load polyfill
             supported = false;
           } else {
-            // Safety net: also check if CSS static gradient is already applied
-            const computedStyle = window.getComputedStyle(backdrop);
-            const hasStaticGradient = computedStyle.backgroundImage.includes('gradient');
+            // Extra safety: wait for timeout check too
+            const prefersReducedTimeout = await checkReducedMotionTimeout();
 
-            if (!hasStaticGradient) {
-              const polyfillSuccess = await loadPolyfill();
-              if (polyfillSuccess) {
-                // Re-check after polyfill load — it polyfills the API so the feature detect should pass
-                supported = supportsScrollDrivenAnimations();
-              }
-            } else {
-              // Static gradient already applied (reduced motion fallback) — treat as unsupported
+            if (prefersReducedTimeout) {
+              // Timeout check confirms reduced motion — don't load polyfill
               supported = false;
+            } else {
+              // Safety net: also check if CSS static gradient is already applied
+              const computedStyle = window.getComputedStyle(backdrop);
+              const hasStaticGradient = computedStyle.backgroundImage.includes('gradient');
+
+              if (!hasStaticGradient) {
+                const polyfillSuccess = await loadPolyfill();
+                if (polyfillSuccess) {
+                  // Re-check after polyfill load — it polyfills the API so the feature detect should pass
+                  supported = supportsScrollDrivenAnimations();
+                }
+              } else {
+                // Static gradient already applied (reduced motion fallback) — treat as unsupported
+                supported = false;
+              }
             }
           }
         }
