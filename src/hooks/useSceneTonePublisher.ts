@@ -90,8 +90,13 @@ export function useSceneTonePublisher({
       // Reduced motion: ALWAYS use static gradient + IntersectionObserver.
       // Never load polyfill in reduced motion — it would patch global APIs
       // and break the CSS-based static gradient fallback.
+      // IMPORTANT: Manually apply static gradient because the CSS media query
+      // `@media (prefers-reduced-motion: reduce)` may not match in headless
+      // Chrome CI even when Playwright sets `reducedMotion: 'reduce'`.
       if (prefersReduced) {
         backdrop.style.animation = 'none';
+        backdrop.style.backgroundImage = computeStaticFlightGradient();
+        backdrop.style.backgroundColor = 'transparent';
 
         cleanupRef.current = setupIntersectionObserver(
           (tone) => onToneChangeRef.current?.(tone),
