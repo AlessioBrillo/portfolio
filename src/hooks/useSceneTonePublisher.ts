@@ -112,10 +112,23 @@ export function useSceneTonePublisher({
 
       // If no native support, try to load polyfill (only in full motion mode)
       if (!supported) {
-        const polyfillSuccess = await loadPolyfill();
-        if (polyfillSuccess) {
-          // Re-check after polyfill load — it polyfills the API so the feature detect should pass
-          supported = supportsScrollDrivenAnimations();
+        // Safety check: if the backdrop already has the static gradient applied
+        // (via CSS @media (prefers-reduced-motion: reduce)), we're in reduced
+        // motion mode and should NOT load the polyfill — it would break the
+        // CSS-based fallback by patching global animation APIs.
+        const computedStyle = window.getComputedStyle(backdrop);
+        const hasStaticGradient = computedStyle.backgroundImage.includes('gradient');
+
+        if (!hasStaticGradient) {
+          const polyfillSuccess = await loadPolyfill();
+          if (polyfillSuccess) {
+            // Re-check after polyfill load — it polyfills the API so the feature detect should pass
+            supported = supportsScrollDrivenAnimations();
+          }
+        } else {
+          // Static gradient already applied (reduced motion fallback) — treat as unsupported
+          // and fall through to the scroll listener fallback below.
+          supported = false;
         }
       }
 
