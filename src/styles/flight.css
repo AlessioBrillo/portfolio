@@ -111,10 +111,12 @@
   animation-timeline: scroll(root);
 }
 
-/* Reduced motion: disable animation (static gradient is already the default) */
+/* Reduced motion: disable animation, remove gradient so background-color can show */
 @media (prefers-reduced-motion: reduce) {
   .flight-backdrop {
     animation: none;
+    background-image: none;
+    background-color: var(--color-paper);
   }
 }
 

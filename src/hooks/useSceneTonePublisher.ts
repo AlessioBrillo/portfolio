@@ -98,10 +98,9 @@ export function useSceneTonePublisher({
       if (prefersReduced) {
         backdrop.style.animation = 'none';
 
-        // In reduced motion, the backdrop has the static gradient as background-image.
-        // The test expects the backdrop's background-color to change with scroll position
-        // to simulate the gradient progression. We achieve this by setting background-color
-        // based on scroll progress, which overrides the background-image for the visible area.
+        // In reduced motion, the CSS removes the background-image and uses
+        // background-color instead. The scroll listener updates background-color
+        // to match the gradient progression at the current scroll position.
         let lastPublishedTone: ToneName = 'paper';
         let lastPublishedSoftTone: ToneName = 'paper';
 
@@ -112,7 +111,6 @@ export function useSceneTonePublisher({
           const tone = toneFromProgress(progress);
 
           // Update the backdrop's background-color to match the gradient at this scroll position
-          // This makes the fixed backdrop appear to change color as you scroll
           backdrop.style.backgroundColor = tone === 'night' ? '#0A0A0A' : '#F4F4F0';
 
           if (tone !== lastPublishedTone) {
@@ -128,16 +126,16 @@ export function useSceneTonePublisher({
         updateBackdropColorFromScroll();
         window.addEventListener('scroll', updateBackdropColorFromScroll, { passive: true });
 
-        cleanupRef.current = () => {
-          window.removeEventListener('scroll', updateBackdropColorFromScroll);
-        };
-
-        // Also set up IntersectionObserver for tone flips
-        cleanupRef.current = setupIntersectionObserver(
+        const intersectionObserverCleanup = setupIntersectionObserver(
           (tone) => onToneChangeRef.current?.(tone),
           (tone) => onSoftToneChangeRef.current?.(tone),
           true,
         );
+
+        cleanupRef.current = () => {
+          window.removeEventListener('scroll', updateBackdropColorFromScroll);
+          intersectionObserverCleanup();
+        };
 
         if (typeof window !== 'undefined') {
           window.dispatchEvent(
