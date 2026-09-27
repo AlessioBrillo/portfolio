@@ -88,17 +88,12 @@ export function useSceneTonePublisher({
 
       prefersReducedRef.current = prefersReduced;
 
-      // Apply the CSS animation class to the backdrop
+      // Apply the CSS animation class to the backdrop.
+      // The static gradient is now the default in CSS, so we don't need to apply it here.
       backdrop.classList.add('flight-backdrop');
 
-      // GUARANTEED BASE LAYER: Always apply static flight gradient as the
-      // absolute fallback. This ensures the tonal flight is ALWAYS visible,
-      // regardless of media query evaluation, polyfill loading, or animation support.
-      // Animations only enhance this base layer; they never replace it.
-      backdrop.style.backgroundImage = computeStaticFlightGradient();
-      backdrop.style.backgroundColor = 'transparent';
-
-      // Reduced motion: static gradient + IntersectionObserver (NO polyfill, no animation)
+      // Reduced motion: static gradient (CSS default) + IntersectionObserver
+      // No polyfill, no animation — just the CSS static gradient base layer.
       if (prefersReduced) {
         backdrop.style.animation = 'none';
 

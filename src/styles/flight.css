@@ -94,20 +94,24 @@
   inset: 0;
   z-index: -10;
   pointer-events: none;
-  /* Default: static paper (before animation loads) */
-  background-color: var(--color-paper);
+  /* Default: static flight gradient as guaranteed base layer.
+   * This ensures the tonal flight is ALWAYS visible, even when:
+   * - CSS Scroll-driven Animations are not supported
+   * - Reduced motion media query doesn't match (e.g., headless Chrome CI)
+   * - JavaScript hasn't loaded yet
+   * Animations only enhance this base layer; they never replace it. */
+  background-image: var(--static-flight-gradient);
+  background-color: transparent;
   /* Scroll-driven animation — supported in Chrome 115+, Edge 115+, Opera 101+ */
   /* Safari 17.4+ behind flag; Firefox behind layout.css.scroll-driven-animations.enabled */
   animation: flight auto linear;
   animation-timeline: scroll(root);
 }
 
-/* Reduced motion: disable animation, use static gradient */
+/* Reduced motion: disable animation (static gradient is already the default) */
 @media (prefers-reduced-motion: reduce) {
   .flight-backdrop {
     animation: none;
-    background-image: var(--static-flight-gradient);
-    background-color: transparent;
   }
 }
 
