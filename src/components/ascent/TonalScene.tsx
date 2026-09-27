@@ -1,6 +1,7 @@
 import { useRef, useState, useMemo, useEffect, useCallback } from 'react';
 import type { ReactElement, ReactNode } from 'react';
 import { type ToneName } from '@/lib/tone';
+import { computeStaticFlightGradient } from '@/lib/tone';
 import { SceneToneContext, SceneToneSetterContext } from './tone-context';
 import { useSceneTonePublisher } from '@/hooks/useSceneTonePublisher';
 import { useReducedMotion } from '@/hooks/useReducedMotion';
@@ -112,6 +113,10 @@ export function TonalScene({ children }: TonalSceneProps): ReactElement {
             data-testid="tonal-backdrop"
             data-tonal-backdrop="root"
             className="flight-backdrop pointer-events-none fixed inset-0 -z-10"
+            style={{
+              backgroundImage: computeStaticFlightGradient(),
+              backgroundColor: 'transparent',
+            }}
           />
           <div aria-hidden className="flight-grain pointer-events-none fixed inset-0 -z-5" />
           <div
