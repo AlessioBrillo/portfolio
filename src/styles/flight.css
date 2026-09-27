@@ -9,25 +9,28 @@
  * These are defined here (not in JS) so they're available before any JS runs,
  * preventing flash of unstyled content. */
 :root {
-  /* Static flight gradient — 8 bands × 12.5% each, matching @keyframes flight */
+  /* Static flight gradient — 8 bands × 12.5% each, matching @keyframes flight.
+   * Uses hardcoded color values (not CSS variables) to ensure the gradient
+   * renders correctly in all environments including headless Chrome CI where
+   * CSS custom properties may not be fully resolved. */
   --static-flight-gradient: linear-gradient(
     to bottom,
-    var(--color-paper) 0%,
-    var(--color-paper) 12.5%,
+    #f4f4f0 0%,
+    #f4f4f0 12.5%,
     #84837f 12.5%,
     #84837f 25%,
-    var(--color-night) 25%,
-    var(--color-night) 37.5%,
-    var(--color-night) 37.5%,
-    var(--color-night) 50%,
-    var(--color-night) 50%,
-    var(--color-night) 62.5%,
+    #0a0a0a 25%,
+    #0a0a0a 37.5%,
+    #0a0a0a 37.5%,
+    #0a0a0a 50%,
+    #0a0a0a 50%,
+    #0a0a0a 62.5%,
     #84837f 62.5%,
     #84837f 75%,
-    var(--color-paper) 75%,
-    var(--color-paper) 87.5%,
-    var(--color-night) 87.5%,
-    var(--color-night) 100%
+    #f4f4f0 75%,
+    #f4f4f0 87.5%,
+    #0a0a0a 87.5%,
+    #0a0a0a 100%
   );
 
   /* Texture overlay SVGs as data URIs */
@@ -94,20 +97,26 @@
   inset: 0;
   z-index: -10;
   pointer-events: none;
-  /* Default: static paper (before animation loads) */
-  background-color: var(--color-paper);
+  /* Default: static flight gradient as guaranteed base layer.
+   * This ensures the tonal flight is ALWAYS visible, even when:
+   * - CSS Scroll-driven Animations are not supported
+   * - Reduced motion media query doesn't match (e.g., headless Chrome CI)
+   * - JavaScript hasn't loaded yet
+   * Animations only enhance this base layer; they never replace it. */
+  background-image: var(--static-flight-gradient);
+  background-color: transparent;
   /* Scroll-driven animation — supported in Chrome 115+, Edge 115+, Opera 101+ */
   /* Safari 17.4+ behind flag; Firefox behind layout.css.scroll-driven-animations.enabled */
   animation: flight auto linear;
   animation-timeline: scroll(root);
 }
 
-/* Reduced motion: disable animation, use static gradient */
+/* Reduced motion: disable animation, remove gradient so background-color can show */
 @media (prefers-reduced-motion: reduce) {
   .flight-backdrop {
     animation: none;
-    background-image: var(--static-flight-gradient);
-    background-color: transparent;
+    background-image: none;
+    background-color: var(--color-paper);
   }
 }
 

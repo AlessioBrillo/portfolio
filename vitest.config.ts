@@ -10,6 +10,7 @@ export default defineConfig({
   resolve: {
     alias: {
       '@': resolve(dirname, 'src'),
+      'scroll-timeline-polyfill': resolve(dirname, 'src/test-stubs/scroll-timeline-polyfill.ts'),
     },
   },
   plugins: [
