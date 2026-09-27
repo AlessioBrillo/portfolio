@@ -3,14 +3,15 @@ import { useRef } from 'react';
 import type { RefObject } from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { debounce } from '@/lib/debounce';
+import { useSceneTonePublisher, renderStaticFlightGradient } from '@/hooks/useSceneTonePublisher';
+import { computeStaticFlightGradient } from '@/lib/tone';
 import {
-  useSceneTonePublisher,
-  renderStaticFlightGradient,
   supportsScrollDrivenAnimations,
   getPrefersReducedMotion,
   toneFromProgress,
-} from '@/hooks/useSceneTonePublisher';
-import { computeStaticFlightGradient } from '@/lib/tone';
+  setupIntersectionObserver,
+  setupScrollListenerFallback,
+} from '@/lib/tonal-engine-utils';
 import { TONAL_TRANSITIONS, type ToneName } from '@/lib/tone';
 
 // Mock matchMedia for reduced motion
@@ -149,6 +150,22 @@ describe('useSceneTonePublisher', () => {
       expect(toneFromProgress(0.75)).toBe('paper');
       expect(toneFromProgress(0.875)).toBe('night');
       expect(toneFromProgress(1)).toBe('night');
+    });
+
+    it('setupIntersectionObserver returns cleanup function', () => {
+      const onToneChange = vi.fn();
+      const onSoftToneChange = vi.fn();
+      const cleanup = setupIntersectionObserver(onToneChange, onSoftToneChange, false);
+      expect(typeof cleanup).toBe('function');
+      cleanup();
+    });
+
+    it('setupScrollListenerFallback returns cleanup function', () => {
+      const onToneChange = vi.fn();
+      const onSoftToneChange = vi.fn();
+      const cleanup = setupScrollListenerFallback(onToneChange, onSoftToneChange);
+      expect(typeof cleanup).toBe('function');
+      cleanup();
     });
   });
 
