@@ -112,23 +112,31 @@ export function useSceneTonePublisher({
 
       // If no native support, try to load polyfill (only in full motion mode)
       if (!supported) {
-        // Safety check: if the backdrop already has the static gradient applied
-        // (via CSS @media (prefers-reduced-motion: reduce)), we're in reduced
-        // motion mode and should NOT load the polyfill — it would break the
-        // CSS-based fallback by patching global animation APIs.
-        const computedStyle = window.getComputedStyle(backdrop);
-        const hasStaticGradient = computedStyle.backgroundImage.includes('gradient');
-
-        if (!hasStaticGradient) {
-          const polyfillSuccess = await loadPolyfill();
-          if (polyfillSuccess) {
-            // Re-check after polyfill load — it polyfills the API so the feature detect should pass
-            supported = supportsScrollDrivenAnimations();
-          }
-        } else {
-          // Static gradient already applied (reduced motion fallback) — treat as unsupported
-          // and fall through to the scroll listener fallback below.
+        // Primary guard: check reduced-motion media query directly.
+        // This is the most reliable check — it uses the same media query as the CSS
+        // fallback and is evaluated at the moment we're about to load the polyfill.
+        const prefersReducedMotionNow = window.matchMedia(
+          '(prefers-reduced-motion: reduce)',
+        ).matches;
+        if (prefersReducedMotionNow) {
+          // Reduced motion mode active — don't load polyfill, fall through to fallback
           supported = false;
+        } else {
+          // Safety net: also check if CSS static gradient is already applied
+          const computedStyle = window.getComputedStyle(backdrop);
+          const hasStaticGradient = computedStyle.backgroundImage.includes('gradient');
+
+          if (!hasStaticGradient) {
+            const polyfillSuccess = await loadPolyfill();
+            if (polyfillSuccess) {
+              // Re-check after polyfill load — it polyfills the API so the feature detect should pass
+              supported = supportsScrollDrivenAnimations();
+            }
+          } else {
+            // Static gradient already applied (reduced motion fallback) — treat as unsupported
+            // and fall through to the scroll listener fallback below.
+            supported = false;
+          }
         }
       }
 
