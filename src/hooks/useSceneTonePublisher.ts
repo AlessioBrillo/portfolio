@@ -112,30 +112,58 @@ export function useSceneTonePublisher({
 
       // If no native support, try to load polyfill (only in full motion mode)
       if (!supported) {
-        // Primary guard: check reduced-motion media query directly.
-        // This is the most reliable check — it uses the same media query as the CSS
-        // fallback and is evaluated at the moment we're about to load the polyfill.
-        const prefersReducedMotionNow = window.matchMedia(
-          '(prefers-reduced-motion: reduce)',
-        ).matches;
-        if (prefersReducedMotionNow) {
-          // Reduced motion mode active — don't load polyfill, fall through to fallback
+        // Multi-layer guard against loading polyfill in reduced motion:
+        // 1. Check hook value (set during render)
+        // 2. Check media query directly (immediate)
+        // 3. Check media query in rAF (deferred, ensures browser evaluated media queries)
+        // 4. Check computed style for static gradient (CSS fallback indicator)
+        //
+        // Only load polyfill if ALL checks confirm we're NOT in reduced motion.
+
+        // Immediate checks
+        const prefersReducedImmediate =
+          prefersReducedRef.current ||
+          window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+        // Deferred check via rAF — ensures browser has evaluated media queries
+        const checkReducedMotionDeferred = (): Promise<boolean> => {
+          return new Promise((resolve) => {
+            if (typeof window === 'undefined' || typeof requestAnimationFrame === 'undefined') {
+              resolve(false);
+              return;
+            }
+            requestAnimationFrame(() => {
+              const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+              resolve(prefersReduced);
+            });
+          });
+        };
+
+        if (prefersReducedImmediate) {
+          // Immediate check says reduced motion — don't load polyfill
           supported = false;
         } else {
-          // Safety net: also check if CSS static gradient is already applied
-          const computedStyle = window.getComputedStyle(backdrop);
-          const hasStaticGradient = computedStyle.backgroundImage.includes('gradient');
+          // Wait for rAF to confirm, then decide
+          const prefersReducedDeferred = await checkReducedMotionDeferred();
 
-          if (!hasStaticGradient) {
-            const polyfillSuccess = await loadPolyfill();
-            if (polyfillSuccess) {
-              // Re-check after polyfill load — it polyfills the API so the feature detect should pass
-              supported = supportsScrollDrivenAnimations();
-            }
-          } else {
-            // Static gradient already applied (reduced motion fallback) — treat as unsupported
-            // and fall through to the scroll listener fallback below.
+          if (prefersReducedDeferred) {
+            // Deferred check confirms reduced motion — don't load polyfill
             supported = false;
+          } else {
+            // Safety net: also check if CSS static gradient is already applied
+            const computedStyle = window.getComputedStyle(backdrop);
+            const hasStaticGradient = computedStyle.backgroundImage.includes('gradient');
+
+            if (!hasStaticGradient) {
+              const polyfillSuccess = await loadPolyfill();
+              if (polyfillSuccess) {
+                // Re-check after polyfill load — it polyfills the API so the feature detect should pass
+                supported = supportsScrollDrivenAnimations();
+              }
+            } else {
+              // Static gradient already applied (reduced motion fallback) — treat as unsupported
+              supported = false;
+            }
           }
         }
       }
