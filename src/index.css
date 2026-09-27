@@ -19,7 +19,10 @@
 
   body {
     margin: 0;
-    background-color: var(--color-paper);
+    /* Background provided by .flight-backdrop (z-index: -10). Kept transparent
+     * so the tonal flight gradient/animation is always visible behind all
+     * sections. Sections use transparent backgrounds to reveal the flight. */
+    background-color: transparent;
     color: var(--color-ink);
     font-family: var(--font-sans);
     font-size: var(--text-body);
