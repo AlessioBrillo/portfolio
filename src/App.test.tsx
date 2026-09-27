@@ -1,4 +1,5 @@
 import { render, screen, waitFor } from '@testing-library/react';
+import { Suspense } from 'react';
 import { describe, expect, it, vi } from 'vitest';
 import { RouterProvider, createMemoryRouter } from 'react-router-dom';
 import { MDXProvider } from '@mdx-js/react';
@@ -41,8 +42,12 @@ describe('App', () => {
   });
 
   it('boots the real router shell, MDX provider and error boundary', async () => {
-    render(<App />);
-    // The h1 lives inside the lazy TonalScene boundary (HomePage): allow the
+    render(
+      <Suspense fallback={<div data-testid="suspense-fallback" />}>
+        <App />
+      </Suspense>,
+    );
+    // The h1 lives inside the TonalScene boundary (HomePage): allow the
     // assertion to outlive the default 1s waitFor budget on slow or
     // coverage-instrumented runners, where the lazy chunk resolves late.
     await waitFor(() => expect(screen.getByRole('heading', { level: 1 })).toBeInTheDocument(), {
