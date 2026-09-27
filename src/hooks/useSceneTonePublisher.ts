@@ -4,7 +4,6 @@ import { computeStaticFlightGradient } from '@/lib/tone';
 import { useReducedMotion } from './useReducedMotion';
 import {
   supportsScrollDrivenAnimations,
-  getPrefersReducedMotion,
   setupIntersectionObserver,
   setupScrollListenerFallback,
 } from '@/lib/tonal-engine-utils';
@@ -75,95 +74,97 @@ export function useSceneTonePublisher({
     }
   }, [polyfillLoaded]);
 
-  const setupEngine = useCallback(async () => {
-    const backdrop = backdropRefCurrent.current;
-    if (!backdrop) return;
+  const setupEngine = useCallback(
+    async (prefersReduced: boolean) => {
+      const backdrop = backdropRefCurrent.current;
+      if (!backdrop) return;
 
-    // Clean up previous setup
-    cleanupRef.current?.();
+      // Clean up previous setup
+      cleanupRef.current?.();
 
-    const prefersReduced = getPrefersReducedMotion();
-    prefersReducedRef.current = prefersReduced;
+      prefersReducedRef.current = prefersReduced;
 
-    // Apply the CSS animation class to the backdrop
-    backdrop.classList.add('flight-backdrop');
+      // Apply the CSS animation class to the backdrop
+      backdrop.classList.add('flight-backdrop');
 
-    // Reduced motion: ALWAYS use static gradient + IntersectionObserver.
-    // Never load polyfill in reduced motion — it would patch global APIs
-    // and break the CSS-based static gradient fallback.
-    if (prefersReduced) {
-      backdrop.style.animation = 'none';
+      // Reduced motion: ALWAYS use static gradient + IntersectionObserver.
+      // Never load polyfill in reduced motion — it would patch global APIs
+      // and break the CSS-based static gradient fallback.
+      if (prefersReduced) {
+        backdrop.style.animation = 'none';
+
+        cleanupRef.current = setupIntersectionObserver(
+          (tone) => onToneChangeRef.current?.(tone),
+          (tone) => onSoftToneChangeRef.current?.(tone),
+          true,
+        );
+
+        if (typeof window !== 'undefined') {
+          window.dispatchEvent(
+            new CustomEvent('tonal-engine-load', { detail: { engine: 'css-fallback' } }),
+          );
+        }
+        return;
+      }
+
+      // Full motion: check native support first
+      let supported = supportsScrollDrivenAnimations();
+
+      // If no native support, try to load polyfill (only in full motion mode)
+      if (!supported) {
+        const polyfillSuccess = await loadPolyfill();
+        if (polyfillSuccess) {
+          // Re-check after polyfill load — it polyfills the API so the feature detect should pass
+          supported = supportsScrollDrivenAnimations();
+        }
+      }
+
+      scrollAnimationsSupportedRef.current = supported;
+
+      if (!supported) {
+        // No native support and polyfill failed/unavailable → static gradient + scroll listener
+        backdrop.style.animation = 'none';
+
+        cleanupRef.current = setupScrollListenerFallback(
+          (tone) => onToneChangeRef.current?.(tone),
+          (tone) => onSoftToneChangeRef.current?.(tone),
+        );
+
+        if (typeof window !== 'undefined') {
+          window.dispatchEvent(
+            new CustomEvent('tonal-engine-load', { detail: { engine: 'fallback' } }),
+          );
+        }
+        return;
+      }
+
+      // Full motion with CSS Scroll-driven Animations (native or polyfilled) + IntersectionObserver
+      // The backdrop animation is handled by CSS (flight-backdrop class)
+      // We just need to set up IntersectionObserver for tone publishing
 
       cleanupRef.current = setupIntersectionObserver(
         (tone) => onToneChangeRef.current?.(tone),
         (tone) => onSoftToneChangeRef.current?.(tone),
-        true,
+        false,
       );
+
+      const engineMode: EngineMode = polyfillLoaded ? 'polyfill' : 'css-scroll-animations';
 
       if (typeof window !== 'undefined') {
         window.dispatchEvent(
-          new CustomEvent('tonal-engine-load', { detail: { engine: 'css-fallback' } }),
+          new CustomEvent('tonal-engine-load', { detail: { engine: engineMode } }),
         );
       }
-      return;
-    }
-
-    // Full motion: check native support first
-    let supported = supportsScrollDrivenAnimations();
-
-    // If no native support, try to load polyfill (only in full motion mode)
-    if (!supported) {
-      const polyfillSuccess = await loadPolyfill();
-      if (polyfillSuccess) {
-        // Re-check after polyfill load — it polyfills the API so the feature detect should pass
-        supported = supportsScrollDrivenAnimations();
-      }
-    }
-
-    scrollAnimationsSupportedRef.current = supported;
-
-    if (!supported) {
-      // No native support and polyfill failed/unavailable → static gradient + scroll listener
-      backdrop.style.animation = 'none';
-
-      cleanupRef.current = setupScrollListenerFallback(
-        (tone) => onToneChangeRef.current?.(tone),
-        (tone) => onSoftToneChangeRef.current?.(tone),
-      );
-
-      if (typeof window !== 'undefined') {
-        window.dispatchEvent(
-          new CustomEvent('tonal-engine-load', { detail: { engine: 'fallback' } }),
-        );
-      }
-      return;
-    }
-
-    // Full motion with CSS Scroll-driven Animations (native or polyfilled) + IntersectionObserver
-    // The backdrop animation is handled by CSS (flight-backdrop class)
-    // We just need to set up IntersectionObserver for tone publishing
-
-    cleanupRef.current = setupIntersectionObserver(
-      (tone) => onToneChangeRef.current?.(tone),
-      (tone) => onSoftToneChangeRef.current?.(tone),
-      false,
-    );
-
-    const engineMode: EngineMode = polyfillLoaded ? 'polyfill' : 'css-scroll-animations';
-
-    if (typeof window !== 'undefined') {
-      window.dispatchEvent(
-        new CustomEvent('tonal-engine-load', { detail: { engine: engineMode } }),
-      );
-    }
-  }, [loadPolyfill, polyfillLoaded]);
+    },
+    [loadPolyfill, polyfillLoaded],
+  );
 
   useEffect(() => {
     let cancelled = false;
 
     // Initial setup
     const initialize = async (): Promise<void> => {
-      await setupEngine();
+      await setupEngine(prefersReducedMotion);
     };
     void initialize();
 
@@ -190,7 +191,7 @@ export function useSceneTonePublisher({
       const newPrefersReduced = mediaQuery.matches;
       if (newPrefersReduced !== prefersReducedRef.current) {
         prefersReducedRef.current = newPrefersReduced;
-        setupEngine();
+        setupEngine(newPrefersReduced);
       }
     };
     mediaQuery.addEventListener('change', handleChange);
@@ -203,7 +204,7 @@ export function useSceneTonePublisher({
       mediaQuery.removeEventListener('change', handleChange);
       cleanupRef.current?.();
     };
-  }, [setupEngine]);
+  }, [setupEngine, prefersReducedMotion]);
 }
 
 /**
