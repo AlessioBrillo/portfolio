@@ -1,6 +1,6 @@
 import { useEffect, useRef, useCallback } from 'react';
 import type { ToneName } from '@/lib/tone';
-import { publishedToneFor } from '@/lib/tone';
+import { publishedToneFor, computeStaticFlightGradient } from '@/lib/tone';
 import { TONAL_TRANSITIONS, FLIP_PROGRESS } from '@/lib/tone';
 import { useReducedMotion } from './useReducedMotion';
 
@@ -306,37 +306,4 @@ export function renderStaticFlightGradient(el: HTMLElement): void {
   el.style.backgroundColor = 'transparent';
   el.style.animation = 'none';
   el.classList.remove('flight-backdrop');
-}
-
-/**
- * Computes the static flight gradient as a CSS string.
- * Exported for testing purposes.
- */
-export function computeStaticFlightGradient(): string {
-  const BACKDROP_TONES = {
-    paper: '#F4EFE6',
-    foschia: '#84837F',
-    night: '#14161D',
-    alba: '#84837F',
-  } as const;
-
-  const stops = [
-    `${BACKDROP_TONES.paper} 0%`,
-    `${BACKDROP_TONES.paper} 12.5%`,
-    `${BACKDROP_TONES.foschia} 12.5%`,
-    `${BACKDROP_TONES.foschia} 25%`,
-    `${BACKDROP_TONES.night} 25%`,
-    `${BACKDROP_TONES.night} 37.5%`,
-    `${BACKDROP_TONES.night} 37.5%`,
-    `${BACKDROP_TONES.night} 50%`,
-    `${BACKDROP_TONES.night} 50%`,
-    `${BACKDROP_TONES.night} 62.5%`,
-    `${BACKDROP_TONES.alba} 62.5%`,
-    `${BACKDROP_TONES.alba} 75%`,
-    `${BACKDROP_TONES.paper} 75%`,
-    `${BACKDROP_TONES.paper} 87.5%`,
-    `${BACKDROP_TONES.night} 87.5%`,
-    `${BACKDROP_TONES.night} 100%`,
-  ];
-  return `linear-gradient(to bottom, ${stops.join(', ')})`;
 }

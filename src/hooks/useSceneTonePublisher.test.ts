@@ -3,11 +3,8 @@ import { useRef } from 'react';
 import type { RefObject } from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { debounce } from '@/lib/debounce';
-import {
-  useSceneTonePublisher,
-  renderStaticFlightGradient,
-  computeStaticFlightGradient,
-} from '@/hooks/useSceneTonePublisher';
+import { useSceneTonePublisher, renderStaticFlightGradient } from '@/hooks/useSceneTonePublisher';
+import { computeStaticFlightGradient } from '@/lib/tone';
 import { TONAL_TRANSITIONS, type ToneName } from '@/lib/tone';
 
 // Mock matchMedia for reduced motion
@@ -77,10 +74,11 @@ describe('useSceneTonePublisher', () => {
     it('generates the correct flight profile gradient string with hex colors', () => {
       const gradient = computeStaticFlightGradient();
 
-      // Check for hex color values (the gradient uses hex)
-      expect(gradient).toContain('#F4EFE6'); // paper (Carta)
-      expect(gradient).toContain('#84837F'); // foschia / alba
-      expect(gradient).toContain('#14161D'); // night (Notte)
+      // Check for hex color values (the gradient uses hex) - NEW Swiss Industrial Print palette
+      expect(gradient).toContain('#F4F4F0'); // paper (Newsprint)
+      expect(gradient).toContain('#7A7A7A'); // foschia
+      expect(gradient).toContain('#0A0A0A'); // night (Deactivated CRT)
+      expect(gradient).toContain('#858585'); // alba
 
       expect(gradient).toContain('0%');
       expect(gradient).toContain('12.5%');
