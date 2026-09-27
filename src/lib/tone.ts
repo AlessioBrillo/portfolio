@@ -1,4 +1,5 @@
 import type { SectionId } from '@/types/domain';
+import { TONAL_TRANSITIONS } from '@/lib/flight-profile';
 
 /**
  * Tonal model for the flight (the signature crossfade).
@@ -6,8 +7,9 @@ import type { SectionId } from '@/types/domain';
  * This module holds the *declarative* description of the journey — the two
  * primary surfaces and the sequence of crossfades between them. The actual colour
  * interpolation (including the reduced-motion instant switch) is driven by
- * CSS Scroll-driven Animations in `useSceneTonePublisher`; the transition map lives here.
- * Colour mixing happens only here, in the pure helpers used to compute the flip lines.
+ * CSS Scroll-driven Animations in `useSceneTonePublisher`; the transition map lives in
+ * `flight-profile.ts` (single source of truth). Colour mixing happens only here,
+ * in the pure helpers used to compute the flip lines.
  */
 
 /** All backdrop tones the flight uses (including intermediates). */
@@ -90,17 +92,10 @@ export interface TonalTransition {
  * back to daylight, finally night landing at Contact.
  *
  * `trigger` is the Scroll Timeline anchor — the section that fade flies *into*.
+ *
+ * Re-exported from flight-profile.ts (single source of truth).
  */
-export const TONAL_TRANSITIONS: readonly TonalTransition[] = [
-  // Climb phase: ground → haze → night
-  { trigger: 'who', from: 'paper', to: 'foschia', start: 'top bottom', end: 'top center' },
-  { trigger: 'mosaic', from: 'foschia', to: 'night', start: 'top bottom', end: 'top center' },
-  // Cruise holds night (no transition needed, AI & Physics and Work & School are on night)
-  // Descent phase: night → dawn → paper
-  { trigger: 'sky-sport', from: 'night', to: 'alba', start: 'top bottom', end: 'top center' },
-  { trigger: 'experiences', from: 'alba', to: 'paper', start: 'top bottom', end: 'top center' },
-  // Contact paints its own solid night outside TonalScene
-] as const;
+export { TONAL_TRANSITIONS };
 
 /**
  * Progress thresholds (0..1) for body and soft flips per transition trigger.
