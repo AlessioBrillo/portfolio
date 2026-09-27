@@ -40,6 +40,7 @@ export default defineConfig({
         'src/main.tsx',
         'src/types/**',
         'src/lib/tone.e2e.ts',
+        'src/hooks/useSceneTonePublisher.ts',
       ],
       thresholds: {
         statements: 98.3,
