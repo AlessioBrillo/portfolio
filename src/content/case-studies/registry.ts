@@ -137,3 +137,83 @@ export function getPublishedCaseStudies(): readonly CaseStudyMeta[] {
   // registered entry, so the lookup below can never miss (ADR-0017).
   return PUBLISHED_ORDER.map((key) => CASE_STUDIES[key as DomainKey]!.meta);
 }
+
+/**
+ * Publishes a registered study by adding its key to the curated order.
+ * Throws if the study is not registered or already published.
+ */
+export function publishStudy(domain: CaseStudyDomain, slug: string): void {
+  const key = studyKey({ domain, slug });
+  if (!(key in CASE_STUDIES)) {
+    throw new Error(`Cannot publish: study "${key}" is not registered in CASE_STUDIES`);
+  }
+  if (PUBLISHED_ORDER.includes(key)) {
+    throw new Error(`Cannot publish: study "${key}" is already published`);
+  }
+  // We mutate the frozen array via Object.defineProperty to keep the public
+  // API shape (readonly) while allowing controlled internal mutation.
+  // This is a deliberate design choice: the registry is the single writer,
+  // and the mutation happens at module initialization time in practice.
+  const newOrder = [...PUBLISHED_ORDER, key] as const;
+  Object.defineProperty(exports, 'PUBLISHED_ORDER', {
+    value: newOrder,
+    writable: true,
+    configurable: true,
+  });
+}
+
+/**
+ * Unpublishes a study by removing its key from the curated order.
+ * Throws if the study is not currently published.
+ */
+export function unpublishStudy(domain: CaseStudyDomain, slug: string): void {
+  const key = studyKey({ domain, slug });
+  const index = PUBLISHED_ORDER.indexOf(key);
+  if (index === -1) {
+    throw new Error(`Cannot unpublish: study "${key}" is not published`);
+  }
+  const newOrder = [
+    ...PUBLISHED_ORDER.slice(0, index),
+    ...PUBLISHED_ORDER.slice(index + 1),
+  ] as const;
+  Object.defineProperty(exports, 'PUBLISHED_ORDER', {
+    value: newOrder,
+    writable: true,
+    configurable: true,
+  });
+}
+
+/**
+ * Validates that the registry is internally consistent:
+ * - Every published study key exists in CASE_STUDIES
+ * - No duplicate keys in PUBLISHED_ORDER
+ * - Every CASE_STUDIES entry has a valid domain
+ * Throws on first inconsistency found.
+ */
+export function ensureRegistryConsistency(): void {
+  // 1. Every published key must exist in CASE_STUDIES
+  for (const key of PUBLISHED_ORDER) {
+    if (!(key in CASE_STUDIES)) {
+      throw new Error(`Registry inconsistency: published key "${key}" not found in CASE_STUDIES`);
+    }
+  }
+
+  // 2. No duplicate keys in PUBLISHED_ORDER
+  const seen = new Set<string>();
+  for (const key of PUBLISHED_ORDER) {
+    if (seen.has(key)) {
+      throw new Error(`Registry inconsistency: duplicate key "${key}" in PUBLISHED_ORDER`);
+    }
+    seen.add(key);
+  }
+
+  // 3. Every CASE_STUDIES entry has a valid domain
+  const validDomains: readonly CaseStudyDomain[] = ['ai', 'work', 'sky'];
+  for (const [key, entry] of Object.entries(CASE_STUDIES)) {
+    if (!validDomains.includes(entry.meta.domain)) {
+      throw new Error(
+        `Registry inconsistency: entry "${key}" has invalid domain "${entry.meta.domain}"`,
+      );
+    }
+  }
+}

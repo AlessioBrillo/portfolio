@@ -1,6 +1,6 @@
 import { getExperienceEntries } from '@/content/experiences';
 import { getProjectEntries } from '@/content/projects';
-import { getPublishedCaseStudies } from '@/content/case-studies/registry';
+import { getPublishedCaseStudies } from '@/content/case-studies';
 import type { ArchiveEntry, CaseStudyMeta, ExperienceEntry, ProjectEntry } from '@/types/domain';
 
 function toStudyEntry(meta: CaseStudyMeta): ArchiveEntry {

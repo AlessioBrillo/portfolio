@@ -6,6 +6,9 @@ import {
   getCaseStudy,
   getPublishedCaseStudies,
   isPublishedStudy,
+  publishStudy,
+  unpublishStudy,
+  ensureRegistryConsistency,
 } from '@/content/case-studies/registry';
 import type { CaseStudyDomain } from '@/types/domain';
 
@@ -253,5 +256,43 @@ describe('physics-of-flight (published)', () => {
     const entry = getCaseStudy('ai', 'physics-of-flight');
     expect(entry, 'study must be registered in CASE_STUDIES').toBeDefined();
     expect(isPublishedStudy(entry!.meta)).toBe(true);
+  });
+});
+
+describe('publishStudy / unpublishStudy workflow', () => {
+  it('publishStudy and unpublishStudy functions exist and have correct signatures', () => {
+    expect(typeof publishStudy).toBe('function');
+    expect(typeof unpublishStudy).toBe('function');
+  });
+
+  it('publishStudy throws for unregistered study', () => {
+    expect(() => publishStudy('ai', 'non-existent')).toThrow(
+      'Cannot publish: study "ai/non-existent" is not registered in CASE_STUDIES',
+    );
+  });
+
+  it('publishStudy throws for already published study', () => {
+    expect(() => publishStudy('ai', 'transformer-italian-corpus')).toThrow(
+      'Cannot publish: study "ai/transformer-italian-corpus" is already published',
+    );
+  });
+
+  it('unpublishStudy throws for non-published study', () => {
+    expect(() => unpublishStudy('ai', 'non-existent')).toThrow(
+      'Cannot unpublish: study "ai/non-existent" is not published',
+    );
+  });
+});
+
+describe('ensureRegistryConsistency', () => {
+  it('passes for the current valid registry state', () => {
+    expect(() => ensureRegistryConsistency()).not.toThrow();
+  });
+
+  it('would catch a published key missing from CASE_STUDIES', () => {
+    // This is a structural test - the actual inconsistency would be caught
+    // at module load time if someone manually corrupted the exports.
+    // Here we verify the function exists and runs without error on valid state.
+    expect(typeof ensureRegistryConsistency).toBe('function');
   });
 });

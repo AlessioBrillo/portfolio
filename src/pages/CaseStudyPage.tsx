@@ -2,11 +2,7 @@ import { Suspense, lazy, useEffect, useMemo, useRef, type ReactElement } from 'r
 import { Link, useParams } from 'react-router-dom';
 import { CaseStudyErrorBoundary } from '@/components/CaseStudyErrorBoundary';
 import { ChunkErrorBoundary } from '@/components/ChunkErrorBoundary';
-import {
-  getCaseStudy,
-  getPublishedCaseStudies,
-  isPublishedStudy,
-} from '@/content/case-studies/registry';
+import { getCaseStudy, getPublishedCaseStudies, isPublishedStudy } from '@/content/case-studies';
 import { useDocumentMeta } from '@/hooks/useDocumentMeta';
 import { canonicalOrigin, canonicalStudyUrl } from '@/lib/site';
 import { cn } from '@/lib/utils';
