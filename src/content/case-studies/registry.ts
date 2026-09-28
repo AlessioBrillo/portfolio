@@ -112,14 +112,20 @@ export function getCaseStudy(domain: CaseStudyDomain, slug: string): CaseStudyEn
  * narrative: the serious core first (all three AI studies — the language
  * one, the grokking one, the flight physics one), the engineered showcase
  * next, the sky closing the flight.
+ *
+ * Stored as a mutable object property to allow controlled mutation via
+ * publishStudy/unpublishStudy while keeping the public API readonly.
  */
-const PUBLISHED_ORDER: readonly string[] = [
+const _publishedOrder: string[] = [
   'ai/transformer-italian-corpus',
   'ai/grokking-modular-addition',
   'ai/physics-of-flight',
   'work/the-ascent',
   'sky/vds-licence',
 ];
+
+/** Public readonly view of the published order. */
+export const PUBLISHED_ORDER: readonly string[] = _publishedOrder;
 
 /**
  * True when the study is published — its `domain/slug` key is in
@@ -128,12 +134,75 @@ const PUBLISHED_ORDER: readonly string[] = [
  * never surface them.
  */
 export function isPublishedStudy(meta: Pick<CaseStudyMeta, 'domain' | 'slug'>): boolean {
-  return PUBLISHED_ORDER.includes(studyKey(meta));
+  return _publishedOrder.includes(studyKey(meta));
 }
 
 /** The published studies' metadata, in curated order (never the raw map). */
 export function getPublishedCaseStudies(): readonly CaseStudyMeta[] {
   // The registry content contract test pins every PUBLISHED_ORDER key to a
   // registered entry, so the lookup below can never miss (ADR-0017).
-  return PUBLISHED_ORDER.map((key) => CASE_STUDIES[key as DomainKey]!.meta);
+  return _publishedOrder.map((key) => CASE_STUDIES[key as DomainKey]!.meta);
+}
+
+/**
+ * Publishes a registered study by adding its key to the curated order.
+ * Throws if the study is not registered or already published.
+ */
+export function publishStudy(domain: CaseStudyDomain, slug: string): void {
+  const key = studyKey({ domain, slug });
+  if (!(key in CASE_STUDIES)) {
+    throw new Error(`Cannot publish: study "${key}" is not registered in CASE_STUDIES`);
+  }
+  if (_publishedOrder.includes(key)) {
+    throw new Error(`Cannot publish: study "${key}" is already published`);
+  }
+  _publishedOrder.push(key);
+}
+
+/**
+ * Unpublishes a study by removing its key from the curated order.
+ * Throws if the study is not currently published.
+ */
+export function unpublishStudy(domain: CaseStudyDomain, slug: string): void {
+  const key = studyKey({ domain, slug });
+  const index = _publishedOrder.indexOf(key);
+  if (index === -1) {
+    throw new Error(`Cannot unpublish: study "${key}" is not published`);
+  }
+  _publishedOrder.splice(index, 1);
+}
+
+/**
+ * Validates that the registry is internally consistent:
+ * - Every published study key exists in CASE_STUDIES
+ * - No duplicate keys in PUBLISHED_ORDER
+ * - Every CASE_STUDIES entry has a valid domain
+ * Throws on first inconsistency found.
+ */
+export function ensureRegistryConsistency(): void {
+  // 1. Every published key must exist in CASE_STUDIES
+  for (const key of _publishedOrder) {
+    if (!(key in CASE_STUDIES)) {
+      throw new Error(`Registry inconsistency: published key "${key}" not found in CASE_STUDIES`);
+    }
+  }
+
+  // 2. No duplicate keys in PUBLISHED_ORDER
+  const seen = new Set<string>();
+  for (const key of _publishedOrder) {
+    if (seen.has(key)) {
+      throw new Error(`Registry inconsistency: duplicate key "${key}" in PUBLISHED_ORDER`);
+    }
+    seen.add(key);
+  }
+
+  // 3. Every CASE_STUDIES entry has a valid domain
+  const validDomains: readonly CaseStudyDomain[] = ['ai', 'work', 'sky'];
+  for (const [key, entry] of Object.entries(CASE_STUDIES)) {
+    if (!validDomains.includes(entry.meta.domain)) {
+      throw new Error(
+        `Registry inconsistency: entry "${key}" has invalid domain "${entry.meta.domain}"`,
+      );
+    }
+  }
 }

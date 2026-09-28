@@ -2,7 +2,7 @@ import { render, screen } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { describe, expect, it, vi } from 'vitest';
 import { AiPhysics } from '@/sections/AiPhysics';
-import { getPublishedCaseStudies } from '@/content/case-studies/registry';
+import { getPublishedCaseStudies } from '@/content/case-studies';
 import type { CaseStudyMeta } from '@/types/domain';
 
 // Mock the lazy-loaded TonalScene to return the actual component synchronously in tests

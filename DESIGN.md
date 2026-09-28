@@ -198,7 +198,76 @@ No text inputs ship in this system. If a field is ever added, it takes the card 
 - **Band:** one tonal band per flight phase; `solid` paints its own paper/night surface, `scene` stays transparent over the `TonalScene` crossfade and reads the live scene tone for text (ADR-0011). Full-width `2px` hairline top/bottom, `clamp(8rem, 6rem + 8vw, 14rem)` vertical rhythm, 12-column blueprint grid inside.
 - **Section header:** ASCII-framed `<data>` eyebrow, Archivo Black H2 (`text-sector`, `text-wrap: balance`), full-width structural rule, mono micro intro. Zero decoration, pure hierarchy.
 
-## 6. Do's and Don'ts
+## 6. Case Study Publishing Workflow
+
+Case studies are the primary content units of this site. To prevent registry desynchronization (orphaned draft routes, missing sitemap entries, broken prev/next navigation), the publishing process is codified and guarded by tests.
+
+### The 4-Step Publish Process
+
+1. **Add the MDX file**  
+   Create `src/content/case-studies/<domain>-<slug>.mdx` with the study content.
+
+2. **Register in `CASE_STUDIES`**  
+   Add an entry to the `CASE_STUDIES` map in `src/content/case-studies/registry.ts`:
+
+   ```ts
+   'domain/slug': {
+     meta: { slug, domain, title, role, year, stack, summary },
+     load: () => import('./domain-slug.mdx'),
+   },
+   ```
+
+   The key **must** be exactly `${domain}/${slug}` — this is the route identity (ADR-0005).
+
+3. **Publish via `publishStudy` (or manual `PUBLISHED_ORDER` edit)**  
+   Add the key (`domain/slug`) to the `PUBLISHED_ORDER` array in the same file.  
+   This single step makes the study appear in:
+   - The mosaic grid (`AiPhysics` section)
+   - The sitemap (`scripts/generate-sitemap.mjs`)
+   - Prev/next navigation on the case study page
+   - The archive page (`/archive`)
+
+   **Programmatic alternative** (for tooling/CI):
+
+   ```ts
+   import { publishStudy } from '@/content/case-studies';
+   publishStudy('ai', 'new-study-slug');
+   ```
+
+4. **Verify**  
+   Run `npm test` — the registry contract tests will fail if:
+   - A published key is missing from `CASE_STUDIES`
+   - `PUBLISHED_ORDER` has duplicates
+   - A study carries author-slot markers (`Author slot`, `fill in`, `TBD`, `**—**`)
+   - Metadata placeholders remain (`tbd`, `placeholder`, empty fields)
+
+### Unpublishing
+
+To demote a study to draft (removes from mosaic, sitemap, nav, archive but keeps route resolvable for review):
+
+```ts
+import { unpublishStudy } from '@/content/case-studies';
+unpublishStudy('ai', 'study-slug');
+```
+
+### Adding a New Domain
+
+If a study introduces a 4th domain (e.g., `design`, `research`):
+
+1. Add the domain to `CaseStudyDomain` in `src/types/domain.ts`
+2. Add the domain to `VALID_DOMAINS` in `src/content/case-studies/registry.test.ts`
+3. The `KNOWN_DOMAINS` narrowing in `CaseStudyPage.tsx` is derived from registry keys — no manual update needed.
+
+### Guardrails
+
+- `ensureRegistryConsistency()` runs on every import of `@/content/case-studies` (via `index.ts`)
+- `npm run test` validates all contracts (content, metadata, published bodies)
+- `npm run typecheck` catches domain type mismatches
+- `scripts/generate-sitemap.mjs` reads `getPublishedCaseStudies()` — only published studies enter the sitemap
+
+---
+
+## 7. Do's and Don'ts
 
 ### Do:
 

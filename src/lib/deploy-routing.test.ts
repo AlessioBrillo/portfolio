@@ -1,7 +1,7 @@
 import { readFileSync, readdirSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import { describe, expect, it } from 'vitest';
-import { getPublishedCaseStudies } from '@/content/case-studies/registry';
+import { getPublishedCaseStudies } from '@/content/case-studies';
 import { getSpaFallbackSource, isSpaFallbackRewrite } from '@/lib/deploy-routing';
 
 /** The repo root — vitest runs with the project root as the working

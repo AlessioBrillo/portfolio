@@ -44,9 +44,10 @@ const mocks = vi.hoisted(() => ({
   getCaseStudy: vi.fn(),
   getPublishedCaseStudies: vi.fn(() => [...STUDIES]),
   isPublishedStudy: vi.fn((meta: { domain: string; slug: string }) => meta.slug !== 'draft-study'),
+  ensureRegistryConsistency: vi.fn(),
 }));
 
-vi.mock('@/content/case-studies/registry', () => mocks);
+vi.mock('@/content/case-studies', () => mocks);
 
 function renderAt(path: string): ReturnType<typeof render> {
   return render(

@@ -2,7 +2,7 @@ import type { ReactElement } from 'react';
 import { Band, type Surface } from '@/components/ui/Band';
 import { SectionHeader } from '@/components/ui/SectionHeader';
 import { EntryCard } from '@/components/ui/EntryCard';
-import { getPublishedCaseStudies } from '@/content/case-studies/registry';
+import { getPublishedCaseStudies } from '@/content/case-studies';
 
 interface AiPhysicsProps {
   surface?: Surface;

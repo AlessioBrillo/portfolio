@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { composeArchive, getArchiveEntries } from '@/content/archive';
-import { getPublishedCaseStudies } from '@/content/case-studies/registry';
+import { getPublishedCaseStudies } from '@/content/case-studies';
 import { getProjectEntries } from '@/content/projects';
 import { getExperienceEntries } from '@/content/experiences';
 
