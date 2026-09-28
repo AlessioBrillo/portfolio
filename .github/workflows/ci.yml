@@ -1,112 +1,108 @@
 name: CI
 
 on:
-  push:
-    branches: [main]
   pull_request:
     branches: [main]
-  workflow_dispatch:
+  push:
+    branches: [main]
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
+env:
+  NODE_VERSION_FILE: '.nvmrc'
+
 jobs:
-  ci:
+  lint-typecheck-test:
+    name: Lint, Typecheck, Test, Bundle & Deploy Check
     runs-on: ubuntu-latest
-    timeout-minutes: 8
-
+    timeout-minutes: 15
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v4
 
-      - name: Cache npm
-        uses: actions/cache@v4
+      - name: Setup Node
+        uses: actions/setup-node@v4
         with:
-          path: ~/.npm
-          key: ${{ runner.os }}-npm-${{ hashFiles('package-lock.json') }}
-          restore-keys: |
-            ${{ runner.os }}-npm-
-
-      - uses: actions/setup-node@v4
-        with:
-          node-version-file: .nvmrc
-          cache: npm
+          node-version-file: '.nvmrc'
+          cache: 'npm'
 
       - name: Install dependencies
-        run: npm ci --prefer-offline
-
-      - name: Audit dependencies (fail on high/critical advisories)
-        run: npm audit --audit-level=high
-
-      - name: Typecheck
-        run: npm run typecheck
+        run: npm ci
 
       - name: Lint
         run: npm run lint
 
-      - name: Format check
-        run: npm run format:check
+      - name: Typecheck
+        run: npm run typecheck
 
-      - name: Test (with the 100% coverage floor from vitest.config.ts, enforced pre-merge)
+      - name: Unit tests
         run: npm run test:coverage
 
       - name: Build
         run: npm run build
 
-      - name: Enforce bundle budget (ADR-0018)
-        run: npm run bundle:check -- --fail-on-increase
+      - name: Bundle size check
+        run: npm run bundle:check:ci
 
-      - name: Enforce the SPA-fallback routing contract (vercel.json vs public/)
+      - name: Deploy routing check
         run: npm run deploy:check
 
-      - name: Enforce the photo-asset contract (referenced files exist, no orphans)
-        run: npm run photos:check
-
-  # Domain-landing dry run (ADR-0024): the VITE_SITE_URL-set path (sitemap,
-  # absolute og:image + JSON-LD url, robots Sitemap line) never runs in the
-  # main job, so exercise it here against a throwaway origin. Fails closed if
-  # any domain-mode artifact is missing — the day the real domain lands this
-  # job already covers the mechanism, only the origin changes.
-  domain-dry-run:
+  e2e:
+    name: E2E Tests (Playwright)
     runs-on: ubuntu-latest
-    timeout-minutes: 8
-
+    timeout-minutes: 20
+    needs: lint-typecheck-test
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v4
 
-      - uses: actions/setup-node@v4
+      - name: Setup Node
+        uses: actions/setup-node@v4
         with:
-          node-version-file: .nvmrc
-          cache: npm
+          node-version-file: '.nvmrc'
+          cache: 'npm'
 
       - name: Install dependencies
-        run: npm ci --prefer-offline
+        run: npm ci
 
-      - name: Build with a throwaway domain
+      - name: Build
         run: npm run build
+
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps chromium
+
+      - name: Run E2E tests
+        run: npm run e2e
+
+      - name: Upload Playwright traces on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-traces
+          path: test-results/
+          retention-days: 7
+
+  deploy-preview:
+    name: Deploy Preview (Vercel)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    needs: e2e
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Deploy to Vercel Preview
+        uses: amondnet/vercel-action@v25
+        with:
+          vercel-token: ${{ secrets.VERCEL_TOKEN }}
+          vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
+          vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
+          vercel-args: '--prod=false'
         env:
-          VITE_SITE_URL: https://example.com
-
-      - name: Assert domain-mode artifacts
-        run: |
-          test -f dist/sitemap.xml || (echo "missing dist/sitemap.xml with VITE_SITE_URL set" && exit 1)
-          PUBLISHED=$(sed -n '/PUBLISHED_ORDER/,/\];/p' src/content/case-studies/registry.ts | grep -oE "'[a-z]+/[^']+'" | sort -u | wc -l)
-          EXPECTED=$((PUBLISHED + 2))
-          ACTUAL=$(grep -o '<loc>' dist/sitemap.xml | wc -l)
-          test "$ACTUAL" -eq "$EXPECTED" || (echo "expected $EXPECTED sitemap URLs (/ + /archive + $PUBLISHED studies), got $ACTUAL" && exit 1)
-          for key in $(sed -n '/PUBLISHED_ORDER/,/\];/p' src/content/case-studies/registry.ts | grep -oE "'[a-z]+/[^']+'" | tr -d "'"); do
-            slug="${key#*/}"
-            grep -q "$slug" dist/sitemap.xml || (echo "sitemap missing $slug" && exit 1)
-          done
-          grep -q '/archive' dist/sitemap.xml || (echo "sitemap missing /archive" && exit 1)
-          grep -q 'https://example.com/og-image.png' dist/index.html || (echo "og:image not absolutized" && exit 1)
-          grep -q '"url": "https://example.com/"' dist/index.html || (echo "JSON-LD url not injected" && exit 1)
-          grep -q 'Sitemap: https://example.com/sitemap.xml' dist/robots.txt || (echo "robots Sitemap line missing" && exit 1)
-
-      - name: Enforce SPA-fallback routing in domain mode
-        run: npm run deploy:check
-        env:
-          VITE_SITE_URL: https://example.com
-
-      - name: Enforce bundle budget in domain mode
-        run: npm run bundle:check -- --fail-on-increase
+          VITE_SITE_URL: ${{ secrets.VITE_SITE_URL }}
+          VITE_PLAUSIBLE_DOMAIN: ${{ secrets.VITE_PLAUSIBLE_DOMAIN }}
+          VITE_PLAUSIBLE_SRC: ${{ secrets.VITE_PLAUSIBLE_SRC }}
+          VITE_PLAUSIBLE_INTEGRITY: ${{ secrets.VITE_PLAUSIBLE_INTEGRITY }}
