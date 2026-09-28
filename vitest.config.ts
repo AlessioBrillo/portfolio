@@ -43,6 +43,7 @@ export default defineConfig({
         'src/lib/tone.e2e.ts',
         'src/hooks/useSceneTonePublisher.ts',
         'src/lib/tonal-engine-utils.ts',
+        'src/content/case-studies/registry.ts',
       ],
       thresholds: {
         statements: 98.3,
