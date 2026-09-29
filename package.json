@@ -43,7 +43,7 @@
     "@mdx-js/react": "^3.1.0",
     "clsx": "^2.1.1",
     "react": "^19.2.8",
-    "react-dom": "^19.2.8",
+    "react-dom": "^19.3.0",
     "react-router-dom": "^7.18.3",
     "scroll-timeline-polyfill": "1.1.0",
     "tailwind-merge": "^3.6.0"
@@ -59,7 +59,7 @@
     "@testing-library/react": "^16.3.2",
     "@types/mdx": "^2.0.13",
     "@types/react": "^19.2.18",
-    "@types/react-dom": "^19.2.7",
+    "@types/react-dom": "^19.3.0",
     "@typescript-eslint/eslint-plugin": "^8.69.0",
     "@typescript-eslint/parser": "^8.70.1",
     "@vitejs/plugin-react": "6.0.5",
