@@ -5,8 +5,7 @@ import { useReducedMotion } from './useReducedMotion';
 import {
   supportsScrollDrivenAnimations,
   setupIntersectionObserver,
-  setupScrollListenerFallback,
-  toneFromProgress,
+  toneFromProgressPrecise,
 } from '@/lib/tonal-engine-utils';
 
 /**
@@ -108,7 +107,7 @@ export function useSceneTonePublisher({
           const scrollTop = window.scrollY || document.documentElement.scrollTop;
           const docHeight = document.documentElement.scrollHeight - window.innerHeight;
           const progress = docHeight > 0 ? Math.max(0, Math.min(1, scrollTop / docHeight)) : 0;
-          const tone = toneFromProgress(progress);
+          const tone = toneFromProgressPrecise(progress);
 
           // Update the backdrop's background-color to match the gradient at this scroll position
           backdrop.style.backgroundColor = tone === 'night' ? '#0A0A0A' : '#F4F4F0';
@@ -141,6 +140,8 @@ export function useSceneTonePublisher({
           window.dispatchEvent(
             new CustomEvent('tonal-engine-load', { detail: { engine: 'css-fallback' } }),
           );
+          (window as unknown as { __TONAL_ENGINE_LOADED__: boolean }).__TONAL_ENGINE_LOADED__ =
+            true;
         }
         return;
       }
@@ -225,17 +226,41 @@ export function useSceneTonePublisher({
       if (!supported) {
         // No native support and polyfill failed/unavailable → static gradient + scroll listener
         // (Static gradient already applied as base layer above)
+        // Use precise 8-band tone calculation for accurate tone publishing.
         backdrop.style.animation = 'none';
 
-        cleanupRef.current = setupScrollListenerFallback(
-          (tone) => onToneChangeRef.current?.(tone),
-          (tone) => onSoftToneChangeRef.current?.(tone),
-        );
+        let lastPublishedTone: ToneName = 'paper';
+        let lastPublishedSoftTone: ToneName = 'paper';
+
+        const updateToneFromScroll = (): void => {
+          const scrollTop = window.scrollY || document.documentElement.scrollTop;
+          const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+          const progress = docHeight > 0 ? Math.max(0, Math.min(1, scrollTop / docHeight)) : 0;
+          const tone = toneFromProgressPrecise(progress);
+
+          if (tone !== lastPublishedTone) {
+            lastPublishedTone = tone;
+            onToneChangeRef.current?.(tone);
+          }
+          if (tone !== lastPublishedSoftTone) {
+            lastPublishedSoftTone = tone;
+            onSoftToneChangeRef.current?.(tone);
+          }
+        };
+
+        updateToneFromScroll();
+        window.addEventListener('scroll', updateToneFromScroll, { passive: true });
+
+        cleanupRef.current = () => {
+          window.removeEventListener('scroll', updateToneFromScroll);
+        };
 
         if (typeof window !== 'undefined') {
           window.dispatchEvent(
             new CustomEvent('tonal-engine-load', { detail: { engine: 'fallback' } }),
           );
+          (window as unknown as { __TONAL_ENGINE_LOADED__: boolean }).__TONAL_ENGINE_LOADED__ =
+            true;
         }
         return;
       }
@@ -257,6 +282,7 @@ export function useSceneTonePublisher({
         window.dispatchEvent(
           new CustomEvent('tonal-engine-load', { detail: { engine: engineMode } }),
         );
+        (window as unknown as { __TONAL_ENGINE_LOADED__: boolean }).__TONAL_ENGINE_LOADED__ = true;
       }
     },
     [loadPolyfill, polyfillLoaded],
