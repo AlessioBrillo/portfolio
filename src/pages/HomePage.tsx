@@ -5,6 +5,7 @@ import { Footer } from '@/components/ui/Footer';
 import { Hero } from '@/sections/Hero';
 import { Who } from '@/sections/Who';
 import { Mosaic } from '@/sections/Mosaic';
+import { AiPhysics } from '@/sections/AiPhysics';
 import { WorkSchool } from '@/sections/WorkSchool';
 import { SkySport } from '@/sections/SkySport';
 import { Experiences } from '@/sections/Experiences';
@@ -12,10 +13,6 @@ import { Contact } from '@/sections/Contact';
 
 const TonalScene = lazy(() =>
   import('@/components/ascent/TonalScene').then((m) => ({ default: m.TonalScene })),
-);
-
-const AiPhysics = lazy(() =>
-  import('@/sections/AiPhysics').then((m) => ({ default: m.AiPhysics })),
 );
 
 /**
@@ -34,8 +31,8 @@ const AiPhysics = lazy(() =>
  * entry chunk. The Suspense fallback paints the paper tone so there is no
  * flash before the engine mounts.
  *
- * `AiPhysics` is lazy-loaded to keep the MDX runtime and syntax highlighting
- * out of the entry chunk — it is the heaviest section.
+ * `AiPhysics` is code-split via manualChunks in vite.config.ts but eagerly
+ * loaded here to ensure the scroll timeline anchor exists for E2E tests.
  */
 export function HomePage(): ReactElement {
   return (
@@ -48,9 +45,7 @@ export function HomePage(): ReactElement {
             <Hero surface="scene" />
             <Who surface="scene" />
             <Mosaic surface="scene" />
-            <Suspense fallback={<div aria-hidden className="h-96 bg-paper/50" />}>
-              <AiPhysics surface="scene" />
-            </Suspense>
+            <AiPhysics surface="scene" />
             <WorkSchool surface="scene" />
             <SkySport surface="scene" />
             <Experiences surface="scene" />
