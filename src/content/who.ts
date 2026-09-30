@@ -28,6 +28,7 @@ const WHO_STATEMENTS: readonly WhoStatement[] = [
  * `npm run images -- --src temp-raw-photos` (synthetic test image).
  * Intrinsic 4:5 ratio with `sizes` reserves layout (zero CLS).
  */
+// AUTO-GENERATED PORTRAIT START
 const PORTRAIT: ImageAsset = {
   alt: 'A sober portrait of Alessio Brillo',
   src: '/photos/portrait-4x5-960-b4df065a.jpg',
@@ -47,6 +48,7 @@ const PORTRAIT: ImageAsset = {
     },
   ],
 } as const;
+// AUTO-GENERATED PORTRAIT END
 
 /** The three character statements, as an immutable snapshot. */
 export function getWhoStatements(): readonly WhoStatement[] {

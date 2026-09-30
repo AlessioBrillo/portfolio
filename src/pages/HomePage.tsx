@@ -30,6 +30,9 @@ const TonalScene = lazy(() =>
  * `TonalScene` is lazy-loaded to keep the tonal engine out of the
  * entry chunk. The Suspense fallback paints the paper tone so there is no
  * flash before the engine mounts.
+ *
+ * `AiPhysics` is code-split via manualChunks in vite.config.ts but eagerly
+ * loaded here to ensure the scroll timeline anchor exists for E2E tests.
  */
 export function HomePage(): ReactElement {
   return (
