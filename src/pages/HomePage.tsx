@@ -5,7 +5,6 @@ import { Footer } from '@/components/ui/Footer';
 import { Hero } from '@/sections/Hero';
 import { Who } from '@/sections/Who';
 import { Mosaic } from '@/sections/Mosaic';
-import { AiPhysics } from '@/sections/AiPhysics';
 import { WorkSchool } from '@/sections/WorkSchool';
 import { SkySport } from '@/sections/SkySport';
 import { Experiences } from '@/sections/Experiences';
@@ -13,6 +12,10 @@ import { Contact } from '@/sections/Contact';
 
 const TonalScene = lazy(() =>
   import('@/components/ascent/TonalScene').then((m) => ({ default: m.TonalScene })),
+);
+
+const AiPhysics = lazy(() =>
+  import('@/sections/AiPhysics').then((m) => ({ default: m.AiPhysics })),
 );
 
 /**
@@ -30,6 +33,9 @@ const TonalScene = lazy(() =>
  * `TonalScene` is lazy-loaded to keep the tonal engine out of the
  * entry chunk. The Suspense fallback paints the paper tone so there is no
  * flash before the engine mounts.
+ *
+ * `AiPhysics` is lazy-loaded to keep the MDX runtime and syntax highlighting
+ * out of the entry chunk — it is the heaviest section.
  */
 export function HomePage(): ReactElement {
   return (
@@ -42,7 +48,9 @@ export function HomePage(): ReactElement {
             <Hero surface="scene" />
             <Who surface="scene" />
             <Mosaic surface="scene" />
-            <AiPhysics surface="scene" />
+            <Suspense fallback={<div aria-hidden className="h-96 bg-paper/50" />}>
+              <AiPhysics surface="scene" />
+            </Suspense>
             <WorkSchool surface="scene" />
             <SkySport surface="scene" />
             <Experiences surface="scene" />

@@ -12,7 +12,7 @@ portfolio, so code quality and documentation are first-class.
 ## Stack
 
 React 19, Vite 8, TypeScript 5 (strict), Tailwind CSS 4 (CSS-first `@theme`),
-GSAP ScrollTrigger (tonal engine, lazy-loaded via `src/lib/gsap-loader.ts`),
+CSS Scroll-driven Animations (tonal engine via `useSceneTonePublisher`, ADR-0003 superseded),
 MDX (case studies), React Router (case-study routes), Vitest. Package manager: **npm**. Path alias:
 `@/*` maps to `src/*`.
 
@@ -64,7 +64,7 @@ All five phases of structure and content are live and validated:
 - **Phase 5**: Content complete — 5 long-form studies (`transformer-italian-corpus`, `grokking-modular-addition`, `physics-of-flight`, `work-the-ascent`, `vds-licence`), experiences archive (`/archive`), photo pipeline (8 optimized derivatives), all `KNOWN_DEBT` resolved
 - **Phase 6**: Finishing gates live — bundle budget (ADR-0018), SPA fallback contract (ADR-0005), photo asset contract, CSP, HSTS, OG card, sitemap (domain-gated), Plausible proxy staged (ADR-0020), Lighthouse 100 a11y
 
-The tonal engine (`useTonalEngine` + `TonalScene`) is implemented, unit-tested,
+The tonal engine (`useSceneTonePublisher` + `TonalScene`) is implemented, unit-tested,
 and validated end-to-end by the Playwright harness — both crossfades (climb paper→night,
 descent night→paper) render and hold under `prefers-reduced-motion`. Scene
 text follows the live backdrop tone (ADR-0011): `TonalScene` publishes the

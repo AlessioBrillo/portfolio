@@ -11,6 +11,7 @@ const SPORT_ENTRIES: readonly SportEntry[] = [
     id: 'vds',
     title: 'The VDS licence',
     line: 'Ultralight flying — the narrative thread of the whole site.',
+    // AUTO-GENERATED VDS IMAGE START
     image: {
       alt: 'An ultralight aircraft on the ramp before a flight',
       caption: 'VDS · northern Italy',
@@ -31,11 +32,13 @@ const SPORT_ENTRIES: readonly SportEntry[] = [
         },
       ],
     },
+    // AUTO-GENERATED VDS IMAGE END
   },
   {
     id: 'tennis',
     title: 'Tennis',
     line: 'Discipline on the court.',
+    // AUTO-GENERATED TENNIS IMAGE START
     image: {
       alt: 'A tennis court at evening practice',
       src: '/photos/tennis-court-evening-960-4b43e602.jpg',
@@ -55,11 +58,13 @@ const SPORT_ENTRIES: readonly SportEntry[] = [
         },
       ],
     },
+    // AUTO-GENERATED TENNIS IMAGE END
   },
   {
     id: 'mtb',
     title: 'MTB',
     line: 'Lines down the mountain.',
+    // AUTO-GENERATED MTB IMAGE START
     image: {
       alt: 'A mountain bike trail winding downhill',
       src: '/photos/mtb-trail-downhill-960-16c6963b.jpg',
@@ -79,6 +84,7 @@ const SPORT_ENTRIES: readonly SportEntry[] = [
         },
       ],
     },
+    // AUTO-GENERATED MTB IMAGE END
   },
 ];
 

@@ -3,7 +3,7 @@
  * Optimizes raw photos into the site's responsive image set.
  *
  * Usage:
- *   npm run images -- --src <raw-dir> [--out public/photos] [--widths 480,960,1600] [--sizes "<hint>"] [--prune]
+ *   npm run images -- --src <raw-dir> [--out public/photos] [--widths 480,960,1600] [--sizes "<hint>"] [--prune] [--write-content]
  *
  * For every raster image in <raw-dir> (git-ignored — sources stay private) it
  * writes AVIF + WebP at each configured width plus a JPEG fallback at the
@@ -20,15 +20,17 @@
  * files in `--out` that this run did not produce, including legacy unhashed
  * names from the pre-hash pipeline.
  *
- * The script never touches `src/content`: the author reviews and pastes the
- * printed block, so alt text and captions stay human-written.
+ * The script never touches `src/content` by default: the author reviews and pastes
+ * the printed block, so alt text and captions stay human-written.
+ * With `--write-content`, it writes directly into marked AUTO-GENERATED sections
+ * of `src/content/who.ts` and `src/content/sky.ts`.
  *
  * Requires Node >=24 (native TypeScript type stripping) to import the
  * helper module `src/lib/photo-pipeline.ts` (see `engines` in package.json).
  */
 import { createHash } from 'node:crypto';
 import { existsSync } from 'node:fs';
-import { mkdir, readdir, readFile, rm } from 'node:fs/promises';
+import { mkdir, readdir, readFile, rm, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import sharp from 'sharp';
 
@@ -47,6 +49,7 @@ const WIDTHS = (argValue('--widths') ?? '480,960,1600')
   .filter((width) => Number.isInteger(width) && width > 0);
 const SIZES_HINT = argValue('--sizes') ?? '(min-width: 1024px) 40vw, 100vw';
 const PRUNE = args.includes('--prune');
+const WRITE_CONTENT = args.includes('--write-content');
 
 let pipelineHelpers;
 try {
@@ -101,7 +104,7 @@ async function optimizeImage(fileName, produced) {
 
   if (!originalWidth || !originalHeight) {
     console.warn(`[images] Skipping ${fileName}: no readable dimensions.`);
-    return;
+    return null;
   }
 
   const widths = effectiveWidthsOf(originalWidth);
@@ -154,6 +157,94 @@ async function optimizeImage(fileName, produced) {
     console.log(`    { type: 'image/webp', srcSet: '${srcSet('webp')}' },`);
     console.log(`  ],`);
   }
+
+  return {
+    subject,
+    hash,
+    largestWidth: largest,
+    largestHeight,
+    jpegFile,
+    srcSetAvif: widths.length > 0 ? srcSet('avif') : null,
+    srcSetWebp: widths.length > 0 ? srcSet('webp') : null,
+    sizes: SIZES_HINT,
+    alt: '', // Will be filled by caller based on subject
+    caption: '',
+  };
+}
+
+function generateImageAssetBlock(img, indent = '  ') {
+  const lines = [
+    `${indent}alt: '${img.alt}',`,
+    `${indent}src: '/photos/${img.jpegFile}',`,
+    `${indent}width: ${img.largestWidth},`,
+    `${indent}height: ${img.largestHeight},`,
+    `${indent}sizes: '${img.sizes}',`,
+  ];
+  if (img.srcSetAvif && img.srcSetWebp) {
+    lines.push(`${indent}sources: [`);
+    lines.push(`${indent}  { type: 'image/avif', srcSet: '${img.srcSetAvif}' },`);
+    lines.push(`${indent}  { type: 'image/webp', srcSet: '${img.srcSetWebp}' },`);
+    lines.push(`${indent}],`);
+  }
+  if (img.caption) {
+    lines.push(`${indent}caption: '${img.caption}',`);
+  }
+  return lines.join('\n');
+}
+
+async function writeContentModules(images) {
+  // Map subjects to their target module and export function
+  const subjectMap = {
+    portrait: { module: 'who.ts', exportFn: 'getWhoPortrait', isPortrait: true },
+    vds: { module: 'sky.ts', exportFn: 'getSportEntries', isPortrait: false },
+    tennis: { module: 'sky.ts', exportFn: 'getSportEntries', isPortrait: false },
+    mtb: { module: 'sky.ts', exportFn: 'getSportEntries', isPortrait: false },
+  };
+
+  const modulePaths = {
+    'who.ts': path.resolve('src/content/who.ts'),
+    'sky.ts': path.resolve('src/content/sky.ts'),
+  };
+
+  for (const [moduleName, modulePath] of Object.entries(modulePaths)) {
+    const content = await readFile(modulePath, 'utf-8');
+    let newContent = content;
+    let hasChanges = false;
+
+    for (const img of images) {
+      const mapping = subjectMap[img.subject];
+      if (!mapping || mapping.module !== moduleName) continue;
+
+      if (mapping.isPortrait) {
+        // Update PORTRAIT constant in who.ts
+        const block = generateImageAssetBlock(img, '    ');
+        const startMarker = '// AUTO-GENERATED PORTRAIT START';
+        const endMarker = '// AUTO-GENERATED PORTRAIT END';
+        const pattern = new RegExp(`${startMarker}[\\s\\S]*?${endMarker}`);
+        const replacement = `${startMarker}\nconst PORTRAIT: ImageAsset = {\n${block}\n  } as const;\n${endMarker}`;
+        if (pattern.test(newContent)) {
+          newContent = newContent.replace(pattern, replacement);
+          hasChanges = true;
+        }
+      } else {
+        // Update the specific sport entry in sky.ts
+        const block = generateImageAssetBlock(img, '            ');
+        const startMarker = `// AUTO-GENERATED ${img.subject.toUpperCase()} IMAGE START`;
+        const endMarker = `// AUTO-GENERATED ${img.subject.toUpperCase()} IMAGE END`;
+        const pattern = new RegExp(`${startMarker}[\\s\\S]*?${endMarker}`);
+        const replacement = `${startMarker}\n            image: {\n${block}\n            },${'\n          '}${endMarker}`;
+        if (pattern.test(newContent)) {
+          newContent = newContent.replace(pattern, replacement);
+          hasChanges = true;
+        }
+      }
+    }
+
+    if (hasChanges) {
+      await writeFile(modulePath, newContent, 'utf-8');
+      console.log(`[images] Updated ${moduleName}`);
+    }
+  }
 }
 
 const files = (await readdir(SOURCE_DIR)).filter((file) =>
@@ -180,9 +271,13 @@ if (collisions.length > 0) {
 
 console.log(`[images] ${files.length} source(s) -> ${OUT_DIR} at widths ${WIDTHS.join(', ')}.`);
 const produced = [];
+const optimizedImages = [];
 for (const file of files) {
   try {
-    await optimizeImage(file, produced);
+    const result = await optimizeImage(file, produced);
+    if (result) {
+      optimizedImages.push(result);
+    }
   } catch (error) {
     console.warn(`[images] Failed on ${file}: ${error?.message ?? error}`);
   }
@@ -196,6 +291,25 @@ if (PRUNE) {
     console.log(`[images] pruned ${file}`);
   }
   if (toRemove.length > 0) console.log(`[images] Pruned ${toRemove.length} stale derivative(s).`);
+}
+
+if (WRITE_CONTENT && optimizedImages.length > 0) {
+  // Prompt for alt text and captions if not in interactive mode
+  for (const img of optimizedImages) {
+    if (!img.alt) {
+      img.alt = `A photo of ${img.subject}`;
+    }
+    if (
+      !img.caption &&
+      (img.subject === 'vds' || img.subject === 'tennis' || img.subject === 'mtb')
+    ) {
+      img.caption =
+        img.subject === 'vds'
+          ? 'VDS · northern Italy'
+          : img.subject.charAt(0).toUpperCase() + img.subject.slice(1);
+    }
+  }
+  await writeContentModules(optimizedImages);
 }
 
 console.log(

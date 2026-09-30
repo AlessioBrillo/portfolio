@@ -2,15 +2,16 @@
 
 ## Metadata
 
-| Field          | Value              |
-| -------------- | ------------------ |
-| **Status**     | Accepted           |
-| **Date**       | 2026-06-21         |
-| **Authors**    | AlessioBrillo      |
-| **Deciders**   | AlessioBrillo      |
-| **Supersedes** | N/A                |
-| **Relates to** | ADR-0001, ADR-0009 |
-| **Project**    | The Ascent         |
+| Field             | Value                                                           |
+| ----------------- | --------------------------------------------------------------- |
+| **Status**        | Superseded                                                      |
+| **Date**          | 2026-06-21                                                      |
+| **Authors**       | AlessioBrillo                                                   |
+| **Deciders**      | AlessioBrillo                                                   |
+| **Supersedes**    | N/A                                                             |
+| **Superseded by** | ADR-0003 (native CSS Scroll-driven Animations) — commit 4be5e19 |
+| **Relates to**    | ADR-0001, ADR-0009                                              |
+| **Project**       | The Ascent                                                      |
 
 ## Context
 
@@ -31,7 +32,7 @@ scroll-progress timeline, and component-level enter/hover animation.
 
 ## Considered Options
 
-### Option A: GSAP ScrollTrigger for the tonal timeline + Framer Motion for reveals (CHOSEN)
+### Option A: GSAP ScrollTrigger for the tonal timeline + Framer Motion for reveals (CHOSEN — NOW SUPERSEDED)
 
 GSAP ScrollTrigger (now fully free) scrubs background-tone transitions to scroll
 position; Framer Motion handles component reveals and hovers.
@@ -61,3 +62,11 @@ provides a lightweight baseline; the full timeline lands in roadmap Phase 2-3.
   responsibilities and code-splitting.
 - **Constraint:** under reduced motion, tonal transitions become instantaneous
   and reveals/parallax are disabled.
+
+## Supersession Note
+
+This ADR is superseded by the migration to native CSS Scroll-driven Animations
+(commit `4be5e19`, PR #191). The tonal engine now uses `useSceneTonePublisher`
+hook with `animation-timeline: scroll()` — no GSAP dependency remains.
+Framer Motion was also removed. The current architecture is documented in
+`src/hooks/useSceneTonePublisher.ts` and `src/components/ascent/TonalScene.tsx`.

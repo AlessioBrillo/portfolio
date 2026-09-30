@@ -56,6 +56,8 @@ export default defineConfig({
         manualChunks(id) {
           if (id.includes('react') || id.includes('react-dom') || id.includes('react-router-dom')) return 'react-vendor';
           if (id.includes('@mdx-js/react')) return 'mdx-runtime';
+          // AiPhysics is lazy-loaded but explicitly chunk it to keep entry lean
+          if (id.includes('/sections/AiPhysics')) return 'ai-physics';
         },
         chunkFileNames: 'assets/[name]-[hash].js',
         entryFileNames: 'assets/[name]-[hash].js',

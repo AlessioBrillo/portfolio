@@ -44,6 +44,7 @@ export default defineConfig({
         'src/hooks/useSceneTonePublisher.ts',
         'src/lib/tonal-engine-utils.ts',
         'src/content/case-studies/registry.ts',
+        'src/lib/middleware-sync.ts',
       ],
       thresholds: {
         statements: 98.3,
