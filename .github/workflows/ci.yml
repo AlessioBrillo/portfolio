@@ -49,6 +49,80 @@ jobs:
       - name: Deploy routing check
         run: npm run deploy:check
 
+  domain-dry-run:
+    name: Domain Mode Build & Artifact Validation
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      VITE_SITE_URL: https://example.com
+      VITE_PLAUSIBLE_SRC: https://plausible.io/js/script.js
+      VITE_PLAUSIBLE_DOMAIN: example.com
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: '.nvmrc'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build (domain mode)
+        run: npm run build
+
+      - name: Bundle size check
+        run: npm run bundle:check:ci
+
+      - name: Validate site URL
+        run: node scripts/validate-site-url.mjs
+
+      - name: Generate sitemap
+        run: node scripts/generate-sitemap.mjs
+
+      - name: Finalize dist
+        run: node scripts/finalize-dist.mjs
+
+      - name: Deploy routing check
+        run: npm run deploy:check
+
+      - name: Verify sitemap has 7 URLs (/, /archive, 5 case studies)
+        run: |
+          count=$(grep -c '<url>' dist/sitemap.xml)
+          echo "Sitemap URL count: $count"
+          if [ "$count" -ne 7 ]; then
+            echo "ERROR: Expected 7 URLs in sitemap, got $count"
+            cat dist/sitemap.xml
+            exit 1
+          fi
+
+      - name: Verify absolute og:image in dist/index.html
+        run: |
+          if ! grep -q 'https://example.com/og-image.png' dist/index.html; then
+            echo "ERROR: Absolute og:image not found in dist/index.html"
+            grep -i 'og:image' dist/index.html || echo "No og:image found"
+            exit 1
+          fi
+          echo "Absolute og:image verified"
+
+      - name: Verify JSON-LD url in dist/index.html
+        run: |
+          if ! grep -q '"url": "https://example.com/"' dist/index.html; then
+            echo "ERROR: JSON-LD url not found in dist/index.html"
+            grep -i 'json-ld\|@type' dist/index.html -A 10 || echo "No JSON-LD found"
+            exit 1
+          fi
+          echo "JSON-LD url verified"
+
+      - name: Verify robots.txt Sitemap line
+        run: |
+          if ! grep -q 'Sitemap: https://example.com/sitemap.xml' dist/robots.txt; then
+            echo "ERROR: Sitemap line not found in dist/robots.txt"
+            cat dist/robots.txt
+            exit 1
+          fi
+          echo "robots.txt Sitemap line verified"
+
   e2e:
     name: E2E Tests (Playwright)
     runs-on: ubuntu-latest
@@ -106,3 +180,47 @@ jobs:
           VITE_PLAUSIBLE_DOMAIN: ${{ secrets.VITE_PLAUSIBLE_DOMAIN }}
           VITE_PLAUSIBLE_SRC: ${{ secrets.VITE_PLAUSIBLE_SRC }}
           VITE_PLAUSIBLE_INTEGRITY: ${{ secrets.VITE_PLAUSIBLE_INTEGRITY }}
+
+  deploy-production:
+    name: Deploy Production (Vercel)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    needs: [lint-typecheck-test, e2e, domain-dry-run]
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    environment: production
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: '.nvmrc'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build (production)
+        env:
+          VITE_SITE_URL: ${{ secrets.VITE_SITE_URL }}
+          VITE_PLAUSIBLE_DOMAIN: ${{ secrets.VITE_PLAUSIBLE_DOMAIN }}
+          VITE_PLAUSIBLE_SRC: ${{ secrets.VITE_PLAUSIBLE_SRC }}
+          VITE_PLAUSIBLE_INTEGRITY: ${{ secrets.VITE_PLAUSIBLE_INTEGRITY }}
+        run: npm run build
+
+      - name: Deploy to Vercel Production
+        uses: amondnet/vercel-action@v25
+        with:
+          vercel-token: ${{ secrets.VERCEL_TOKEN }}
+          vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
+          vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
+          vercel-args: '--prod=true'
+        env:
+          VITE_SITE_URL: ${{ secrets.VITE_SITE_URL }}
+          VITE_PLAUSIBLE_DOMAIN: ${{ secrets.VITE_PLAUSIBLE_DOMAIN }}
+          VITE_PLAUSIBLE_SRC: ${{ secrets.VITE_PLAUSIBLE_SRC }}
+          VITE_PLAUSIBLE_INTEGRITY: ${{ secrets.VITE_PLAUSIBLE_INTEGRITY }}
+
+      - name: Smoke test production domain
+        run: npm run smoke -- --url ${{ secrets.VITE_SITE_URL }} --apex ${{ secrets.VITE_SITE_URL }}
