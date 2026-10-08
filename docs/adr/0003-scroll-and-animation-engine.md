@@ -2,16 +2,16 @@
 
 ## Metadata
 
-| Field             | Value                                                           |
-| ----------------- | --------------------------------------------------------------- |
-| **Status**        | Superseded                                                      |
-| **Date**          | 2026-06-21                                                      |
-| **Authors**       | AlessioBrillo                                                   |
-| **Deciders**      | AlessioBrillo                                                   |
-| **Supersedes**    | N/A                                                             |
-| **Superseded by** | ADR-0003 (native CSS Scroll-driven Animations) — commit 4be5e19 |
-| **Relates to**    | ADR-0001, ADR-0009                                              |
-| **Project**       | The Ascent                                                      |
+| Field             | Value                                   |
+| ----------------- | --------------------------------------- |
+| **Status**        | Superseded                              |
+| **Date**          | 2026-06-21                              |
+| **Authors**       | AlessioBrillo                           |
+| **Deciders**      | AlessioBrillo                           |
+| **Supersedes**    | N/A                                     |
+| **Superseded by** | ADR-0026 (layout-driven scroll handler) |
+| **Relates to**    | ADR-0001, ADR-0009                      |
+| **Project**       | The Ascent                              |
 
 ## Context
 
@@ -70,3 +70,6 @@ This ADR is superseded by the migration to native CSS Scroll-driven Animations
 hook with `animation-timeline: scroll()` — no GSAP dependency remains.
 Framer Motion was also removed. The current architecture is documented in
 `src/hooks/useSceneTonePublisher.ts` and `src/components/ascent/TonalScene.tsx`.
+
+Update (2026-10-08): the CSS `scroll()` approach from `4be5e19` was itself
+replaced; the engine is now specified by ADR-0026.

@@ -171,43 +171,10 @@ async function scrollToTransitionProgress(
       const elementTopPage = el.getBoundingClientRect().top + window.scrollY;
       const vh = window.innerHeight;
       const scrollY = elementTopPage - vh + progress * (vh / 2);
-      window.scrollTo({ top: Math.max(0, scrollY), behavior: 'smooth' });
+      window.scrollTo(0, Math.max(0, scrollY));
     },
     { triggerId, progress },
   );
-  await page.waitForTimeout(600);
-  await settleToneState(page);
-}
-
-/**
- * Scroll to a transition progress using small steps to trigger IntersectionObserver
- * thresholds in headless Chrome. Used by tests that verify React tone state.
- */
-async function scrollToTransitionProgressStepped(
-  page: Page,
-  triggerId: string,
-  progress: number,
-): Promise<void> {
-  await page.evaluate(
-    ({ triggerId, progress }) => {
-      const section = document.getElementById(triggerId);
-      const el = section?.querySelector('h1, h2') ?? section;
-      if (!el) throw new Error(`transition trigger #${triggerId} not found`);
-      const elementTopPage = el.getBoundingClientRect().top + window.scrollY;
-      const vh = window.innerHeight;
-      const scrollY = elementTopPage - vh + progress * (vh / 2);
-      window.scrollTo({ top: Math.max(0, scrollY), behavior: 'smooth' });
-    },
-    { triggerId, progress },
-  );
-  // Scroll in small steps to trigger IntersectionObserver thresholds in headless Chrome
-  await page.evaluate(async () => {
-    for (let i = 0; i < 10; i++) {
-      window.scrollBy(0, 1);
-      await new Promise(r => setTimeout(r, 50));
-    }
-  });
-  await page.waitForTimeout(300);
   await settleToneState(page);
 }
 
@@ -353,19 +320,6 @@ function skipUnderForcedColors(testInfo: { project: { name: string } }): void {
 }
 
 test.describe('tonal signature', () => {
-  // Force fallback path in CI (headless Chrome) by mocking supportsScrollDrivenAnimations
-  // This ensures reliable tone publishing via scroll listener instead of IntersectionObserver
-  // which doesn't fire correctly with programmatic scroll in headless Chrome.
-  test.beforeEach(async ({ page }) => {
-    await page.addInitScript(() => {
-      Object.defineProperty(window, 'supportsScrollDrivenAnimations', {
-        value: () => false,
-        writable: true,
-        configurable: true,
-      });
-    });
-  });
-
   test('hero loads with the manifesto visible', async ({ page }) => {
     await page.goto('/');
     await expect(page.locator('h1')).toBeVisible();
@@ -377,27 +331,15 @@ test.describe('tonal signature', () => {
     page,
   }, testInfo) => {
     skipUnderForcedColors(testInfo);
-    // Force fallback path in CI (headless Chrome) for reliable tone publishing
-    await page.addInitScript(() => {
-      (window as unknown as { __FORCE_FALLBACK__: boolean }).__FORCE_FALLBACK__ = true;
-    });
     await page.goto('/');
     await settleFonts(page);
-    await page.evaluate(() => new Promise<void>((resolve) => {
-      if ((window as unknown as { __TONAL_ENGINE_LOADED__?: boolean }).__TONAL_ENGINE_LOADED__) {
-        resolve();
-        return;
-      }
-      window.addEventListener('tonal-engine-load', () => resolve(), { once: true });
-      setTimeout(resolve, 2000);
-    }));
     const ground = parseRgb(await backdropColor(page));
 
     // Cruise: the mosaic fade (foschia -> night) completes as its heading
     // parks at viewport centre, so the backdrop is deterministically night.
     // `scrollIntoViewIfNeeded` is NOT enough -- it stops at the nearest edge,
     // short of the flip line.
-    await scrollToTransitionProgressStepped(page, 'mosaic', 1);
+    await scrollToTransitionProgress(page, 'mosaic', 1);
     const cruise = parseRgb(await backdropColor(page));
 
     // Descent: scroll to the end of the experiences window (alba -> paper).
@@ -419,10 +361,6 @@ test.describe('tonal signature', () => {
   }, testInfo) => {
     skipUnderForcedColors(testInfo);
     test.setTimeout(120_000);
-    // Force fallback path in CI (headless Chrome) for reliable tone publishing
-    await page.addInitScript(() => {
-      (window as unknown as { __FORCE_FALLBACK__: boolean }).__FORCE_FALLBACK__ = true;
-    });
     await page.goto('/');
     await settleFonts(page);
 
@@ -448,7 +386,7 @@ test.describe('tonal signature', () => {
       }
 
       for (const progress of [...triggerSamples].sort((a, b) => a - b)) {
-        await scrollToTransitionProgressStepped(page, trigger, progress);
+        await scrollToTransitionProgress(page, trigger, progress);
         const bg = parseRgb(await backdropColor(page));
         const heading = await waitForVisibleHeading(page, 'h1, h2');
         expect(heading, `${trigger} heading missing at ${progress}`).not.toBeNull();
@@ -468,10 +406,6 @@ test.describe('tonal signature', () => {
     page,
   }, testInfo) => {
     skipUnderForcedColors(testInfo);
-    // Force fallback path in CI (headless Chrome) for reliable tone publishing
-    await page.addInitScript(() => {
-      (window as unknown as { __FORCE_FALLBACK__: boolean }).__FORCE_FALLBACK__ = true;
-    });
     await page.goto('/');
     await settleFonts(page);
 
@@ -487,7 +421,7 @@ test.describe('tonal signature', () => {
       const expected = EXPECTED_HEADING[trigger];
       if (!lines || !expected) throw new Error(`no expectations for trigger ${trigger}`);
 
-      await scrollToTransitionProgressStepped(page, trigger, lines.body - 0.03);
+      await scrollToTransitionProgress(page, trigger, lines.body - 0.03);
       const before = await waitForVisibleHeading(page, 'h1, h2');
       expect(before, `${trigger} heading missing before the body flip`).not.toBeNull();
       if (before) {
@@ -496,7 +430,7 @@ test.describe('tonal signature', () => {
         );
       }
 
-      await scrollToTransitionProgressStepped(page, trigger, lines.body + 0.03);
+      await scrollToTransitionProgress(page, trigger, lines.body + 0.03);
       const after = await waitForVisibleHeading(page, 'h1, h2');
       expect(after, `${trigger} heading missing after the body flip`).not.toBeNull();
       if (after) {
@@ -511,10 +445,6 @@ test.describe('tonal signature', () => {
     page,
   }, testInfo) => {
     skipUnderForcedColors(testInfo);
-    // Force fallback path in CI (headless Chrome) for reliable tone publishing
-    await page.addInitScript(() => {
-      (window as unknown as { __FORCE_FALLBACK__: boolean }).__FORCE_FALLBACK__ = true;
-    });
     await page.addInitScript(() => {
       (window as unknown as { __TONAL_DEBUG__: boolean }).__TONAL_DEBUG__ = true;
     });
@@ -547,7 +477,7 @@ test.describe('tonal signature', () => {
       // reduced motion both flip at the body line, so sample just before it.
       const beforeBodyProgress =
         !isReducedMotion && trigger === 'mosaic' ? lines.body + 0.01 : lines.body - 0.01;
-      await scrollToTransitionProgressStepped(page, trigger, beforeBodyProgress);
+      await scrollToTransitionProgress(page, trigger, beforeBodyProgress);
       const before = await currentVisibleMutedColor(page, trigger);
       expect(before, `${trigger} eyebrow missing before body flip`).not.toBeNull();
       if (before) {
@@ -562,7 +492,7 @@ test.describe('tonal signature', () => {
       const afterProgress = isReducedMotion
         ? lines.body + SOFT_FLIP_MARGIN
         : lines.soft + SOFT_FLIP_MARGIN;
-      await scrollToTransitionProgressStepped(page, trigger, afterProgress);
+      await scrollToTransitionProgress(page, trigger, afterProgress);
       const after = await currentVisibleMutedColor(page, trigger);
       expect(after, `${trigger} eyebrow missing after soft flip`).not.toBeNull();
       if (after) {
@@ -581,10 +511,6 @@ test.describe('tonal signature', () => {
     page,
   }, testInfo) => {
     skipUnderForcedColors(testInfo);
-    // Force fallback path in CI (headless Chrome) for reliable tone publishing
-    await page.addInitScript(() => {
-      (window as unknown as { __FORCE_FALLBACK__: boolean }).__FORCE_FALLBACK__ = true;
-    });
     await page.goto('/');
     await settleFonts(page);
 
@@ -596,7 +522,7 @@ test.describe('tonal signature', () => {
     // is what gates this, so a band that stops following the live tone fails
     // the moment the backdrop crosses past the midpoint.
     for (const trigger of TRANSITION_TRIGGERS) {
-      await scrollToTransitionProgressStepped(page, trigger, 0.08);
+      await scrollToTransitionProgress(page, trigger, 0.08);
       const bgOutgoing = parseRgb(await backdropColor(page));
 
       const headingOutgoing = await waitForVisibleHeading(page, 'h1, h2');
@@ -606,7 +532,7 @@ test.describe('tonal signature', () => {
         expect(ratio, `${trigger} heading contrast at outgoing end`).toBeGreaterThan(AA_LARGE_TEXT);
       }
 
-      await scrollToTransitionProgressStepped(page, trigger, 0.92);
+      await scrollToTransitionProgress(page, trigger, 0.92);
       const bgIncoming = parseRgb(await backdropColor(page));
 
       const headingIncoming = await waitForVisibleHeading(page, 'h1, h2');
@@ -622,10 +548,6 @@ test.describe('tonal signature', () => {
     page,
   }, testInfo) => {
     skipUnderForcedColors(testInfo);
-    // Force fallback path in CI (headless Chrome) for reliable tone publishing
-    await page.addInitScript(() => {
-      (window as unknown as { __FORCE_FALLBACK__: boolean }).__FORCE_FALLBACK__ = true;
-    });
     await page.goto('/');
     await settleFonts(page);
 
@@ -646,7 +568,7 @@ test.describe('tonal signature', () => {
     // (past the end of fade window) which is guaranteed past the flip line in
     // both motion modes.
     if (isReducedMotion) {
-      await scrollToTransitionProgressStepped(page, 'ai-physics', 1.1);
+      await scrollToTransitionProgress(page, 'ai-physics', 1.1);
       // In reduced motion, verify backdrop is night via direct color check
       // (elementClipDominant would scroll back to block:start, triggering onLeaveBack)
       const bgColor = parseRgb(await backdropColor(page));

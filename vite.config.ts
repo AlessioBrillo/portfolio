@@ -41,12 +41,6 @@ export default defineConfig({
   server: {
     port: 5173,
   },
-  optimizeDeps: {
-    // No heavy deps to pre-bundle — tonal engine uses native CSS Scroll-driven Animations
-    // Case study MDX bodies are lazy-loaded via router code-splitting
-    // Include scroll-timeline-polyfill so the dynamic import resolves at build time
-    include: ['scroll-timeline-polyfill'],
-  },
   build: {
     outDir: 'dist',
     sourcemap: false,

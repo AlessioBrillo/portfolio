@@ -10,7 +10,6 @@ export default defineConfig({
   resolve: {
     alias: {
       '@': resolve(dirname, 'src'),
-      'scroll-timeline-polyfill': resolve(dirname, 'src/test-stubs/scroll-timeline-polyfill.ts'),
     },
   },
   plugins: [
@@ -41,8 +40,6 @@ export default defineConfig({
         'src/main.tsx',
         'src/types/**',
         'src/lib/tone.e2e.ts',
-        'src/hooks/useSceneTonePublisher.ts',
-        'src/lib/tonal-engine-utils.ts',
         'src/content/case-studies/registry.ts',
         'src/lib/middleware-sync.ts',
       ],

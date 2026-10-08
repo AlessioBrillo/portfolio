@@ -1,94 +1,18 @@
 /*
- * Flight Backdrop — CSS Scroll-driven Animation
- * Replaces GSAP ScrollTrigger for the tonal crossfade.
- * Uses `animation-timeline: scroll()` (W3C Scroll Animations Level 1).
- * Fallback for browsers without support is handled in useSceneTonePublisher.ts.
+ * Flight Backdrop
+ * The fixed surface behind the page. Its colour is written per scroll position
+ * by useSceneTonePublisher (ADR-0026); CSS only supplies the paper seed that
+ * paints before JS runs, so there is no flash on load.
  */
 
-/* CSS Custom Properties for texture overlays and static gradient fallback.
+/* CSS Custom Properties for the texture overlays.
  * These are defined here (not in JS) so they're available before any JS runs,
  * preventing flash of unstyled content. */
 :root {
-  /* Static flight gradient — 8 bands × 12.5% each, matching @keyframes flight.
-   * Uses hardcoded color values (not CSS variables) to ensure the gradient
-   * renders correctly in all environments including headless Chrome CI where
-   * CSS custom properties may not be fully resolved. */
-  --static-flight-gradient: linear-gradient(
-    to bottom,
-    #f4f4f0 0%,
-    #f4f4f0 12.5%,
-    #84837f 12.5%,
-    #84837f 25%,
-    #0a0a0a 25%,
-    #0a0a0a 37.5%,
-    #0a0a0a 37.5%,
-    #0a0a0a 50%,
-    #0a0a0a 50%,
-    #0a0a0a 62.5%,
-    #84837f 62.5%,
-    #84837f 75%,
-    #f4f4f0 75%,
-    #f4f4f0 87.5%,
-    #0a0a0a 87.5%,
-    #0a0a0a 100%
-  );
-
   /* Texture overlay SVGs as data URIs */
   --grain-svg: url('data:image/svg+xml;base64,PHN2ZyB2aWV3Qm94PSIwIDAgNDAwIDQwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZmlsdGVyIGlkPSJub2lzZSI+PGZlVHVyYnVsZW5jZSB0eXBlPSJmcmFjdGFsTm9pc2UiIGJhc2VGcmVxdWVuY3k9IjAuOSIgbnVtT2N0YXZlcz0iNCIgc3RpdGNoVGlsZXM9InN0aXRjaCIvPjwvZmlsdGVyPjxyZWN0IHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIGZpbHRlcj0idXJsKCNub2lzZSkiIG9wYWNpdHk9IjAuMDI1Ii8+PC9zdmc+');
   --scanline-svg: url('data:image/svg+xml;base64,PHN2ZyB2aWV3Qm94PSIwIDAgMTAwIDQiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGRlZnM+PHBhdHRlcm4gaWQ9InNjYW5saW5lcyIgcGF0dGVyblVuaXRzPSJ1c2VyU3BhY2VPblVzZSIgd2lkdGg9IjEwMCIgaGVpZ2h0PSI0Ij48cmVjdCB4PSIwIiB5PSIwIiB3aWR0aD0iMTAwIiBoZWlnaHQ9IjIiIGZpbGw9InJnYmEoMCwwLDAsMC4wOCkiIC8+PHJlY3QgeD0iMCIgeT0iMiIgd2lkdGg9IjEwMCIgaGVpZ2h0PSIyIiBmaWxsPSJyZ2JhKDAsMCwwLDAuMDgpIiAvPjwvcGF0dGVybj48L2RlZnM+PHJlY3Qgd2lkdGg9IjEwMCUiIGhlaWdodD0iMTAwJSIgZmlsbD0idXJsKCNzY2FubGluZXMpIiAvPjwvc3ZnPg==');
   --constellation-svg: url('data:image/svg+xml;base64,PHN2ZyB2aWV3Qm94PSIwIDAgODAwIDYwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZGVmcz48cmFkaWFsR3JhZGllbnQgaWQ9InN0YXJHbG93IiBjeD0iNTAlIiBjeT0iNTAlIiByPSI1MCUiPjxzdG9wIG9mZnNldD0iMCUiIHN0b3AtY29sb3I9IiNGQkY4RjIiIHN0b3Atb3BhY2l0eT0iMSIvPjxzdG9wIG9mZnNldD0iNjAlIiBzdG9wLWNvbG9yPSIjRkJGOEYyIiBzdG9wLW9wYWNpdHk9IjAuMyIvPjxzdG9wIG9mZnNldD0iMTAwJSIgc3RvcC1jb2xvcj0iI0ZCRjhGMiIgc3RvcC1vcGFjaXR5PSIwIi8+PC9yYWRpYWxHcmFkaWVudD48L2RlZnM+PCEtLSBNYWpvciBzdGFycyAoYnJpZ2h0ZXIsIGxhcmdlcikgLS0+PGNpcmNsZSBjeD0iMTIwIiBjeT0iODUiIHI9IjIuNSIgZmlsbD0idXJsKCNzdGFyR2xvdykiIG9wYWNpdHk9IjAuOSIvPjxjaXJjbGUgY3g9IjM0MCIgY3k9IjQ1IiByPSIyIiBmaWxsPSJ1cmwoI3N0YXJHbG93KSIgb3BhY2l0eT0iMC44NSIvPjxjaXJjbGUgY3g9IjU4MCIgY3k9Ijk1IiByPSIyLjIiIGZpbGw9InVybCgjc3Rhckdsb3cpIiBvcGFjaXR5PSIwLjg4Ii8+PGNpcmNsZSBjeD0iNzIwIiBjeT0iMTYwIiByPSIxLjgiIGZpbGw9InVybCgjc3Rhckdsb3cpIiBvcGFjaXR5PSIwLjgiLz48Y2lyY2xlIGN4PSI5NSIgY3k9IjIyMCIgcj0iMi44IiBmaWxsPSJ1cmwoI3N0YXJHbG93KSIgb3BhY2l0eT0iMC45NSIvPjxjaXJjbGUgY3g9IjQyMCIgY3k9IjE5MCIgcj0iMS41IiBmaWxsPSJ1cmwoI3N0YXJHbG93KSIgb3BhY2l0eT0iMC43NSIvPjxjaXJjbGUgY3g9IjY1MCIgY3k9IjE4MCIgcj0iMiIgZmlsbD0idXJsKCNzdGFyR2xvdykiIG9wYWNpdHk9IjAuODIiLz48Y2lyY2xlIGN4PSIyODAiIGN5PSIzMTAiIHI9IjEuOCIgZmlsbD0idXJsKCNzdGFyR2xvdykiIG9wYWNpdHk9IjAuNzgiLz48Y2lyY2xlIGN4PSI1MTAiIGN5PSIyODUiIHI9IjIuMyIgZmlsbD0idXJsKCNzdGFyR2xvdykiIG9wYWNpdHk9IjAuODgiLz48Y2lyY2xlIGN4PSI3NjAiIGN5PSIzNDAiIHI9IjEuNiIgZmlsbD0idXJsKCNzdGFyR2xvdykiIG9wYWNpdHk9IjAuNyIvPjxjaXJjbGUgY3g9IjE4MCIgY3k9IjQxMCIgcj0iMi4xIiBmaWxsPSJ1cmwoI3N0YXJHbG93KSIgb3BhY2l0eT0iMC44NSIvPjxjaXJjbGUgY3g9IjM5MCIgY3k9IjM4MCIgcj0iMS45IiBmaWxsPSJ1cmwoI3N0YXJHbG93KSIgb3BhY2l0eT0iMC44Ii8+PGNpcmNsZSBjeD0iNjIwIiBjeT0iNDIwIiByPSIyLjQiIGZpbGw9InVybCgjc3Rhckdsb3cpIiBvcGFjaXR5PSIwLjkiLz48Y2lyY2xlIGN4PSI3MCIgY3k9IjUyMCIgcj0iMS43IiBmaWxsPSJ1cmwoI3N0YXJHbG93KSIgb3BhY2l0eT0iMC43MiIvPjxjaXJjbGUgY3g9IjQ4MCIgY3k9IjQ5MCIgcj0iMiIgZmlsbD0idXJsKCNzdGFyR2xvdykiIG9wYWNpdHk9IjAuODIiLz48Y2lyY2xlIGN4PSI3MzAiIGN5PSI0ODAiIHI9IjEuOCIgZmlsbD0idXJsKCNzdGFyR2xvdykiIG9wYWNpdHk9IjAuNzUiLz48IS0tIE1pbm9yIHN0YXJzIChzbWFsbGVyLCBkaW1tZXIpIC0tPjxjaXJjbGUgY3g9IjIwMCIgY3k9IjYwIiByPSIwLjgiIGZpbGw9IiNGQkY4RjIiIG9wYWNpdHk9IjAuNSIvPjxjaXJjbGUgY3g9IjI5MCIgY3k9IjExMCIgcj0iMC42IiBmaWxsPSIjRkJGOEYyIiBvcGFjaXR5PSIwLjQ1Ii8+PGNpcmNsZSBjeD0iNDYwIiBjeT0iNzAiIHI9IjAuNyIgZmlsbD0iI0ZCRjhGMiIgb3BhY2l0eT0iMC40OCIvPjxjaXJjbGUgY3g9IjUyMCIgY3k9IjEzMCIgcj0iMC41IiBmaWxsPSIjRkJGOEYyIiBvcGFjaXR5PSIwLjQiLz48Y2lyY2xlIGN4PSI2ODAiIGN5PSIxMTAiIHI9IjAuNiIgZmlsbD0iI0ZCRjhGMiIgb3BhY2l0eT0iMC40MiIvPjxjaXJjbGUgY3g9IjE1MCIgY3k9IjE4MCIgcj0iMC43IiBmaWxsPSIjRkJGOEYyIiBvcGFjaXR5PSIwLjQ1Ii8+PGNpcmNsZSBjeD0iMzcwIiBjeT0iMTYwIiByPSIwLjUiIGZpbGw9IiNGQkY4RjIiIG9wYWNpdHk9IjAuNCIvPjxjaXJjbGUgY3g9IjU5MCIgY3k9IjIxMCIgcj0iMC44IiBmaWxsPSIjRkJGOEYyIiBvcGFjaXR5PSIwLjUiLz48Y2lyY2xlIGN4PSIyNDAiIGN5PSIyNTAiIHI9IjAuNiIgZmlsbD0iI0ZCRjhGMiIgb3BhY2l0eT0iMC40MiIvPjxjaXJjbGUgY3g9IjQ0MCIgY3k9IjI0MCIgcj0iMC41IiBmaWxsPSIjRkJGOEYyIiBvcGFjaXR5PSIwLjM4Ii8+PGNpcmNsZSBjeD0iNjkwIiBjeT0iMjYwIiByPSIwLjciIGZpbGw9IiNGQkY4RjIiIG9wYWNpdHk9IjAuNDUiLz48Y2lyY2xlIGN4PSIxMTAiIGN5PSIzNDAiIHI9IjAuNSIgZmlsbD0iI0ZCRjhGMiIgb3BhY2l0eT0iMC4zOCIvPjxjaXJjbGUgY3g9IjMzMCIgY3k9IjM1MCIgcj0iMC43IiBmaWxsPSIjRkJGOEYyIiBvcGFjaXR5PSIwLjQyIi8+PGNpcmNsZSBjeD0iNTYwIiBjeT0iMzIwIiByPSIwLjYiIGZpbGw9IiNGQkY4RjIiIG9wYWNpdHk9IjAuNCIvPjxjaXJjbGUgY3g9Ijc4MCIgY3k9IjM4MCIgcj0iMC41IiBmaWxsPSIjRkJGOEYyIiBvcGFjaXR5PSIwLjM1Ii8+PGNpcmNsZSBjeD0iMjYwIiBjeT0iNDQwIiByPSIwLjciIGZpbGw9IiNGQkY4RjIiIG9wYWNpdHk9IjAuNCIvPjxjaXJjbGUgY3g9IjQyMCIgY3k9IjQ2MCIgcj0iMC41IiBmaWxsPSIjRkJGOEYyIiBvcGFjaXR5PSIwLjM4Ii8+PGNpcmNsZSBjeD0iNjcwIiBjeT0iNDUwIiByPSIwLjYiIGZpbGw9IiNGQkY4RjIiIG9wYWNpdHk9IjAuNCIvPjxjaXJjbGUgY3g9IjQwIiBjeT0iNTYwIiByPSIwLjUiIGZpbGw9IiNGQkY4RjIiIG9wYWNpdHk9IjAuMzUiLz48Y2lyY2xlIGN4PSI1MjAiIGN5PSI1NDAiIHI9IjAuNyIgZmlsbD0iI0ZCRjhGMiIgb3BhY2l0eT0iMC40MiIvPjxjaXJjbGUgY3g9Ijc5MCIgY3k9IjUxMCIgcj0iMC41IiBmaWxsPSIjRkJGOEYyIiBvcGFjaXR5PSIwLjM1Ii8+PC9zdmc+');
-}
-
-@keyframes flight {
-  /* 8 bands × 12.5% each — matches TONAL_TRANSITIONS in tone.ts */
-  0% {
-    background-color: var(--color-paper); /* Hero: paper */
-  }
-  12.5% {
-    background-color: var(--color-paper); /* Hero end / Who start: paper */
-  }
-  12.5001% {
-    background-color: #84837f; /* Who: foschia (mid-grey) */
-  }
-  25% {
-    background-color: #84837f; /* Who end / Mosaic start: foschia */
-  }
-  25.0001% {
-    background-color: var(--color-night); /* Mosaic: night */
-  }
-  37.5% {
-    background-color: var(--color-night); /* Mosaic end / AiPhysics start: night */
-  }
-  37.5001% {
-    background-color: var(--color-night); /* AiPhysics: night */
-  }
-  50% {
-    background-color: var(--color-night); /* AiPhysics end / WorkSchool start: night */
-  }
-  50.0001% {
-    background-color: var(--color-night); /* WorkSchool: night */
-  }
-  62.5% {
-    background-color: var(--color-night); /* WorkSchool end / SkySport start: night */
-  }
-  62.5001% {
-    background-color: #84837f; /* SkySport: alba (mid-grey) */
-  }
-  75% {
-    background-color: #84837f; /* SkySport end / Experiences start: alba */
-  }
-  75.0001% {
-    background-color: var(--color-paper); /* Experiences: paper */
-  }
-  87.5% {
-    background-color: var(--color-paper); /* Experiences end / Contact start: paper */
-  }
-  87.5001% {
-    background-color: var(--color-night); /* Contact: night (outside TonalScene) */
-  }
-  100% {
-    background-color: var(--color-night); /* Contact end: night */
-  }
 }
 
 /* The backdrop element — fixed, behind all content */
@@ -97,35 +21,13 @@
   inset: 0;
   z-index: -10;
   pointer-events: none;
-  /* Default: static flight gradient as guaranteed base layer.
-   * This ensures the tonal flight is ALWAYS visible, even when:
-   * - CSS Scroll-driven Animations are not supported
-   * - Reduced motion media query doesn't match (e.g., headless Chrome CI)
-   * - JavaScript hasn't loaded yet
-   * Animations only enhance this base layer; they never replace it. */
-  background-image: var(--static-flight-gradient);
-  background-color: transparent;
-  /* Scroll-driven animation — supported in Chrome 115+, Edge 115+, Opera 101+ */
-  /* Safari 17.4+ behind flag; Firefox behind layout.css.scroll-driven-animations.enabled */
-  animation: flight auto linear;
-  animation-timeline: scroll(root);
+  background-color: var(--color-paper);
 }
 
-/* Reduced motion: disable animation, remove gradient so background-color can show */
-@media (prefers-reduced-motion: reduce) {
-  .flight-backdrop {
-    animation: none;
-    background-image: none;
-    background-color: var(--color-paper);
-  }
-}
-
-/* Forced colors: disable all decorative backgrounds */
+/* Forced colors: the system palette wins over the flight */
 @media (forced-colors: active) {
   .flight-backdrop {
-    animation: none;
     background-color: Canvas;
-    background-image: none;
   }
 }
 
