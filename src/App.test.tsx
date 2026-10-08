@@ -6,19 +6,6 @@ import { MDXProvider } from '@mdx-js/react';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { App } from '@/App';
 
-vi.mock('@/lib/gsap-loader', () => ({
-  loadGsap: vi.fn().mockResolvedValue({
-    gsap: {
-      registerPlugin: vi.fn(),
-      matchMedia: vi.fn(() => ({ add: vi.fn() })),
-      context: vi.fn(() => ({ revert: vi.fn() })),
-      fromTo: vi.fn(),
-      set: vi.fn(),
-    },
-    ScrollTrigger: { create: vi.fn() },
-  }),
-}));
-
 // Mock the lazy-loaded TonalScene to return the actual component synchronously in tests
 vi.mock('@/components/ascent/TonalScene', () => ({
   TonalScene: ({ children }: { children: React.ReactNode }) => (

@@ -10,7 +10,7 @@ const PROJECT_ENTRIES: readonly ProjectEntry[] = [
   {
     id: 'the-ascent',
     title: 'The Ascent',
-    line: 'This portfolio — a scroll-driven tonal flight in React 19, TypeScript and native CSS Scroll-driven Animations.',
+    line: 'This portfolio — a scroll-driven tonal flight in React 19, TypeScript and a layout-driven scroll engine.',
     year: '2026',
     href: '/work/the-ascent',
   },

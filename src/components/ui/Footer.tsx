@@ -1,9 +1,10 @@
 import type { ReactElement } from 'react';
-import { SITE } from '@/lib/site';
+import { SITE, resumeLink } from '@/lib/site';
 
 /** Minimal footer on the night band: name, one line, essential links, year. */
 export function Footer(): ReactElement {
   const year = new Date().getFullYear();
+  const resume = resumeLink();
 
   return (
     <footer className="bg-night text-phosphor">
@@ -23,10 +24,11 @@ export function Footer(): ReactElement {
             GitHub
           </a>
           <a
-            href={SITE.resumeUrl}
+            href={resume.href}
+            {...(resume.isFile ? { target: '_blank', rel: 'noreferrer' } : {})}
             className="font-mono text-xs uppercase tracking-widest text-phosphor-dim no-underline transition-colors hover:text-phosphor"
           >
-            Resume &mdash; on request
+            {resume.label}
           </a>
         </nav>
         <span className="mt-4 font-mono text-xs uppercase tracking-widest text-phosphor-dim">

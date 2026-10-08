@@ -32,7 +32,7 @@ const TonalScene = lazy(() =>
  * flash before the engine mounts.
  *
  * `AiPhysics` is code-split via manualChunks in vite.config.ts but eagerly
- * loaded here to ensure the scroll timeline anchor exists for E2E tests.
+ * loaded here to ensure the tonal trigger heading exists for E2E tests.
  */
 export function HomePage(): ReactElement {
   return (

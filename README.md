@@ -18,10 +18,10 @@ the site itself.
 
 | Concern                | Choice                                                        |
 | ---------------------- | ------------------------------------------------------------- |
-| Framework / build      | React 19 · Vite 6 · TypeScript 5 (strict)                     |
+| Framework / build      | React 19 · Vite 8 · TypeScript 5 (strict)                     |
 | Styling                | Tailwind CSS 4 (CSS-first tokens via `@theme`)                |
-| Reveal motion          | Framer Motion                                                 |
-| Scroll / tonal engine  | GSAP + ScrollTrigger                                          |
+| Reveal motion          | Native CSS, `prefers-reduced-motion` aware                    |
+| Scroll / tonal engine  | Layout-driven scroll handler (ADR-0026)                       |
 | Long-form case studies | MDX                                                           |
 | Routing                | React Router (shareable `/{domain}/{slug}` case-study routes) |
 | Testing                | Vitest + Testing Library                                      |

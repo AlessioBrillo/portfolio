@@ -37,7 +37,7 @@ import {
  * at dense blend fractions (plus both flip lines, +/- 0.03) and gates the
  * results. The flip-line constants are imported from `src/lib/tone.e2e.ts`
  * (`E2E_FLIP_PROGRESS`), which computes them by bisection over the actual
- * GSAP-blended backdrop colours.
+ * blended backdrop colours.
  *
  * Pixel-diff visual regression is deliberately not asserted here: golden
  * screenshots need a rendering environment matched to CI (fonts, subpixel
@@ -48,9 +48,9 @@ import {
  */
 
 /**
- * Waits for the display fonts to finish swapping in. `useTonalEngine`
- * re-measures its ScrollTrigger positions when `document.fonts.ready`
- * resolves, so the geometry this harness samples with must be the settled
+ * Waits for the display fonts to finish swapping in. The engine reads trigger
+ * positions live on every scroll frame and re-runs on `document.fonts.ready`,
+ * so the geometry this harness samples with must be the settled
  * one -- otherwise the flip gates chase a stale layout.
  *
  * Variable fonts (Archivo, JetBrains Mono) need explicit load()
@@ -65,11 +65,6 @@ async function settleFonts(page: Page): Promise<void> {
   }
   await page.waitForLoadState('networkidle');
   await page.waitForTimeout(500);
-  // Force ScrollTrigger refresh to ensure positions are up to date
-  await page.evaluate(() => {
-    const st = (window as unknown as { ScrollTrigger?: { refresh: () => void } }).ScrollTrigger;
-    if (st) st.refresh();
-  });
   // Variable fonts: wait for explicit load() after refresh so geometry is final
   // Wrap in try-catch because FontFace.load() can fail in headless CI
   await page.evaluate(async () => {
@@ -93,7 +88,7 @@ async function backdropColor(page: Page): Promise<string> {
 /**
  * Waits until the backdrop colour, the nearest visible heading colour, and the
  * scroll position all stop changing. The reduced-motion flip is two-phase:
- * GSAP paints the backdrop synchronously in the scroll handler, while the
+ * the engine paints the backdrop in the scroll frame, while the
  * scene text tone lands through a React state commit that lags by up to
  * ~270ms under parallel-worker load (measured) -- a frame-count stall
  * reliably resolves in that gap, so the exit condition is time-based.
@@ -137,7 +132,7 @@ async function settleToneState(page: Page): Promise<void> {
           lastHeading = nowHeading;
           lastY = nowY;
           // Resolve once the tone state has held for 1 second. Measured
-          // under parallel-worker load, the React tone commit trails the GSAP
+          // under parallel-worker load, the React tone commit trails the
           // backdrop paint by up to ~270ms; 1000ms provides margin for
           // thread starvation in CI. Hard cap bounds pathological stalls.
           if (performance.now() - lastChange >= 1000 || performance.now() - started >= 3000) {
@@ -152,11 +147,11 @@ async function settleToneState(page: Page): Promise<void> {
 }
 
 /**
- * Scroll to a fractional `progress` between a ScrollTrigger's `top bottom`
+ * Scroll to a fractional `progress` between a trigger's `top bottom`
  * (trigger's top at viewport bottom) and `top center` (trigger's top at
- * viewport centre) marks -- the exact window `useTonalEngine` scrubs the
+ * viewport centre) marks -- the exact window `useSceneTonePublisher` blends the
  * backdrop across, anchored to the section's heading (see `transitionTrigger`
- * in useTonalEngine.ts, not the section's own top edge).
+ * in useSceneTonePublisher.ts, not the section's own top edge).
  */
 async function scrollToTransitionProgress(
   page: Page,
@@ -610,8 +605,8 @@ test.describe('tonal signature', () => {
     await page.goto('/');
     await settleFonts(page);
 
-    // Under reduced motion the engine uses ScrollTrigger.onEnter/onLeaveBack
-    // (see useTonalEngine), so mid-scroll the backdrop must already equal one
+    // Under reduced motion the engine switches discretely (tonalStateAt with
+    // reducedMotion), so mid-scroll the backdrop must already equal one
     // of the two committed tones exactly -- never an interpolated blend.
     // The discrete switch fires at the per-direction body flip line
     // (FLIP_PROGRESS in tone.ts). Scroll past it to verify the switch to night.
