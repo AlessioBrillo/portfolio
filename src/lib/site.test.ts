@@ -1,5 +1,14 @@
+import { existsSync } from 'node:fs';
+import { resolve } from 'node:path';
 import { describe, expect, it, vi } from 'vitest';
-import { canonicalOrigin, canonicalStudyUrl, SITE, validateSiteUrl } from '@/lib/site';
+import {
+  canonicalOrigin,
+  canonicalStudyUrl,
+  RESUME_PDF,
+  resumeLink,
+  SITE,
+  validateSiteUrl,
+} from '@/lib/site';
 
 describe('site identity', () => {
   it('names the author', () => {
@@ -21,6 +30,29 @@ describe('site identity', () => {
 
   it('offers the resume-on-request hook as a pre-filled mailto', () => {
     expect(SITE.resumeUrl).toMatch(/^mailto:alessio@ilcassero\.it\?subject=/);
+  });
+});
+
+describe('resume link (ADR-0028)', () => {
+  it('falls back to the pre-filled mailto while no PDF is published', () => {
+    const link = resumeLink(null);
+    expect(link.label).toBe('Resume — on request');
+    expect(link.isFile).toBe(false);
+    expect(link.href).toMatch(/^mailto:alessio@ilcassero\.it\?subject=/);
+  });
+
+  it('points at the published file once a PDF path is set', () => {
+    expect(resumeLink('/cv/alessio-brillo-cv.pdf')).toEqual({
+      href: '/cv/alessio-brillo-cv.pdf',
+      label: 'Resume — PDF',
+      isFile: true,
+    });
+  });
+
+  it('only ever references a PDF that is committed under public/', () => {
+    if (RESUME_PDF === null) return; // slot still empty: the mailto hook is live
+    expect(RESUME_PDF).toMatch(/^\/cv\/[\w.-]+\.pdf$/);
+    expect(existsSync(resolve(process.cwd(), 'public', RESUME_PDF.slice(1)))).toBe(true);
   });
 });
 
