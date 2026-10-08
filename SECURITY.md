@@ -22,10 +22,12 @@ acknowledgement within a reasonable timeframe.
 ## Known, accepted hardening debt
 
 - `vercel.json` ships `style-src 'self' 'unsafe-inline'`. The inline allowance
-  is **required by the tonal engine** (ADR-0003): GSAP owns the backdrop's
-  paint and mutates inline `background-color` styles on scroll, and React
-  renders inline `aspect-ratio` reservations (ADR-0009). This is documented
-  debt, not an oversight — removing it would break the signature. The rest of
+  was introduced for the GSAP tonal engine (ADR-0003). The current engine
+  (ADR-0026) writes the backdrop colour through the CSSOM, which `style-src`
+  does not govern, and React sets `aspect-ratio` reservations (ADR-0009) the same
+  way, so the allowance is probably removable. It stays until a dedicated pass
+  (strict policy + the full E2E harness) proves nothing else needs it. This is
+  documented debt, not an oversight. The rest of
   the policy is strict: `script-src 'self'` (no inline scripts, no eval), no
   third-party origins, `object-src 'none'`, `frame-ancestors 'none'`.
 - The SPA fallback rewrites unknown paths to `index.html` (ADR-0005's deep

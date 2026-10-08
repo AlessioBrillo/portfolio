@@ -7,11 +7,11 @@ Discreet motion, never "AI-generated".
 
 - **Tonal transitions:** the background tone changes continuously on scroll
   between bands. This is the heart of the light/dark effect and the _only_
-  scenographic moment. The full multi-band engine is driven by GSAP ScrollTrigger
-  (roadmap Phase 3); Phase 2 validates the _first_ transition with Framer Motion
-  `useScroll`/`useTransform` to keep the JS budget low (see ADR-0003).
+  scenographic moment. The multi-band engine is one rAF-throttled scroll handler
+  over a pure state function (ADR-0026): each fade is anchored to a section's
+  heading and runs from `top bottom` to `top center`. No animation library.
 - **Reveals:** text and tiles rise 12-16px with a fade on scroll. Subtle. Driven
-  by Framer Motion.
+  by CSS (no animation library).
 - **Hover:** mosaic tiles get a micro-lift and an orange edge.
 
 ## Tokens

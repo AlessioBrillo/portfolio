@@ -24,7 +24,7 @@ export const SceneToneContext = createContext<SceneToneReadonly>({
 /**
  * Internal setter context — only `TonalScene` should provide this.
  *
- * The tonal engine (`useTonalEngine`) publishes flips through these setters.
+ * The tonal engine (`useSceneTonePublisher`) publishes flips through these setters.
  * Under reduced motion the engine publishes both tones together at the body line.
  * Not exported for general consumption; prevents accidental tone overrides.
  */

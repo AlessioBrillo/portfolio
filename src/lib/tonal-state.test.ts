@@ -16,6 +16,16 @@ function tops(overrides: TriggerTops = {}): TriggerTops {
   return { who: 9e3, mosaic: 9e3, 'sky-sport': 9e3, experiences: 9e3, ...overrides };
 }
 
+describe('transition window contract', () => {
+  it('matches the geometry windowProgress implements for every transition', () => {
+    // windowProgress hardcodes top-bottom -> top-center; the declared strings must agree.
+    for (const transition of TONAL_TRANSITIONS) {
+      expect(transition.start, transition.trigger).toBe('top bottom');
+      expect(transition.end, transition.trigger).toBe('top center');
+    }
+  });
+});
+
 describe('windowProgress', () => {
   it('is 0 until the trigger top reaches the viewport bottom', () => {
     expect(windowProgress(VH, VH)).toBe(0);
