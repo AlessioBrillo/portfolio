@@ -18,8 +18,6 @@
     "deploy:check": "node scripts/check-deploy-routing.mjs",
     "photos:check": "node scripts/check-photo-assets.mjs",
     "smoke": "node scripts/smoke-deploy.mjs",
-    "domain:land": "node scripts/domain-landing.mjs",
-    "domain:land:dry": "node scripts/domain-landing.mjs --dry-run",
     "domain:verify": "node scripts/smoke-deploy.mjs",
     "preview": "vite preview",
     "analyze": "cross-env ANALYZE=true vite build",

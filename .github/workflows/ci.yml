@@ -6,6 +6,9 @@ on:
   push:
     branches: [main]
 
+permissions:
+  contents: read
+
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
@@ -34,6 +37,9 @@ jobs:
       - name: Lint
         run: npm run lint
 
+      - name: Format check
+        run: npm run format:check
+
       - name: Typecheck
         run: npm run typecheck
 
@@ -45,6 +51,9 @@ jobs:
 
       - name: Bundle size check
         run: npm run bundle:check:ci
+
+      - name: Photo asset contract
+        run: npm run photos:check
 
       - name: Deploy routing check
         run: npm run deploy:check
@@ -123,11 +132,21 @@ jobs:
           fi
           echo "robots.txt Sitemap line verified"
 
+  # Vercel builds and deploys through its Git integration (ADR-0027); this
+  # pipeline is the gate. The signature harness runs against both servers:
+  # the dev server and the production build served by `vite preview`.
   e2e:
-    name: E2E Tests (Playwright)
+    name: E2E (${{ matrix.name }})
     runs-on: ubuntu-latest
     timeout-minutes: 20
-    needs: lint-typecheck-test
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: dev
+            command: npm run e2e
+          - name: preview
+            command: npm run e2e:preview
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -135,92 +154,24 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version-file: '.nvmrc'
-          cache: 'npm'
+          node-version-file: .nvmrc
+          cache: npm
 
       - name: Install dependencies
         run: npm ci
-
-      - name: Build
-        run: npm run build
 
       - name: Install Playwright browsers
         run: npx playwright install --with-deps chromium
 
-      - name: Run E2E tests
-        run: npm run e2e
+      - name: Run the E2E harness
+        run: ${{ matrix.command }}
 
-      - name: Upload Playwright traces on failure
+      - name: Upload report on failure
         if: failure()
         uses: actions/upload-artifact@v4
         with:
-          name: playwright-traces
-          path: test-results/
+          name: playwright-${{ matrix.name }}
+          path: |
+            playwright-report/
+            test-results/
           retention-days: 7
-
-  deploy-preview:
-    name: Deploy Preview (Vercel)
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
-    needs: e2e
-    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Deploy to Vercel Preview
-        uses: amondnet/vercel-action@v25
-        with:
-          vercel-token: ${{ secrets.VERCEL_TOKEN }}
-          vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
-          vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
-          vercel-args: '--prod=false'
-        env:
-          VITE_SITE_URL: ${{ secrets.VITE_SITE_URL }}
-          VITE_PLAUSIBLE_DOMAIN: ${{ secrets.VITE_PLAUSIBLE_DOMAIN }}
-          VITE_PLAUSIBLE_SRC: ${{ secrets.VITE_PLAUSIBLE_SRC }}
-          VITE_PLAUSIBLE_INTEGRITY: ${{ secrets.VITE_PLAUSIBLE_INTEGRITY }}
-
-  deploy-production:
-    name: Deploy Production (Vercel)
-    runs-on: ubuntu-latest
-    timeout-minutes: 15
-    needs: [lint-typecheck-test, e2e, domain-dry-run]
-    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-    environment: production
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Setup Node
-        uses: actions/setup-node@v4
-        with:
-          node-version-file: '.nvmrc'
-          cache: 'npm'
-
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Build (production)
-        env:
-          VITE_SITE_URL: ${{ secrets.VITE_SITE_URL }}
-          VITE_PLAUSIBLE_DOMAIN: ${{ secrets.VITE_PLAUSIBLE_DOMAIN }}
-          VITE_PLAUSIBLE_SRC: ${{ secrets.VITE_PLAUSIBLE_SRC }}
-          VITE_PLAUSIBLE_INTEGRITY: ${{ secrets.VITE_PLAUSIBLE_INTEGRITY }}
-        run: npm run build
-
-      - name: Deploy to Vercel Production
-        uses: amondnet/vercel-action@v25
-        with:
-          vercel-token: ${{ secrets.VERCEL_TOKEN }}
-          vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
-          vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
-          vercel-args: '--prod=true'
-        env:
-          VITE_SITE_URL: ${{ secrets.VITE_SITE_URL }}
-          VITE_PLAUSIBLE_DOMAIN: ${{ secrets.VITE_PLAUSIBLE_DOMAIN }}
-          VITE_PLAUSIBLE_SRC: ${{ secrets.VITE_PLAUSIBLE_SRC }}
-          VITE_PLAUSIBLE_INTEGRITY: ${{ secrets.VITE_PLAUSIBLE_INTEGRITY }}
-
-      - name: Smoke test production domain
-        run: npm run smoke -- --url ${{ secrets.VITE_SITE_URL }} --apex ${{ secrets.VITE_SITE_URL }}

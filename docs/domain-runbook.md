@@ -1,40 +1,46 @@
 # Domain Deployment Runbook — The Ascent
 
 **Purpose**: Zero-surprise deployment checklist for the production domain.
-**Trigger**: Domain purchased and ready to configure.
+**Trigger**: Step 0 is ready now; Steps 1–8 start when the domain is purchased.
 **Authority**: This runbook is the _only_ source of truth for deploy order. No step is optional.
 
 ---
 
-## Execution Mode
+## How deploys work
 
-### Automated Path (Recommended)
+Vercel builds and deploys through its **Git integration** (ADR-0027). GitHub
+Actions is the gate, not the deployer: `main` only receives squash-merged PRs
+whose CI is green, and every merge to `main` becomes a production deployment.
+When a production deployment succeeds, `.github/workflows/smoke.yml` runs
+`npm run smoke` against the exact URL Vercel published. No Vercel token lives
+in GitHub.
 
-Run the idempotent orchestrator that executes every step below in order,
-with pre-condition validation, rollback instructions, and dry-run support:
+## Step 0: First launch on `*.vercel.app` (no domain needed)
 
-```bash
-# Preview what would happen (safe, no mutations)
-npm run domain:land:dry
+The site is launch-ready before the domain exists. With `VITE_SITE_URL` unset
+the build emits no canonical links and no sitemap, and the Plausible proxy
+answers 404 (ADR-0020), so nothing advertises a throwaway origin.
 
-# Execute the full landing sequence
-npm run domain:land
-```
+1. Vercel Dashboard → Add New → Project → import `AlessioBrillo/portfolio`.
+2. Framework preset **Vite**, Node.js **24.x**, build command and output
+   directory left at their defaults (`vercel.json` already pins the framework).
+3. Add **no** environment variables, then Deploy.
+4. Project → Settings → Git: confirm _Production Branch_ is `main`.
+5. Project → Settings → Deployment Protection: keep _Vercel Authentication_
+   on for **Preview** deployments only; Production must be public.
+6. When the first production deployment is green, `Smoke (production
+deployment)` runs by itself. Re-run by hand with
+   `npm run smoke -- --url https://<project>.vercel.app` — a `skip` on
+   `sitemap` is correct before the domain exists.
 
-The orchestrator (`scripts/domain-landing.mjs`) runs Steps 1–8 below
-automatically. It exits with distinct codes per failure mode and prints
-rollback commands. Re-run from a specific step with `--step=N` after fixing.
-
-### Manual Path (Fallback)
-
-Follow Steps 1–8 manually if automation is unavailable or for audit.
+The remaining steps wire the domain in; they change no code.
 
 ---
 
 ## Prerequisites (Verify Before Starting)
 
 - [ ] Domain purchased and DNS control available
-- [ ] Vercel account with project connected to `main` branch
+- [ ] Step 0 done: the Vercel project is deployed from `main`
 - [ ] Plausible account created, site added (domain registered in Plausible)
 - [ ] Local `main` branch clean, all gates green:
   ```bash
@@ -137,12 +143,9 @@ npm run typecheck && npm run lint && npm run format:check && npm test && npm run
 
 ## Step 5: Push & Verify Preview Deploy
 
-```bash
-git push origin main
-```
-
-1. Wait for Vercel Preview deploy (auto-triggered on push)
-2. Open preview URL
+1. Open a PR; wait for CI and for the Vercel Preview deploy (the Vercel bot
+   comments the URL — previews sit behind Vercel Authentication)
+2. Open the preview URL
 3. Verify:
    - [ ] Hero loads, name visible
    - [ ] Tonal crossfade works (scroll through ai-physics → sky-sport)
@@ -162,9 +165,9 @@ git push origin main
 
 ## Step 6: Production Deploy & Domain Verification
 
-1. Vercel Dashboard → Deployments → Promote Preview to Production
-   OR merge PR to `main` (auto-deploys to production)
-2. Wait for production deploy (green checkmark)
+1. Merge the PR to `main` (squash). Vercel deploys it to production
+   automatically; `smoke.yml` then runs against the published URL
+2. Wait for the production deploy and the smoke job (green checkmarks)
 3. Open `https://<domain>`
 4. Run the smoke gate against production (now with the apex redirect check):
    ```bash
@@ -236,5 +239,5 @@ If critical issue discovered post-deploy:
 
 ---
 
-**Last Updated**: 2026-09-08
+**Last Updated**: 2026-10-08
 **Next Review**: After first production deploy
