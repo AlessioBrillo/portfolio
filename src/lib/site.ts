@@ -4,6 +4,30 @@
  * Components and hooks read from here instead of hardcoding values, so the
  * deploy step (roadmap Phase 6) only has to fill in `siteUrl`.
  */
+/**
+ * Path of the published resume PDF under `public/` (ADR-0028), or `null`
+ * while none is committed. While null the footer keeps the resume-on-request
+ * mailto (ADR-0014). The day the file lands, set it to its URL path, e.g.
+ * `/cv/alessio-brillo-cv.pdf`; a unit test fails if the path points at nothing.
+ */
+export const RESUME_PDF: string | null = null;
+
+const RESUME_MAILTO = 'mailto:alessio@ilcassero.it?subject=Resume%20request';
+
+export interface ResumeLink {
+  href: string;
+  label: string;
+  /** True when the link opens a published file rather than a pre-filled email. */
+  isFile: boolean;
+}
+
+/** The footer's resume link: the published PDF when there is one, else the mailto hook. */
+export function resumeLink(pdfPath: string | null = RESUME_PDF): ResumeLink {
+  return pdfPath
+    ? { href: pdfPath, label: 'Resume — PDF', isFile: true }
+    : { href: RESUME_MAILTO, label: 'Resume — on request', isFile: false };
+}
+
 export const SITE = {
   /** Full name, used in the hero, footer and document titles. */
   name: 'Alessio Brillo',
@@ -18,11 +42,8 @@ export const SITE = {
    * the portfolio — the claim is verifiable from the rendered site itself).
    */
   githubUrl: 'https://github.com/AlessioBrillo/portfolio',
-  /**
-   * The resume-on-request hook (ADR-0014): a pre-filled email instead of a
-   * published file, so the resume can never go stale in public.
-   */
-  resumeUrl: 'mailto:alessio@ilcassero.it?subject=Resume%20request',
+  /** Where the footer's resume link points (see `resumeLink`, ADR-0028). */
+  resumeUrl: resumeLink().href,
   /**
    * Canonical origin for case-study links and the build-time sitemap.
    *

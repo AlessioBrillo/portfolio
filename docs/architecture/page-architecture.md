@@ -45,11 +45,11 @@ daylight for sport and experiences before the night landing.
 | 07 Contact       | `src/sections/Contact.tsx`     | night       | night         | solid   | — (paints its own night, outside `TonalScene`)   |
 
 > **Status:** All four crossfades (climb paper→haze→night, descent
-> night→dawn→paper) are live via `useTonalEngine` (GSAP ScrollTrigger),
+> night→dawn→paper) are live via `useSceneTonePublisher` (ADR-0026),
 > driving the single `TonalScene` backdrop that spans sections 00–06.
-> Each fade's `ScrollTrigger.trigger` is the section the fade completes
+> Each fade's trigger (the section heading) is the section the fade completes
 > _into_ — Who, Mosaic, Sky & Sport, Experiences (see `TONAL_TRANSITIONS`
-> in `src/lib/tone.ts`, the mechanical source of truth). ADR-0010 names
+> in `src/lib/flight-profile.ts`, the mechanical source of truth). ADR-0010 names
 > each band by where it is narrated to _occur_ (climb at Mosaic, descent
 > at Sky & Sport) — same crossfade, two vocabularies (narrative anchor
 > vs. mechanical trigger), not a contradiction.

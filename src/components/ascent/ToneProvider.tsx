@@ -18,7 +18,7 @@ interface ToneProviderProps {
 
 /**
  * Provides the live scene tones to bands rendered on a `TonalScene` backdrop.
- * Exists so tests can mount a scene tone without the CSS Scroll-driven Animations engine.
+ * Exists so tests can mount a scene tone without the scroll-driven tonal engine.
  */
 export function ToneProvider({
   children,

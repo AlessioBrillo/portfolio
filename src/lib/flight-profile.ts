@@ -51,7 +51,7 @@ export const ALTITUDE_STOPS: readonly AltitudeStop[] = [
   { band: 'night', label: 'NIGHT', target: 'contact' },
 ] as const;
 
-/** Tonal crossfade sequence — drives CSS Scroll-driven Animations and IntersectionObserver flip lines. */
+/** Tonal crossfade sequence — drives the layout-driven tonal engine (`tonalStateAt`) and its flip lines. */
 export { TONAL_TRANSITIONS };
 
 /** Sections that rest on the night tone — cruise band + night landing (contact). */

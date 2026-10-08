@@ -12,7 +12,7 @@ portfolio, so code quality and documentation are first-class.
 ## Stack
 
 React 19, Vite 8, TypeScript 5 (strict), Tailwind CSS 4 (CSS-first `@theme`),
-CSS Scroll-driven Animations (tonal engine via `useSceneTonePublisher`, ADR-0003 superseded),
+a layout-driven scroll handler for the tonal engine (`useSceneTonePublisher` over the pure `tonalStateAt`, ADR-0026),
 MDX (case studies), React Router (case-study routes), Vitest. Package manager: **npm**. Path alias:
 `@/*` maps to `src/*`.
 
@@ -25,6 +25,9 @@ MDX (case studies), React Router (case-study routes), Vitest. Package manager: *
   cohesive (target under 400 lines, hard cap 800).
 - **Design discipline** — hazard red is the only accent and is never diluted; motion
   respects `prefers-reduced-motion`; text contrast meets AA.
+- **Signed commits, PR-only `main`** — commit signing is the machine default
+  (global git config, noreply email); never override `user.email` per repo. `main`
+  is protected by a ruleset: signed commits, a PR, and the four CI checks.
 - **Never commit the design paper** (`*.paper.md` / `portfolio-design-plan.md` are
   git-ignored) or any private content.
 
@@ -49,19 +52,19 @@ Commits.
 `npm run e2e` runs the Playwright signature harness (`playwright.config.ts`,
 `e2e/`) — the only thing that actually renders the tonal crossfade in a browser.
 Not part of the commit-time gate; run it after touching `TonalScene`,
-`useTonalEngine`, `src/lib/tone.ts`, the scene-tone context
+`useSceneTonePublisher`, `src/lib/tonal-state.ts`, `src/lib/tone.ts`, the scene-tone context
 (`tone-context`/`ToneProvider`, ADR-0011), or any section's tone/surface props.
 
 ## Current state
 
-**Phase 6 complete (code). Deploy waits on domain.**
+**Phase 6 complete (code). Launch-ready on `*.vercel.app`; the domain follows.**
 
 All five phases of structure and content are live and validated:
 
 - **Phase 0–2**: Foundations, Hero, tonal signature (climb paper→night, descent night→paper) — validated by Playwright E2E harness
-- **Phase 3**: Full ascent — all 8 bands, altitude gauge, scroll engine (GSAP ScrollTrigger)
+- **Phase 3**: Full ascent — all 8 bands, altitude gauge, scroll engine (layout-driven, ADR-0026)
 - **Phase 4**: Mosaic + case study routes (MDX, lazy, code-split, error-bounded) — 5 studies published
-- **Phase 5**: Content complete — 5 long-form studies (`transformer-italian-corpus`, `grokking-modular-addition`, `physics-of-flight`, `work-the-ascent`, `vds-licence`), experiences archive (`/archive`), photo pipeline (8 optimized derivatives), all `KNOWN_DEBT` resolved
+- **Phase 5**: Content complete — 5 long-form studies (`transformer-italian-corpus`, `grokking-modular-addition`, `physics-of-flight`, `work-the-ascent`, `vds-licence`), experiences archive (`/archive`), photo pipeline (4 photos, 20 optimized derivatives), all `KNOWN_DEBT` resolved
 - **Phase 6**: Finishing gates live — bundle budget (ADR-0018), SPA fallback contract (ADR-0005), photo asset contract, CSP, HSTS, OG card, sitemap (domain-gated), Plausible proxy staged (ADR-0020), Lighthouse 100 a11y
 
 The tonal engine (`useSceneTonePublisher` + `TonalScene`) is implemented, unit-tested,
@@ -90,6 +93,9 @@ paints its own solid night outside `TonalScene`. The experiences archive
 (`/archive`, ADR-0019) is a real route with reverse-chronological projection
 and automatic dedupe.
 
-**Only the domain remains.** All code, content, assets, and gates are ready.
-The domain-landing checklist lives in `docs/domain-runbook.md` — every gated
-step is already built, the runbook is only the order of operations.
+**What remains is owner input, not code.** Import the repo into Vercel (runbook
+Step 0), buy the domain (runbook Steps 1–8), publish the CV PDF (a contract-gated
+slot, ADR-0028) and sign off the corpus study's figures
+(`docs/content/corpus-study-inputs.md`). Vercel deploys through its Git
+integration and CI is the gate (ADR-0027); `main` accepts only squash-merged PRs
+with signed commits and green checks.
