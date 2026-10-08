@@ -1,11 +1,11 @@
 import { defineConfig, devices } from '@playwright/test';
 
 /**
- * Validates the tonal signature (ADR-0003, ADR-0010) end to end: the hero
+ * Validates the tonal signature (ADR-0026, ADR-0010) end to end: the hero
  * loads, the paper<->night crossfade renders across breakpoints, and text
  * stays WCAG AA-legible through the fade in both motion modes. Unit tests
  * (`vitest`) cover pure logic; this harness is the only thing that actually
- * runs the GSAP ScrollTrigger timeline in a browser.
+ * runs the tonal engine against real layout in a browser.
  */
 export default defineConfig({
   testDir: './e2e',

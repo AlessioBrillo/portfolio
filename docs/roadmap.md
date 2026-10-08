@@ -2,14 +2,14 @@
 
 Incremental construction: each phase is independently verifiable. **Phase 5 is
 closed; the site is in Phase 6 (finishing & deploy) — all content is live and
-validated, deploy waits on domain.**
+validated, launch-ready on `*.vercel.app`; the domain follows.**
 
 | Phase | Goal                                                                                                                              | Status                               |
 | ----- | --------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------ |
 | 0     | **Content & assets.** Selected photos, 2-3 written case studies, headline, domain. _(The site is only as strong as its content.)_ | **Complete**                         |
 | 1     | **Foundations.** Vite + Tailwind, color/typography tokens, self-hosted fonts, scale and grid.                                     | **Scaffolded**                       |
 | 2     | **The signature.** Hero + first working quota transition. _Validate "the Ascent" before going further._                           | **Validated**                        |
-| 3     | **The full ascent.** All tonal bands + altitude gauge + scroll engine (GSAP).                                                     | **Validated**                        |
+| 3     | **The full ascent.** All tonal bands + altitude gauge + scroll engine (ADR-0026).                                                 | **Validated**                        |
 | 4     | **Mosaic + one real case study** (MDX route end-to-end).                                                                          | **Validated**                        |
 | 5     | **Content.** Remaining case studies, archive, experience storytelling.                                                            | **Complete**                         |
 | 6     | **Finishing & deploy.** A11y, performance, OG card, 404, reduced-motion -> Vercel + domain.                                       | In progress (deploy waits on domain) |
@@ -18,7 +18,7 @@ validated, deploy waits on domain.**
 Phase 2's crossfade (all four windows) is implemented and validated
 end-to-end by the Playwright harness (`npm run e2e`) -- it now stands as the
 signature's regression net for any future change to `TonalScene`,
-`useTonalEngine`, `src/lib/tone.ts`, or the scene-tone context (ADR-0012). The
+`useSceneTonePublisher`, `src/lib/tonal-state.ts`, `src/lib/tone.ts`, or the scene-tone context (ADR-0012). The
 flip lines are computed per window over each window's actual backdrop blend
 against the flight-phase text pair; the body family clears 4.5:1 everywhere
 except within a small window around each body flip, where the proven maximin
@@ -71,15 +71,15 @@ reaches it through SPA navigation, it carries its own document head
 (canonical only once the domain lands), and the E2E harness covers the deep
 link and the navigation path.
 
-The photo pipeline is live: 8 optimized derivatives (portrait + 3 sport
-disciplines × AVIF/WebP/JPG at 2 widths) are committed under
+The photo pipeline is live: 20 optimized files (portrait + 3 sport
+disciplines × AVIF/WebP at 2 widths + a 960 JPG) are committed under
 `public/photos/` and referenced by content modules (`who.ts`, `sky.ts`). The
 `npm run photos:check` gate enforces the contract bidirectionally — every
 referenced URL exists, and every committed derivative is referenced.
 
 CSP note (deliberate tradeoffs in `vercel.json`): `style-src 'unsafe-inline'`
-is required by the GSAP-driven inline style attributes that drive
-the tonal signature, and `img-src 'self' data:` admits only same-origin
+was introduced for the GSAP-era tonal engine and is kept pending an audit
+(SECURITY.md), and `img-src 'self' data:` admits only same-origin
 images plus inline data (photo derivatives live in `public/photos/`); the
 moment a CDN origin is chosen, `img-src` must be widened to that exact
 origin behind a new ADR. Both are scoped allowances inside
