@@ -1,295 +1,164 @@
-import { renderHook, waitFor } from '@testing-library/react';
-import { useRef } from 'react';
-import type { RefObject } from 'react';
+import { renderHook } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { debounce } from '@/lib/debounce';
-import { useSceneTonePublisher, renderStaticFlightGradient } from '@/hooks/useSceneTonePublisher';
-import { computeStaticFlightGradient } from '@/lib/tone';
-import {
-  supportsScrollDrivenAnimations,
-  getPrefersReducedMotion,
-  toneFromProgress,
-  setupIntersectionObserver,
-  setupScrollListenerFallback,
-} from '@/lib/tonal-engine-utils';
-import { TONAL_TRANSITIONS, type ToneName } from '@/lib/tone';
+import { useSceneTonePublisher } from '@/hooks/useSceneTonePublisher';
+import { useReducedMotion } from '@/hooks/useReducedMotion';
+import { TONAL_TRANSITIONS } from '@/lib/flight-profile';
+import { BACKDROP_TONES, FLIP_PROGRESS, backdropColorAt } from '@/lib/tone';
 
-// Mock matchMedia for reduced motion
-function setReducedMotion(reduced: boolean): void {
-  vi.stubGlobal(
-    'matchMedia',
-    vi.fn((query: string) => ({
-      matches: query === '(prefers-reduced-motion: reduce)' ? reduced : !reduced,
-      addEventListener: vi.fn(),
-      removeEventListener: vi.fn(),
-      dispatchEvent: vi.fn(),
-    })),
-  );
-}
+vi.mock('@/hooks/useReducedMotion', () => ({ useReducedMotion: vi.fn(() => false) }));
 
-beforeEach(() => {
-  for (const transition of TONAL_TRANSITIONS) {
-    const section = document.createElement('section');
-    section.id = transition.trigger;
-    const heading = document.createElement('h2');
-    heading.setAttribute('data-tone-trigger', '');
-    section.appendChild(heading);
-    document.body.appendChild(section);
-  }
-  setReducedMotion(false);
-  vi.clearAllMocks();
-});
+const VH = window.innerHeight;
+const topAt = (progress: number): number => VH - progress * (VH / 2);
 
-afterEach(() => {
-  for (const transition of TONAL_TRANSITIONS) {
-    document.getElementById(transition.trigger)?.remove();
-  }
-  delete (document as Omit<Document, 'fonts'> & { fonts?: unknown }).fonts;
-  vi.unstubAllGlobals();
-  vi.resetModules();
-});
-
-function renderEngine(
-  onToneChange?: (tone: ToneName) => void,
-  onSoftToneChange?: (tone: ToneName) => void,
-): RefObject<HTMLDivElement | null> {
-  const { result } = renderHook(() => {
-    const ref = useRef<HTMLDivElement>(null);
-    if (!ref.current) ref.current = document.createElement('div');
-    useSceneTonePublisher({
-      backdropRef: ref,
-      onToneChange: onToneChange ?? (() => {}),
-      onSoftToneChange: onSoftToneChange ?? (() => {}),
-    });
-    return ref;
-  });
-  return result.current;
+/** What the browser reports for a colour once assigned to `style.backgroundColor`. */
+function normalised(color: string): string {
+  const probe = document.createElement('div');
+  probe.style.backgroundColor = color;
+  return probe.style.backgroundColor;
 }
 
 describe('useSceneTonePublisher', () => {
-  describe('supportsScrollDrivenAnimations', () => {
-    it('returns true when animation-timeline is supported', () => {
-      const testEl = document.createElement('div');
-      // @ts-expect-error - testing support detection
-      testEl.style.animationTimeline = 'scroll()';
-      // @ts-expect-error
-      const supported = testEl.style.animationTimeline === 'scroll()';
-      expect(typeof supported).toBe('boolean');
+  let tops: Record<string, number>;
+  let frames: FrameRequestCallback[];
+  let backdrop: HTMLDivElement;
+  const onToneChange = vi.fn();
+  const onSoftToneChange = vi.fn();
+
+  const scrollTo = (next: Record<string, number>): void => {
+    tops = { ...tops, ...next };
+    window.dispatchEvent(new Event('scroll'));
+    const pending = frames.splice(0);
+    pending.forEach((frame) => frame(0));
+  };
+
+  const mount = (): ReturnType<typeof renderHook> =>
+    renderHook(() =>
+      useSceneTonePublisher({ onToneChange, onSoftToneChange, backdropRef: { current: backdrop } }),
+    );
+
+  beforeEach(() => {
+    tops = {};
+    frames = [];
+    vi.mocked(useReducedMotion).mockReturnValue(false);
+    onToneChange.mockClear();
+    onSoftToneChange.mockClear();
+    delete (window as { __TONAL_ENGINE_LOADED__?: boolean }).__TONAL_ENGINE_LOADED__;
+
+    document.body.innerHTML = TONAL_TRANSITIONS.map(
+      ({ trigger }) => `<section id="${trigger}"><h2>${trigger}</h2></section>`,
+    ).join('');
+    backdrop = document.createElement('div');
+    document.body.append(backdrop);
+
+    vi.spyOn(Element.prototype, 'getBoundingClientRect').mockImplementation(function (
+      this: Element,
+    ) {
+      return { top: tops[this.closest('section')?.id ?? ''] ?? 9e3 } as DOMRect;
     });
+    vi.stubGlobal('requestAnimationFrame', (cb: FrameRequestCallback) => frames.push(cb));
+    vi.stubGlobal('cancelAnimationFrame', () => frames.splice(0));
   });
 
-  describe('computeStaticFlightGradient', () => {
-    it('generates the correct flight profile gradient string with hex colors', () => {
-      const gradient = computeStaticFlightGradient();
-
-      // Check for hex color values (the gradient uses hex) - NEW Swiss Industrial Print palette
-      expect(gradient).toContain('#F4F4F0'); // paper (Newsprint)
-      expect(gradient).toContain('#7A7A7A'); // foschia
-      expect(gradient).toContain('#0A0A0A'); // night (Deactivated CRT)
-      expect(gradient).toContain('#858585'); // alba
-
-      expect(gradient).toContain('0%');
-      expect(gradient).toContain('12.5%');
-      expect(gradient).toContain('25%');
-      expect(gradient).toContain('62.5%');
-      expect(gradient).toContain('75%');
-      expect(gradient).toContain('87.5%');
-      expect(gradient).toContain('100%');
-    });
-
-    it('produces deterministic output', () => {
-      const gradient1 = computeStaticFlightGradient();
-      const gradient2 = computeStaticFlightGradient();
-      expect(gradient1).toBe(gradient2);
-    });
+  afterEach(() => {
+    vi.restoreAllMocks();
+    vi.unstubAllGlobals();
   });
 
-  describe('renderStaticFlightGradient', () => {
-    it('applies the computed gradient to the element', () => {
-      const el = document.createElement('div');
-      renderStaticFlightGradient(el);
+  it('paints the ground on mount and announces the engine to the harness', () => {
+    const loaded = vi.fn();
+    window.addEventListener('tonal-engine-load', loaded, { once: true });
+    mount();
 
-      const style = el.style.backgroundImage;
-      expect(style).toContain('linear-gradient');
-      expect(style).toContain('0%');
-      expect(style).toContain('12.5%');
-      expect(style).toContain('100%');
-    });
-
-    it('sets backgroundColor to transparent', () => {
-      const el = document.createElement('div');
-      renderStaticFlightGradient(el);
-      expect(el.style.backgroundColor).toBe('transparent');
-    });
-
-    it('removes flight-backdrop class', () => {
-      const el = document.createElement('div');
-      el.classList.add('flight-backdrop');
-      renderStaticFlightGradient(el);
-      expect(el.classList.contains('flight-backdrop')).toBe(false);
-    });
+    expect(backdrop.style.backgroundColor).toBe(normalised(BACKDROP_TONES.paper));
+    expect(onToneChange).toHaveBeenCalledWith('paper');
+    expect(onSoftToneChange).toHaveBeenCalledWith('paper');
+    expect(loaded).toHaveBeenCalledTimes(1);
+    expect((window as { __TONAL_ENGINE_LOADED__?: boolean }).__TONAL_ENGINE_LOADED__).toBe(true);
   });
 
-  describe('Internal functions (exported for testing)', () => {
-    it('supportsScrollDrivenAnimations returns boolean', () => {
-      const result = supportsScrollDrivenAnimations();
-      expect(typeof result).toBe('boolean');
-    });
-
-    it('getPrefersReducedMotion returns boolean', () => {
-      const result = getPrefersReducedMotion();
-      expect(typeof result).toBe('boolean');
-    });
-
-    it('toneFromProgress computes correct tones for each phase', () => {
-      expect(toneFromProgress(0)).toBe('paper');
-      expect(toneFromProgress(0.1)).toBe('paper');
-      expect(toneFromProgress(0.25)).toBe('night');
-      expect(toneFromProgress(0.5)).toBe('night');
-      expect(toneFromProgress(0.625)).toBe('paper');
-      expect(toneFromProgress(0.75)).toBe('paper');
-      expect(toneFromProgress(0.875)).toBe('night');
-      expect(toneFromProgress(1)).toBe('night');
-    });
-
-    it('setupIntersectionObserver returns cleanup function', () => {
-      const onToneChange = vi.fn();
-      const onSoftToneChange = vi.fn();
-      const cleanup = setupIntersectionObserver(onToneChange, onSoftToneChange, false);
-      expect(typeof cleanup).toBe('function');
-      cleanup();
-    });
-
-    it('setupScrollListenerFallback returns cleanup function', () => {
-      const onToneChange = vi.fn();
-      const onSoftToneChange = vi.fn();
-      const cleanup = setupScrollListenerFallback(onToneChange, onSoftToneChange);
-      expect(typeof cleanup).toBe('function');
-      cleanup();
-    });
+  it('blends the backdrop with the trigger position as the page scrolls', () => {
+    mount();
+    scrollTo({ who: topAt(0.5) });
+    expect(backdrop.style.backgroundColor).toBe(
+      normalised(backdropColorAt(TONAL_TRANSITIONS[0]!, 0.5)),
+    );
   });
 
-  describe('CSS Scroll-driven Animations path', () => {
-    it('adds flight-backdrop class to the backdrop element', async () => {
-      const ref = renderEngine();
-      await waitFor(() => {
-        expect(ref.current?.classList.contains('flight-backdrop')).toBe(true);
-      });
-    });
+  it('publishes night text only after the mosaic body line, and back below it', () => {
+    mount();
+    const line = FLIP_PROGRESS.mosaic!.body;
+    scrollTo({ who: 0, mosaic: topAt(line - 0.02) });
+    expect(onToneChange).not.toHaveBeenCalledWith('night');
 
-    it('dispatches tonal-engine-load event with css-scroll-animations engine', async () => {
-      const eventSpy = vi.fn();
-      window.addEventListener('tonal-engine-load', eventSpy);
+    scrollTo({ mosaic: topAt(line + 0.02) });
+    expect(onToneChange).toHaveBeenLastCalledWith('night');
 
-      renderEngine();
-      await waitFor(() => {
-        expect(eventSpy).toHaveBeenCalledWith(
-          expect.objectContaining({
-            detail: expect.objectContaining({ engine: 'css-scroll-animations' }),
-          }),
-        );
-      });
-
-      window.removeEventListener('tonal-engine-load', eventSpy);
-    });
+    scrollTo({ mosaic: topAt(line - 0.02) });
+    expect(onToneChange).toHaveBeenLastCalledWith('paper');
   });
 
-  describe('Fallback mode paths (covered via internal function tests)', () => {
-    it('toneFromProgress covers fallback tone computation', () => {
-      // This covers the toneFromProgress function used in setupScrollListenerFallback
-      expect(toneFromProgress(0)).toBe('paper');
-      expect(toneFromProgress(0.5)).toBe('night');
-    });
+  it('coalesces a burst of scroll events into one frame', () => {
+    mount();
+    window.dispatchEvent(new Event('scroll'));
+    window.dispatchEvent(new Event('scroll'));
+    window.dispatchEvent(new Event('scroll'));
+    expect(frames).toHaveLength(1);
   });
 
-  describe('debounce utility', () => {
-    beforeEach(() => {
-      vi.useFakeTimers();
-    });
-
-    afterEach(() => {
-      vi.useRealTimers();
-    });
-
-    it('delays function execution', () => {
-      const fn = vi.fn();
-      const debounced = debounce(fn, 50);
-      debounced();
-      expect(fn).not.toHaveBeenCalled();
-      vi.advanceTimersByTime(50);
-      expect(fn).toHaveBeenCalledTimes(1);
-    });
-
-    it('cancels pending execution', () => {
-      const fn = vi.fn();
-      const debounced = debounce(fn, 50);
-      debounced();
-      debounced.cancel();
-      vi.advanceTimersByTime(100);
-      expect(fn).not.toHaveBeenCalled();
-    });
-
-    it('resets timer on subsequent calls', () => {
-      const fn = vi.fn();
-      const debounced = debounce(fn, 50);
-      debounced();
-      vi.advanceTimersByTime(25);
-      debounced();
-      vi.advanceTimersByTime(25);
-      expect(fn).not.toHaveBeenCalled();
-      vi.advanceTimersByTime(50);
-      expect(fn).toHaveBeenCalledTimes(1);
-    });
+  it('switches discretely under reduced motion', () => {
+    vi.mocked(useReducedMotion).mockReturnValue(true);
+    mount();
+    scrollTo({ who: 0, mosaic: topAt(0.05) });
+    expect(backdrop.style.backgroundColor).toBe(normalised(BACKDROP_TONES.foschia));
+    scrollTo({ mosaic: 0 });
+    expect(backdrop.style.backgroundColor).toBe(normalised(BACKDROP_TONES.night));
   });
 
-  describe('Resize and load event handling (debouncedRefresh)', () => {
-    beforeEach(() => {
-      vi.useFakeTimers();
-    });
-
-    afterEach(() => {
-      vi.useRealTimers();
-    });
-
-    it('debouncedRefresh clears and resets timeout on resize', () => {
-      const fn = vi.fn();
-      const debounced = debounce(fn, 150);
-
-      // First call
-      debounced();
-      expect(fn).not.toHaveBeenCalled();
-
-      // Second call before timeout
-      vi.advanceTimersByTime(100);
-      debounced();
-      expect(fn).not.toHaveBeenCalled();
-
-      // Third call
-      vi.advanceTimersByTime(100);
-      debounced();
-      expect(fn).not.toHaveBeenCalled();
-
-      // After timeout
-      vi.advanceTimersByTime(150);
-      expect(fn).toHaveBeenCalledTimes(1);
-    });
+  it('stops listening after unmount', () => {
+    const { unmount } = mount();
+    unmount();
+    scrollTo({ who: topAt(0.5) });
+    expect(backdrop.style.backgroundColor).toBe(normalised(BACKDROP_TONES.paper));
   });
 
-  describe('Cleanup on unmount', () => {
-    it('unmounts without throwing', () => {
-      const { unmount } = renderHook(() => {
-        const ref = useRef<HTMLDivElement>(null);
-        if (!ref.current) ref.current = document.createElement('div');
-        useSceneTonePublisher({
-          backdropRef: ref,
-          onToneChange: vi.fn(),
-          onSoftToneChange: vi.fn(),
-        });
-        return ref;
-      });
-
-      // Unmount should not throw
-      expect(() => unmount()).not.toThrow();
+  it('anchors a fade to an explicit tone trigger before the heading', () => {
+    const marker = document.createElement('div');
+    marker.setAttribute('data-tone-trigger', '');
+    document.getElementById('who')!.prepend(marker);
+    vi.mocked(Element.prototype.getBoundingClientRect).mockImplementation(function (this: Element) {
+      return { top: this === marker ? topAt(0.5) : 9e3 } as DOMRect;
     });
+    mount();
+    scrollTo({});
+    expect(backdrop.style.backgroundColor).toBe(
+      normalised(backdropColorAt(TONAL_TRANSITIONS[0]!, 0.5)),
+    );
+  });
+
+  it('falls back to the section itself when it has no heading', () => {
+    document.getElementById('who')!.innerHTML = '';
+    vi.mocked(Element.prototype.getBoundingClientRect).mockImplementation(function (this: Element) {
+      return { top: this.id === 'who' ? topAt(0.5) : 9e3 } as DOMRect;
+    });
+    mount();
+    scrollTo({});
+    expect(backdrop.style.backgroundColor).toBe(
+      normalised(backdropColorAt(TONAL_TRANSITIONS[0]!, 0.5)),
+    );
+  });
+
+  it('does not republish when a scroll frame changes nothing', () => {
+    mount();
+    const calls = onToneChange.mock.calls.length;
+    scrollTo({});
+    scrollTo({});
+    expect(onToneChange).toHaveBeenCalledTimes(calls);
+  });
+
+  it('does nothing when the backdrop is not mounted', () => {
+    renderHook(() =>
+      useSceneTonePublisher({ onToneChange, onSoftToneChange, backdropRef: { current: null } }),
+    );
+    expect(onToneChange).not.toHaveBeenCalled();
   });
 });

@@ -1,12 +1,12 @@
-import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { fireEvent, render, screen } from '@testing-library/react';
 import { describe, expect, it, vi, beforeEach } from 'vitest';
 import type { ReactElement } from 'react';
 import { TonalScene } from '@/components/ascent/TonalScene';
 import { useSceneTone, useSceneToneSetter } from '@/components/ascent/tone-context';
 import { TONE } from '@/lib/tone';
 
-// The tonal engine is now native CSS Scroll-driven Animations; we stub the hook
-// to keep browser APIs out of jsdom.
+// The tonal engine reads live layout and writes the backdrop colour (ADR-0026);
+// stub the hook to keep scroll geometry out of jsdom.
 vi.mock('@/hooks/useSceneTonePublisher', () => ({
   useSceneTonePublisher: vi.fn(),
 }));
@@ -16,7 +16,12 @@ vi.mock('@/hooks/useReducedMotion', () => ({
   useReducedMotion: vi.fn(() => false),
 }));
 
+vi.mock('@/hooks/useForcedColors', () => ({
+  useForcedColors: vi.fn(() => false),
+}));
+
 import { useReducedMotion } from '@/hooks/useReducedMotion';
+import { useForcedColors } from '@/hooks/useForcedColors';
 
 function ToneProbe(): ReactElement {
   const { tone } = useSceneTone();
@@ -31,6 +36,7 @@ function ToneProbe(): ReactElement {
 describe('TonalScene', () => {
   beforeEach(() => {
     vi.mocked(useReducedMotion).mockReturnValue(false);
+    vi.mocked(useForcedColors).mockReturnValue(false);
   });
   it('renders children', () => {
     render(
@@ -99,29 +105,9 @@ describe('TonalScene', () => {
     // mount, so a state flip must never snap it back to a React-driven value.
     const backdrop = container.querySelector('.flight-backdrop');
     expect(backdrop).toHaveClass('flight-backdrop');
-    // The backdrop should NOT have a React-driven backgroundColor inline style
-    // (it's painted by CSS). In jsdom without CSS, we just verify the class is present.
+    // The backdrop should NOT have a React-driven backgroundColor inline style:
+    // the engine owns it after mount.
     expect(backdrop).not.toHaveStyle({ backgroundColor: TONE.paper });
-  });
-
-  it('handles tonal engine error event and sets error state', async () => {
-    render(
-      <TonalScene>
-        <span>content</span>
-      </TonalScene>,
-    );
-
-    // Dispatch the tonal-engine-error event to trigger the error handler
-    window.dispatchEvent(
-      new CustomEvent('tonal-engine-error', {
-        detail: { message: 'Engine failed', cause: new Error('test'), stack: 'stack' },
-      }),
-    );
-
-    // The error boundary toast should be rendered
-    await waitFor(() => {
-      expect(screen.getByText('Animation unavailable — static view active')).toBeInTheDocument();
-    });
   });
 
   it('renders scanlines with flight-scanlines class (hidden by default CSS)', () => {
@@ -214,5 +200,38 @@ describe('TonalScene', () => {
     const constellationLayer = document.querySelector('.flight-constellation');
     expect(constellationLayer).toBeInTheDocument();
     expect(constellationLayer).not.toHaveClass('flight-constellation--visible');
+  });
+
+  it('keeps scanlines off under forced colors even on night', () => {
+    vi.mocked(useForcedColors).mockReturnValue(true);
+    const { container } = render(
+      <TonalScene>
+        <ToneProbe />
+      </TonalScene>,
+    );
+    fireEvent.click(screen.getByRole('button'));
+    expect(container.querySelector('.flight-scanlines')).not.toHaveClass(
+      'flight-scanlines--active',
+    );
+  });
+
+  it.each([
+    ['motion is reduced', () => vi.mocked(useReducedMotion).mockReturnValue(true)],
+    ['forced colors turn on', () => vi.mocked(useForcedColors).mockReturnValue(true)],
+  ])('hides a visible constellation when %s', (_label, change) => {
+    const scene = (): ReactElement => (
+      <TonalScene>
+        <ToneProbe />
+      </TonalScene>
+    );
+    const { rerender } = render(scene());
+    fireEvent.click(screen.getByRole('button'));
+    fireEvent.keyDown(window, { key: 'ArrowUp' });
+    const layer = document.querySelector<HTMLElement>('.flight-constellation')!;
+    expect(layer).toHaveStyle({ display: 'block' });
+
+    change();
+    rerender(scene());
+    expect(layer).toHaveStyle({ display: 'none' });
   });
 });

@@ -15,11 +15,12 @@ interface TonalSceneProps {
  * `paper` (ground) up to `night` (cruise) and back down through `alba` to `paper`
  * (descent) as the user scrolls. Contact paints its own solid night outside the scene.
  *
- * Motion is driven by CSS Scroll-driven Animations (`animation-timeline: scroll()`);
- * the transition map lives in `@/lib/tone`. React only renders the seed colour --
- * once mounted, CSS owns the backdrop element's paint, so the scene state
+ * The blend is driven by `useSceneTonePublisher` (ADR-0026), which maps each
+ * transition trigger's scroll position to the backdrop colour; the transition
+ * map lives in `@/lib/flight-profile`. React only renders the seed colour --
+ * once mounted, the engine owns the backdrop element's paint, so the scene state
  * must never re-render it (that would snap the blend back to the seed). The
- * backdrop starts on `paper` so there is no flash before CSS loads.
+ * backdrop starts on `paper` (CSS seed) so there is no flash before JS runs.
  *
  * The scene's current tone is published through `SceneToneContext` (ADR-0011):
  * scene bands read it for their text colour, so text stays legible while the
@@ -42,28 +43,15 @@ export function TonalScene({ children }: TonalSceneProps): ReactElement {
   const backdropRef = useRef<HTMLDivElement>(null);
   const [tone, setTone] = useState<ToneName>('paper');
   const [softTone, setSoftTone] = useState<ToneName>('paper');
-  const [engineError, setEngineError] = useState<Error | null>(null);
   const [showConstellation, setShowConstellation] = useState(false);
   const prefersReducedMotion = useReducedMotion();
   const prefersForcedColors = useForcedColors();
 
-  // Use the new native CSS Scroll-driven Animations engine
   useSceneTonePublisher({
     backdropRef,
     onToneChange: setTone,
     onSoftToneChange: setSoftTone,
   });
-
-  useEffect(() => {
-    function handleEngineError(
-      event: CustomEvent<{ message: string; cause: unknown; stack?: string }>,
-    ): void {
-      setEngineError(new Error(event.detail.message, { cause: event.detail.cause }));
-    }
-    window.addEventListener('tonal-engine-error', handleEngineError as EventListener);
-    return () =>
-      window.removeEventListener('tonal-engine-error', handleEngineError as EventListener);
-  }, []);
 
   // Constellation easter egg: press ArrowUp on night to reveal star field
   const handleKeyDown = useCallback(
@@ -124,15 +112,6 @@ export function TonalScene({ children }: TonalSceneProps): ReactElement {
             style={constellationStyle}
           />
           <div className="relative z-10">{children}</div>
-          {engineError && (
-            <div
-              role="status"
-              aria-live="polite"
-              className="fixed bottom-4 left-4 right-4 sm:left-auto sm:right-4 sm:w-80 z-50 bg-ink/95 backdrop-blur text-paper px-4 py-3 text-sm font-mono border border-accent/50"
-            >
-              Animation unavailable — static view active
-            </div>
-          )}
         </div>
       </SceneToneContext.Provider>
     </SceneToneSetterContext.Provider>
