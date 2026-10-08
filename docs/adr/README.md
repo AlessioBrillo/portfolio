@@ -27,6 +27,7 @@ trade-offs without re-running the original arguments.
 | [0024](0024-domain-landing-proxy-and-canonical.md) | Domain landing — proxy mechanism, script cache, and canonical  | 2026-09-06 | Accepted           |
 | [0025](0025-font-cache-not-immutable.md)           | Font binaries are not immutable — short cache for `/fonts/*`   | 2026-09-07 | Accepted           |
 | [0026](0026-scroll-driven-tonal-engine.md)         | Tonal engine — layout-driven scroll handler, pure state fn     | 2026-10-08 | Accepted           |
+| [0027](0027-vercel-git-integration-ci-gate.md)     | Deploy through Vercel Git integration; CI is the gate          | 2026-10-08 | Accepted           |
 
 ## Conventions
 

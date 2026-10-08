@@ -1,0 +1,30 @@
+name: Production smoke
+
+# Vercel deploys through its Git integration (ADR-0027) and reports a GitHub
+# deployment status. When a production deployment succeeds, run the smoke gate
+# against the exact URL Vercel just published.
+on:
+  deployment_status:
+
+permissions:
+  contents: read
+
+jobs:
+  smoke:
+    name: Smoke (production deployment)
+    if: github.event.deployment_status.state == 'success' && github.event.deployment.environment == 'Production'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.deployment.sha }}
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+
+      - name: Smoke the deployment
+        env:
+          DEPLOY_URL: ${{ github.event.deployment_status.environment_url }}
+        run: npm run smoke -- --url "$DEPLOY_URL"
