@@ -4,16 +4,16 @@ Incremental construction: each phase is independently verifiable. **Phase 5 is
 closed; the site is in Phase 6 (finishing & deploy) — all content is live and
 validated, launch-ready on `*.vercel.app`; the domain follows.**
 
-| Phase | Goal                                                                                                                              | Status                               |
-| ----- | --------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------ |
-| 0     | **Content & assets.** Selected photos, 2-3 written case studies, headline, domain. _(The site is only as strong as its content.)_ | **Complete**                         |
-| 1     | **Foundations.** Vite + Tailwind, color/typography tokens, self-hosted fonts, scale and grid.                                     | **Scaffolded**                       |
-| 2     | **The signature.** Hero + first working quota transition. _Validate "the Ascent" before going further._                           | **Validated**                        |
-| 3     | **The full ascent.** All tonal bands + altitude gauge + scroll engine (ADR-0026).                                                 | **Validated**                        |
-| 4     | **Mosaic + one real case study** (MDX route end-to-end).                                                                          | **Validated**                        |
-| 5     | **Content.** Remaining case studies, archive, experience storytelling.                                                            | **Complete**                         |
-| 6     | **Finishing & deploy.** A11y, performance, OG card, 404, reduced-motion -> Vercel + domain.                                       | In progress (deploy waits on domain) |
-| 7     | **After.** CV hook, analytics, optional private area.                                                                             | Pending                              |
+| Phase | Goal                                                                                                                              | Status               |
+| ----- | --------------------------------------------------------------------------------------------------------------------------------- | -------------------- |
+| 0     | **Content & assets.** Selected photos, 2-3 written case studies, headline, domain. _(The site is only as strong as its content.)_ | **Complete**         |
+| 1     | **Foundations.** Vite + Tailwind, color/typography tokens, self-hosted fonts, scale and grid.                                     | **Scaffolded**       |
+| 2     | **The signature.** Hero + first working quota transition. _Validate "the Ascent" before going further._                           | **Validated**        |
+| 3     | **The full ascent.** All tonal bands + altitude gauge + scroll engine (ADR-0026).                                                 | **Validated**        |
+| 4     | **Mosaic + one real case study** (MDX route end-to-end).                                                                          | **Validated**        |
+| 5     | **Content.** Remaining case studies, archive, experience storytelling.                                                            | **Complete**         |
+| 6     | **Finishing & deploy.** A11y, performance, OG card, 404, reduced-motion -> Vercel + `.com` domain & Plausible analytics.          | **Ready for deploy** |
+| 7     | **After.** CV hook, analytics, optional private area.                                                                             | Pending              |
 
 Phase 2's crossfade (all four windows) is implemented and validated
 end-to-end by the Playwright harness (`npm run e2e`) -- it now stands as the
