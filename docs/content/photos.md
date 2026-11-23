@@ -1,5 +1,10 @@
 # Photos — Asset Pipeline
 
+Current state: **no derivatives are committed**. The earlier files were
+synthetic test images carrying real-sounding captions; they were removed, and
+the content modules now expose honest labelled photo slots. Publish a photo
+only from a real, author-owned raw source through the pipeline below.
+
 The site is photography-forward (Who portrait, Sky & Sport grid), so photos get
 a real pipeline instead of a manual copy-paste ritual. The contract is
 `ImageAsset` in `src/types/domain.ts`; the tool is `scripts/optimize-images.mjs`.
