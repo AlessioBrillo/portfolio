@@ -95,15 +95,27 @@ jobs:
       - name: Deploy routing check
         run: npm run deploy:check
 
-      - name: Verify sitemap has 7 URLs (/, /archive, 5 case studies)
+      - name: Verify sitemap routes
         run: |
-          count=$(grep -c '<url>' dist/sitemap.xml)
-          echo "Sitemap URL count: $count"
-          if [ "$count" -ne 7 ]; then
-            echo "ERROR: Expected 7 URLs in sitemap, got $count"
-            cat dist/sitemap.xml
-            exit 1
-          fi
+          node --input-type=module <<'EOF'
+          import { readFileSync } from 'node:fs';
+          import { getPublishedCaseStudies } from './src/content/case-studies/registry.ts';
+          import { LEGAL_ROUTES } from './src/lib/legal.ts';
+          const xml = readFileSync('dist/sitemap.xml', 'utf8');
+          const locs = [...xml.matchAll(/<loc>https:\/\/example\.com([^<]*)<\/loc>/g)].map((m) => m[1]);
+          const expected = [
+            '/',
+            '/archive',
+            ...getPublishedCaseStudies().map((meta) => `/${meta.domain}/${meta.slug}`),
+            ...LEGAL_ROUTES.map((route) => route.path),
+          ];
+          const missing = expected.filter((path) => !locs.includes(path));
+          if (missing.length > 0 || locs.length !== expected.length) {
+            console.error({ missing, locs, expected });
+            process.exit(1);
+          }
+          console.log(`Sitemap verified: ${locs.length} routes`);
+          EOF
 
       - name: Verify absolute og:image in dist/index.html
         run: |

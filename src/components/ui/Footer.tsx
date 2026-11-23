@@ -1,4 +1,6 @@
 import type { ReactElement } from 'react';
+import { Link } from 'react-router-dom';
+import { LEGAL_ROUTES } from '@/lib/legal';
 import { SITE, resumeLink } from '@/lib/site';
 
 /** Minimal footer on the night band: name, one line, essential links, year. */
@@ -30,6 +32,17 @@ export function Footer(): ReactElement {
           >
             {resume.label}
           </a>
+        </nav>
+        <nav aria-label="Legal links" className="mt-4 flex flex-wrap gap-x-6 gap-y-2">
+          {LEGAL_ROUTES.map((route) => (
+            <Link
+              key={route.path}
+              to={route.path}
+              className="font-mono text-xs uppercase tracking-widest text-phosphor-dim no-underline transition-colors hover:text-phosphor"
+            >
+              {route.title}
+            </Link>
+          ))}
         </nav>
         <span className="mt-4 font-mono text-xs uppercase tracking-widest text-phosphor-dim">
           &copy; {year}

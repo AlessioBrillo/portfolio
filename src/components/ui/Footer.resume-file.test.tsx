@@ -1,4 +1,5 @@
 import { render, screen } from '@testing-library/react';
+import { MemoryRouter } from 'react-router-dom';
 import { describe, expect, it, vi } from 'vitest';
 import { Footer } from '@/components/ui/Footer';
 
@@ -11,7 +12,11 @@ vi.mock('@/lib/site', async (importOriginal) => ({
 
 describe('Footer with a published resume PDF', () => {
   it('opens the file in a new tab with no referrer', () => {
-    render(<Footer />);
+    render(
+      <MemoryRouter>
+        <Footer />
+      </MemoryRouter>,
+    );
     const resume = screen.getByRole('link', { name: /resume/i });
     expect(resume).toHaveAttribute('href', '/cv/alessio-brillo-cv.pdf');
     expect(resume).toHaveTextContent('Resume — PDF');

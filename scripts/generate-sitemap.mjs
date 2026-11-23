@@ -21,9 +21,12 @@ if (!origin) {
 
 let buildSitemapXml;
 let getPublishedCaseStudies;
+let LEGAL_ROUTES;
+let LEGAL_UPDATED;
 try {
   ({ buildSitemapXml } = await import('../src/lib/sitemap.ts'));
   ({ getPublishedCaseStudies } = await import('../src/content/case-studies/registry.ts'));
+  ({ LEGAL_ROUTES, LEGAL_UPDATED } = await import('../src/lib/legal.ts'));
 } catch (error) {
   // Fail closed once a domain is configured: a production build without a
   // sitemap must break the pipeline, not ship silently. Pre-domain the skip
@@ -43,6 +46,7 @@ const entries = [
   // The experiences archive (ADR-0019) — a published surface like the studies.
   { loc: '/archive' },
   ...getPublishedCaseStudies().map((meta) => ({ loc: `/${meta.domain}/${meta.slug}` })),
+  ...LEGAL_ROUTES.map((route) => ({ loc: route.path, lastmod: LEGAL_UPDATED })),
 ];
 
 await mkdir('dist', { recursive: true });
