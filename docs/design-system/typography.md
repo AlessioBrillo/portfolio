@@ -1,14 +1,14 @@
 # Typography — Industrial Brutalist (Archivo Black / JetBrains Mono)
 
-> Decision record: [ADR-0022](../adr/0021-palette-shift-brutalist.md#adr-0022-typography-overhaul--archivo-black--jetbrains-mono).
+> Decision record: [ADR-0022](../adr/0022-typography-overhaul.md).
 
 **Three roles, extreme contrast axis — no serif for display, no Inter for body.**
 
 - **Macro (Display/Sector/H2) → Archivo Black** (variable, 900). Heavy industrial sans, wide glyphs hold at negative tracking. Massive scale, compressed leading, UPPERCASE. The structural architecture.
-- **Body (UI/Prose) → Geist Sans** (variable, 400). Neutral grotesque, already self-hosted. Readable at small sizes, unobtrusive.
+- **Body (UI/Prose) → Archivo** (variable, 400). Neutral grotesque, self-hosted. Readable at small sizes, unobtrusive.
 - **Micro (Eyebrow/Meta/Telemetry) → JetBrains Mono** (variable, 400-500). Technical monospace, purpose-built for code/telemetry. Fixed small scale, generous tracking, UPPERCASE. Encodes _real information_: coordinates, dates, altitude, stack, revisions.
 
-> An eyebrow that _means_ something, not decoration: above the hero, `[ 45.6306° N · 8.7281° E — VDS ]` instead of a generic "INTRO".
+> An eyebrow that _means_ something, not decoration: above the hero, `[ 45.63° N · 8.72° E — VDS ]` instead of a generic "INTRO".
 
 ## Type Scale (Fluid via `clamp()`)
 
@@ -52,11 +52,11 @@
 /* Macro: Archivo Black — heavy industrial sans */
 --font-display: 'Archivo Black', 'Archivo', ui-sans-serif, system-ui, sans-serif;
 
-/* Body: Geist Sans — neutral grotesque */
---font-sans: 'Geist Sans', ui-sans-serif, system-ui, -apple-system, sans-serif;
+/* Body: Archivo — neutral grotesque */
+--font-sans: 'Archivo', ui-sans-serif, system-ui, -apple-system, sans-serif;
 
 /* Micro: JetBrains Mono — technical monospace */
---font-mono: 'JetBrains Mono', 'Geist Mono', ui-monospace, 'SFMono-Regular', monospace;
+--font-mono: 'JetBrains Mono', ui-monospace, 'SFMono-Regular', monospace;
 ```
 
 ## @font-face (Self-Hosted Variable WOFF2)
@@ -75,16 +75,8 @@ All fonts self-hosted in `/public/fonts/` with `font-display: optional`.
 
 @font-face {
   font-family: 'Archivo Black';
-  src: url('/fonts/Archivo.woff2') format('woff2-variations');
+  src: url('/fonts/ArchivoBlack.woff2') format('woff2-variations');
   font-weight: 900;
-  font-style: normal;
-  font-display: optional;
-}
-
-@font-face {
-  font-family: 'Geist Sans';
-  src: url('/fonts/Geist.woff2') format('woff2');
-  font-weight: 100 900;
   font-style: normal;
   font-display: optional;
 }
@@ -101,24 +93,26 @@ All fonts self-hosted in `/public/fonts/` with `font-display: optional`.
 ## Performance
 
 - 3 variable WOFF2 files (~120KB total subsetted)
-- Preload: Archivo (macro) + Geist Sans (body) — critical path
+- Preload: Archivo (body) + Archivo Black (macro) — critical path
 - JetBrains Mono loaded async (non-blocking)
 - `font-display: optional` — no layout shift, no FOIT/FOUT
 
 ## Semantic Elements for Micro Typography
 
-| Element    | Use Case                             | Example                            |
-| ---------- | ------------------------------------ | ---------------------------------- |
-| `<data>`   | Telemetry, coordinates, measurements | `[ 45.6306° N · 8.7281° E — VDS ]` |
-| `<samp>`   | System output, readings              | `ALT 12,500 FT`                    |
-| `<kbd>`    | Input, commands                      | `CTRL + SHIFT + P`                 |
-| `<output>` | Calculated results                   | `ΔV = 3.2 km/s`                    |
+| Element    | Use Case                             | Example                        |
+| ---------- | ------------------------------------ | ------------------------------ |
+| `<data>`   | Telemetry, coordinates, measurements | `[ 45.63° N · 8.72° E — VDS ]` |
+| `<samp>`   | System output, readings              | `ALT 12,500 FT`                |
+| `<kbd>`    | Input, commands                      | `CTRL + SHIFT + P`             |
+| `<output>` | Calculated results                   | `ΔV = 3.2 km/s`                |
 
 ## Named Rules
 
 **The Real-Data Rule.** The mono label carries true information — coordinates, dates, altitude, stack, revision — never a decorative "ABOUT" kicker. If the eyebrow doesn't say something true, it doesn't ship.
 
-**The Semantic Element Rule.** Eyebrows use `<data>`, `<samp>`, `<kbd>`, `<output>` per content type — never generic `<span>`. This is machine-readable telemetry.
+**The Semantic Element Rule.** Eyebrows use the semantic element that matches
+their content (`<data>`, `<samp>`, `<kbd>`) when one applies; `Eyebrow` defaults
+to `<span>` for labels that are not telemetry.
 
 **The Extreme Contrast Rule.** Macro and Micro exist at opposite ends of the scale. No intermediate "display" sizes that dilute the contrast. The gap _is_ the hierarchy.
 
@@ -131,6 +125,7 @@ All fonts self-hosted in `/public/fonts/` with `font-display: optional`.
 | Legacy                        | Replacement                    | Reason                                             |
 | ----------------------------- | ------------------------------ | -------------------------------------------------- |
 | Fraunces (serif display)      | Archivo Black (sans display)   | Serif contradicts Swiss Industrial Print archetype |
+| Geist Sans (body)             | Archivo (body)                 | One grotesque family for macro and body            |
 | Geist Mono (micro)            | JetBrains Mono (micro)         | JetBrains Mono purpose-built for telemetry         |
 | `text-hero` (clamp 3-6rem)    | `text-macro` (clamp 4-15rem)   | Larger scale, tighter leading                      |
 | `text-h2` (clamp 2.25-3.5rem) | `text-sector` (clamp 2.5-5rem) | Sector-scale naming per flight profile             |

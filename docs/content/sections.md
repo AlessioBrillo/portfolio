@@ -3,7 +3,7 @@
 > Voice: active, sober, specific. Never sell with adjectives — _show_. "I trained
 > a transformer on an Italian-language corpus" beats "passionate AI enthusiast".
 
-**00 · Hero.** No template "big number". Name in Fraunces + a one-line manifesto.
+**00 · Hero.** No template "big number". Name in Archivo Black + a one-line manifesto.
 Tone: intelligent, high-impact. Direction:
 
 > _"Student of AI and physics. I build things, fly small aircraft, and chase the
@@ -11,7 +11,7 @@ Tone: intelligent, high-impact. Direction:
 > Below it, a micro mono eyebrow with the current role.
 
 **01 · Who.** The three adjectives made concrete, not listed: three short
-sentences that _show_ enterprise, adventure, curiosity. One sober portrait photo.
+sentences that _show_ enterprise, adventure, curiosity. One portrait slot, filled only with a real photo.
 
 **02 · The Mosaic.** The puzzle tiles. Label + one line each.
 
@@ -23,7 +23,8 @@ approach -> result. Where you prove "growing but serious".
 anything is confidential: anonymise ("a client in X") or omit.
 
 **05 · Sky & Sport.** Aviation + the **VDS licence** (ultralight pilot), tennis,
-MTB. Very visual — your photos. Olive and orange breathe here. Aviation is also
+MTB. Visual when real photos land; until then the slots show honest labels.
+Hazard red is the only accent. Aviation is also
 the narrative thread of the whole site; close the circle.
 
 **06 · Experiences.** Curated, high-impact storytelling on the surface; "dig

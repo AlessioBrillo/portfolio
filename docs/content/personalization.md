@@ -4,8 +4,8 @@ Touches that make the site _recognisably yours_ without adding noise. Rule: **on
 flourish per area**, never accumulate.
 
 - **Social / OG card** — the first impression on LinkedIn/WhatsApp is the preview,
-  not the site. Design it: Night background, name in Fraunces, orange thread, one
-  line. Highly curated.
+  not the site. Night background, name in Archivo Black, hazard-red ascent mark,
+  one line. Generated from `docs/design/og-image.svg` with `npm run og`.
 - **Favicon** — a small orange glyph: an abstract wing profile / an ascent arrow.
   Your minimal mark. (The scaffold ships a placeholder ascent-arrow SVG favicon at
   `public/favicon.svg`, linked from `index.html`.) The icon family is derived from

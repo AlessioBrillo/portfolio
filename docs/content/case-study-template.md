@@ -5,7 +5,7 @@
 When a tile opens, it must hold long, detailed text without tiring the reader. A
 fixed structure, filled differently each time:
 
-1. **Cover** — title (Fraunces) + meta (mono): role, year, stack/domain.
+1. **Cover** — title (Archivo Black) + meta (mono): role, year, stack/domain.
 2. **Context** — 2-3 sentences: where you were, why the problem existed.
 3. **Problem** — the real, specific knot.
 4. **Approach** — how you thought (show the brain, not just the result).

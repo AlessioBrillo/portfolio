@@ -11,58 +11,58 @@ day; the descent breaks back into daylight before the night landing. Light and
 dark are not a toggle; they are the journey. (See
 [ADR-0010](docs/adr/0010-flight-profile-tonal-bands.md).)
 
-This repository is also part of the portfolio: it is meant to read as carefully as
-the site itself.
+This repository is part of the portfolio: it is meant to read as carefully as
+the site itself. Code, docs and commits are English-only; the public legal pages
+are Italian (binding) with an English courtesy translation.
 
 ## Tech stack
 
-| Concern                | Choice                                                        |
-| ---------------------- | ------------------------------------------------------------- |
-| Framework / build      | React 19 · Vite 8 · TypeScript 5 (strict)                     |
-| Styling                | Tailwind CSS 4 (CSS-first tokens via `@theme`)                |
-| Reveal motion          | Native CSS, `prefers-reduced-motion` aware                    |
-| Scroll / tonal engine  | Layout-driven scroll handler (ADR-0026)                       |
-| Long-form case studies | MDX                                                           |
-| Routing                | React Router (shareable `/{domain}/{slug}` case-study routes) |
-| Testing                | Vitest + Testing Library                                      |
-| Quality                | ESLint · Prettier · Husky · commitlint · GitHub Actions       |
+| Concern           | Choice                                                        |
+| ----------------- | ------------------------------------------------------------- |
+| Framework / build | React 19 · Vite 8 · TypeScript 5 (strict)                     |
+| Styling           | Tailwind CSS 4 (CSS-first tokens via `@theme`)                |
+| Tonal engine      | Layout-driven scroll handler + pure state function (ADR-0026) |
+| Long-form content | MDX, code-split per case study                                |
+| Routing           | React Router (shareable `/{domain}/{slug}` case-study routes) |
+| Tests             | Vitest + Testing Library + Playwright                         |
+| Quality           | ESLint · Prettier · Husky · commitlint · Woodpecker gate      |
 
 See [`docs/adr/`](docs/adr/) for the reasoning behind each choice.
 
 ## Getting started
 
 ```bash
-npm install      # install dependencies
-npm run dev      # start the dev server at http://localhost:5173
+npm install
+npm run dev        # http://localhost:5173
 ```
 
 ### Scripts
 
-| Script                            | What it does                                |
-| --------------------------------- | ------------------------------------------- |
-| `npm run dev`                     | Vite dev server                             |
-| `npm run build`                   | Type-check then production build to `dist/` |
-| `npm run preview`                 | Preview the production build                |
-| `npm run typecheck`               | `tsc --noEmit`                              |
-| `npm run lint`                    | ESLint over `src/`                          |
-| `npm run format` / `format:check` | Prettier write / check                      |
-| `npm test`                        | Vitest (run once)                           |
-| `npm run test:coverage`           | Vitest with coverage                        |
-| `npm run images`                  | Optimize raw photos into `public/photos/`   |
+| Script                               | What it does                                 |
+| ------------------------------------ | -------------------------------------------- |
+| `npm run dev`                        | Vite dev server                              |
+| `npm run build`                      | Typecheck then production build to `dist/`   |
+| `npm run preview`                    | Preview the production build                 |
+| `npm run typecheck`                  | `tsc --noEmit`                               |
+| `npm run lint`                       | ESLint over `src/`                           |
+| `npm run format` / `format:check`    | Prettier write / check                       |
+| `npm test` / `npm run test:coverage` | Vitest, once / with coverage thresholds      |
+| `npm run e2e` / `e2e:preview`        | Playwright signature harness (dev / preview) |
+| `npm run images`                     | Optimize raw photos into `public/photos/`    |
+| `npm run og`                         | Re-render the social card PNG from its SVG   |
+| `npm run ci` / `ci:domain`           | Local gate / domain-mode artifact check      |
 
 ## Project structure
 
 ```
 src/
 ├─ sections/        # the eight bands of the page (Hero ... Contact)
-├─ components/
-│  ├─ ui/           # small disciplined component set (Button, Eyebrow, MosaicTile, ...)
-│  └─ navigation/   # AltitudeGauge, TopBar
-├─ pages/           # HomePage, CaseStudyPage, NotFoundPage
-├─ content/case-studies/  # MDX case studies + registry
-├─ hooks/           # useReducedMotion, useScrollProgress
-├─ lib/             # cn(), motion + altitude constants
-├─ styles/          # tokens.css, typography.css
+├─ components/      # small disciplined component set + navigation
+├─ pages/           # Home, Archive, Privacy, Legal, CaseStudy, NotFound
+├─ content/         # case studies (MDX), legal copy, content modules
+├─ hooks/           # scroll, altitude, tone and document-head hooks
+├─ lib/             # pure logic: tone, sitemap, legal routes, site identity
+├─ styles/          # tokens.css, typography.css, flight.css
 └─ types/           # domain model
 ```
 
@@ -73,18 +73,25 @@ src/
 | Architecture decisions (ADRs)              | [`docs/adr/`](docs/adr/)                     |
 | Design system (color, type, space, motion) | [`docs/design-system/`](docs/design-system/) |
 | Page architecture, navigation, components  | [`docs/architecture/`](docs/architecture/)   |
-| Content direction & case-study template    | [`docs/content/`](docs/content/)             |
-| Build roadmap                              | [`docs/roadmap.md`](docs/roadmap.md)         |
+| Content direction and pipelines            | [`docs/content/`](docs/content/)             |
+| Status and open inputs                     | [`docs/roadmap.md`](docs/roadmap.md)         |
+| Legal / privacy assessment (internal)      | [`docs/legal/`](docs/legal/)                 |
 
 ## Status
 
-End of Phase 4 — **mosaic + one real case study end-to-end**. The tonal ascent is
-implemented and e2e-validated (climb and descent, `prefers-reduced-motion`
-included); case studies are real `/{domain}/{slug}` MDX routes with per-route
-document head, deterministic back-scroll, and AA-safe typography on every
-surface. Sections beyond Hero/Mosaic/AiPhysics are structural bands awaiting
-content (see the [roadmap](docs/roadmap.md)).
+Phase 6 complete. All eight bands, five long-form case studies, the
+experiences archive and the public legal pages are live; the tonal signature is
+validated in-browser by the Playwright harness in both motion modes. The site
+is launch-ready on a Vercel preview domain; the domain, the `privacy@` alias,
+the CV PDF and sign-off of the aviation figures remain owner inputs.
 
-## License
+The single source of truth for CI is `.woodpecker/ci.yml`. Locally, run the same
+commands on a throwaway copy (`ci-local` where available). See
+[`CONTRIBUTING.md`](CONTRIBUTING.md).
 
-[MIT](LICENSE) © Alessio Brillo
+## Licence
+
+Source code, configuration and build scripts: [MIT](LICENSE). Site content,
+case studies and images: all rights reserved ([CONTENT-LICENSE](CONTENT-LICENSE)).
+Fonts: SIL OFL 1.1 ([public/fonts/OFL.txt](public/fonts/OFL.txt)). Credits are in
+[NOTICE](NOTICE) and on the site's Legal page.
