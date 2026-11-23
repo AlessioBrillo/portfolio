@@ -2,6 +2,8 @@ import type { ReactElement } from 'react';
 import { createBrowserRouter, Outlet, ScrollRestoration } from 'react-router-dom';
 import { HomePage } from '@/pages/HomePage';
 import { ArchivePage } from '@/pages/ArchivePage';
+import { LegalPage } from '@/pages/LegalPage';
+import { PrivacyPage } from '@/pages/PrivacyPage';
 import { CaseStudyPage } from '@/pages/CaseStudyPage';
 import { NotFoundPage } from '@/pages/NotFoundPage';
 
@@ -32,6 +34,9 @@ export const router = createBrowserRouter([
       // The experiences archive (ADR-0019): a real route, like the case
       // studies — shareable and indexable, deep-linkable from the band.
       { path: '/archive', element: <ArchivePage /> },
+      // Legal documents are static routes, ahead of the dynamic study route.
+      { path: '/privacy', element: <PrivacyPage /> },
+      { path: '/legal', element: <LegalPage /> },
       { path: '/:domain/:slug', element: <CaseStudyPage /> },
       { path: '*', element: <NotFoundPage /> },
     ],
