@@ -1,7 +1,12 @@
 # Security Policy
 
 This is a static, content-only personal site with no backend, no authentication,
-and no user data collection. The attack surface is correspondingly small.
+no forms, no cookies and no local storage. It does process technical data: the
+hosting provider receives the usual request metadata (IP address, User-Agent,
+URL, referrer, timestamp), and an env-gated, cookieless Plausible proxy receives
+the IP address transiently to count unique visitors. The processing is described
+in the site's Privacy page and summarised in `docs/legal/analytics-assessment.md`.
+The attack surface is correspondingly small.
 
 ## Reporting a vulnerability
 
@@ -14,9 +19,10 @@ acknowledgement within a reasonable timeframe.
 
 ## Scope notes
 
-- No secrets belong in this repository; configuration for any future analytics or
-  deploy hooks must use environment variables, never committed values.
-- Third-party scripts (if added later) should load with SRI and be audited.
+- No secrets belong in this repository; the analytics and deploy configuration
+  lives in environment variables, never committed values.
+- Third-party scripts load through the same-origin proxy with an optional SRI
+  hash (`VITE_PLAUSIBLE_INTEGRITY`) and are gated on both env vars being set.
 - A production Content Security Policy should be configured at deploy time.
 
 ## Known, accepted hardening debt

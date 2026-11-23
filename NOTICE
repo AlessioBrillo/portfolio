@@ -1,0 +1,25 @@
+THE ASCENT — NOTICES AND CREDITS
+
+Author: Alessio Brillo
+Site: the personal portfolio published at the configured VITE_SITE_URL.
+
+Licences
+--------
+  Source code and build tooling ........ MIT (see LICENSE)
+  Site content, case studies, images ... all rights reserved (see CONTENT-LICENSE)
+  Fonts ............................... SIL Open Font License 1.1 (see public/fonts/OFL.txt)
+
+Typefaces
+---------
+  Archivo .......... Copyright 2020 The Archivo Project Authors (Omnibus-Type)
+  Archivo Black .... Copyright 2017 The Archivo Black Project Authors (Omnibus-Type)
+  JetBrains Mono ... Copyright 2020 The JetBrains Mono Project Authors (JetBrains)
+
+Service providers (see the Privacy page for the data-processing disclosure)
+----------------------------------------------------------------------------
+  Hosting and network ................ Vercel
+  Cookieless analytics ............... Plausible
+
+Photographs, when published, are the author's work or carry their own
+attribution in the page caption. The published Privacy and Legal pages are the
+authoritative public summary of this information.

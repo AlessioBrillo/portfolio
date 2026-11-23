@@ -1,0 +1,27 @@
+CONTENT LICENCE — ALL RIGHTS RESERVED
+
+Copyright (c) 2026 Alessio Brillo
+
+Scope
+-----
+The MIT licence in the root LICENSE file applies to the source code,
+configuration and build scripts of this repository. It does NOT apply to the
+authored material published on the site, which includes but is not limited to:
+
+  - the prose of every page, section and MDX case study (src/content/**);
+  - photographs and other images under public/photos/;
+  - the site's name, branding, design system and visual identity;
+  - documentation that is itself authored content rather than code.
+
+All rights in that material are reserved. You may link to the site and quote
+short passages with attribution, but you may not reproduce, distribute, adapt
+or use it commercially without written permission from the author.
+
+Third-party material
+--------------------
+The font binaries under public/fonts/ are third-party and are distributed under
+the SIL Open Font License 1.1. Their full licence texts are served at
+/fonts/OFL.txt and kept in src/assets/fonts/. They are not covered by this
+CONTENT-LICENSE or by the root MIT licence.
+
+Open-source dependencies keep their own licences as recorded in package-lock.json.
