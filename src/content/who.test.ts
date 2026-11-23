@@ -23,13 +23,11 @@ describe('who content module', () => {
     expect(getWhoPortrait().alt).not.toBe('');
   });
 
-  it('ships a complete responsive asset: intrinsic dimensions and sizes', () => {
+  it('does not present a synthetic image as a real portrait', () => {
     const portrait = getWhoPortrait();
-    expect(portrait.width).toBeTypeOf('number');
-    expect(portrait.height).toBeTypeOf('number');
-    expect(portrait.sizes).not.toBe('');
-    expect(portrait.width!).toBeGreaterThan(0);
-    expect(portrait.height!).toBeGreaterThan(0);
+    expect(portrait.src).toBeUndefined();
+    expect(portrait.sources).toBeUndefined();
+    expect(portrait.alt).toContain('pending');
   });
 
   it('does not expose a mutable live array to callers', () => {

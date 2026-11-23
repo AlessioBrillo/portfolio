@@ -5,12 +5,12 @@ import { ToneProvider } from '@/components/ascent/ToneProvider';
 import { getSportEntries } from '@/content/sky';
 
 describe('SkySport', () => {
-  it('renders every sport entry with its photo alt text', () => {
+  it('renders every sport entry with its labelled photo slot', () => {
     render(<SkySport />);
     for (const entry of getSportEntries()) {
       expect(screen.getByRole('heading', { name: entry.title })).toBeInTheDocument();
       expect(screen.getByText(entry.line)).toBeInTheDocument();
-      expect(screen.getByAltText(entry.image.alt)).toBeInTheDocument();
+      expect(screen.getByText(entry.image.alt)).toBeInTheDocument();
     }
   });
 
@@ -24,7 +24,7 @@ describe('SkySport', () => {
     for (const entry of withoutCaption) {
       const caption = entry.image.caption;
       if (caption) continue;
-      expect(screen.queryByAltText(entry.image.alt)).toBeInTheDocument();
+      expect(screen.getByText(entry.image.alt)).toBeInTheDocument();
     }
   });
 

@@ -22,9 +22,9 @@ describe('Who', () => {
     }
   });
 
-  it('renders the portrait slot with its alt text', () => {
+  it('renders the portrait slot with its honest placeholder label', () => {
     render(<Who />);
-    expect(screen.getByAltText(getWhoPortrait().alt)).toBeInTheDocument();
+    expect(screen.getByText(getWhoPortrait().alt)).toBeInTheDocument();
   });
 
   it('uses the night muted tone for statements when the scene is on night', () => {

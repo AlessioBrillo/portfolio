@@ -37,7 +37,7 @@ export function Hero({ surface = 'scene' }: HeroProps): ReactElement {
           className={`flex items-center gap-3 hero-rise ${prefersReducedMotion ? 'animate-none opacity-100' : ''}`}
         >
           <span aria-hidden className="h-px w-8 bg-accent" />
-          <Eyebrow as="data">[ 45.6306° N · 8.7281° E — VDS ]</Eyebrow>
+          <Eyebrow as="data">[ 45.63° N · 8.72° E — VDS ]</Eyebrow>
         </p>
 
         <h1
