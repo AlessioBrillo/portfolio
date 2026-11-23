@@ -1,0 +1,31 @@
+# Single CI gate. Runs identically in three ways (see ~/.agents/CI.md):
+#   - local, no server:  ci-local            (woodpecker-cli exec)
+#   - server on this machine or on Arch: push the branch
+# Caches are named Docker volumes: portable between Windows and Linux.
+when:
+  - event: [push, manual]
+
+steps:
+  - name: gate
+    image: node:24
+    volumes:
+      - ci-npm:/root/.npm
+    commands:
+      - npm ci
+      - npm run ci
+
+  - name: domain
+    image: node:24
+    commands:
+      - npm run ci:domain
+
+  - name: e2e
+    image: node:24
+    environment:
+      PLAYWRIGHT_BROWSERS_PATH: /ms-playwright
+    volumes:
+      - ci-playwright:/ms-playwright
+    commands:
+      - npx playwright install --with-deps chromium
+      - npm run e2e
+      - npm run e2e:preview
