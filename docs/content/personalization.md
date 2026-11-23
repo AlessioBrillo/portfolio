@@ -6,12 +6,10 @@ flourish per area**, never accumulate.
 - **Social / OG card** — the first impression on LinkedIn/WhatsApp is the preview,
   not the site. Night background, name in Archivo Black, hazard-red ascent mark,
   one line. Generated from `docs/design/og-image.svg` with `npm run og`.
-- **Favicon** — a small orange glyph: an abstract wing profile / an ascent arrow.
-  Your minimal mark. (The scaffold ships a placeholder ascent-arrow SVG favicon at
-  `public/favicon.svg`, linked from `index.html`.) The icon family is derived from
-  that single source: `public/apple-touch-icon.png` (180x180, paper background) and
-  `public/site.webmanifest` — regenerate the PNG from the SVG whenever the glyph
-  changes.
+- **Favicon** — a small hazard-red ascent arrow. `public/favicon.svg` is the
+  single source; `public/apple-touch-icon.png` (180x180, paper background) and
+  `public/site.webmanifest` derive from it. Regenerate the PNG with `npm run icon`
+  whenever the glyph or palette changes.
 - **Metadata that tells the truth** — dates, VDS coordinates, altitude, stack: no
   decorative labels.
 - **One easter egg**, consistent with the curious character — in the Night band, a

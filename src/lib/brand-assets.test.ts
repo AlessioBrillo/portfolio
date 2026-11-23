@@ -1,5 +1,6 @@
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
+import sharp from 'sharp';
 import { describe, expect, it } from 'vitest';
 
 const root = process.cwd();
@@ -27,6 +28,23 @@ describe('brand assets', () => {
     expect(card).toContain('../../public/fonts/ArchivoBlack.woff2');
     expect(card).toContain('../../public/fonts/JetBrainsMono.woff2');
     expect(card).toContain('npm run og');
+  });
+
+  it('renders the touch icon with the current accent and paper, not the old terracotta', async () => {
+    const { data, info } = await sharp(join(root, 'public/apple-touch-icon.png'))
+      .raw()
+      .toBuffer({ resolveWithObject: true });
+    const colors = new Set<string>();
+    for (let offset = 0; offset < data.length; offset += info.channels) {
+      colors.add(
+        [data[offset]!, data[offset + 1]!, data[offset + 2]!]
+          .map((channel) => channel.toString(16).padStart(2, '0'))
+          .join(''),
+      );
+    }
+    expect(colors.has('e61919')).toBe(true);
+    expect(colors.has('f4f4f0')).toBe(true);
+    expect(colors.has('e9622e')).toBe(false);
   });
 
   it('keeps any stale palette or typeface out of the public brand surface', () => {

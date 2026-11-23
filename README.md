@@ -49,7 +49,7 @@ npm run dev        # http://localhost:5173
 | `npm test` / `npm run test:coverage` | Vitest, once / with coverage thresholds      |
 | `npm run e2e` / `e2e:preview`        | Playwright signature harness (dev / preview) |
 | `npm run images`                     | Optimize raw photos into `public/photos/`    |
-| `npm run og`                         | Re-render the social card PNG from its SVG   |
+| `npm run og` / `icon`                | Re-render the social card / touch icon PNG   |
 | `npm run ci` / `ci:domain`           | Local gate / domain-mode artifact check      |
 
 ## Project structure
