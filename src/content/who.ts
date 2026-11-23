@@ -2,8 +2,7 @@ import type { ImageAsset, WhoStatement } from '@/types/domain';
 
 /**
  * The who band (01). Three adjectives made concrete, not listed — each line
- * shows the trait through something the author actually does. The sober
- * portrait is a photo slot awaiting a real photo (roadmap Phase 0/5).
+ * shows the trait through something the author actually does.
  */
 const WHO_STATEMENTS: readonly WhoStatement[] = [
   {
@@ -24,38 +23,22 @@ const WHO_STATEMENTS: readonly WhoStatement[] = [
 ];
 
 /**
- * The portrait slot: a full responsive asset (ADR-0009). Generated from
- * `npm run images -- --src temp-raw-photos` (synthetic test image).
- * Intrinsic 4:5 ratio with `sizes` reserves layout (zero CLS).
+ * The portrait slot. No photograph is committed: synthetic test images were
+ * removed because presenting them as a real portrait was misleading. Until an
+ * author-owned photo is generated through `npm run images` (see
+ * docs/content/photos.md), the asset carries only the honest label that
+ * `ImageBlock` renders in place of an image.
  */
-// AUTO-GENERATED PORTRAIT START
 const PORTRAIT: ImageAsset = {
-  alt: 'A sober portrait of Alessio Brillo',
-  src: '/photos/portrait-4x5-960-b4df065a.jpg',
-  width: 960,
-  height: 1200,
-  sizes: '(min-width: 1024px) 40vw, 100vw',
-  sources: [
-    {
-      type: 'image/avif',
-      srcSet:
-        '/photos/portrait-4x5-480-b4df065a.avif 480w, /photos/portrait-4x5-960-b4df065a.avif 960w',
-    },
-    {
-      type: 'image/webp',
-      srcSet:
-        '/photos/portrait-4x5-480-b4df065a.webp 480w, /photos/portrait-4x5-960-b4df065a.webp 960w',
-    },
-  ],
-} as const;
-// AUTO-GENERATED PORTRAIT END
+  alt: 'Portrait photo pending',
+};
 
 /** The three character statements, as an immutable snapshot. */
 export function getWhoStatements(): readonly WhoStatement[] {
   return WHO_STATEMENTS.map((statement) => Object.freeze({ ...statement }));
 }
 
-/** The portrait slot: a photo-ready asset with real derivatives. */
+/** The portrait slot: a labelled placeholder until a real photo lands. */
 export function getWhoPortrait(): ImageAsset {
   return Object.freeze({ ...PORTRAIT });
 }
