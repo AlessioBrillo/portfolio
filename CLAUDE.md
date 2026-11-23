@@ -55,6 +55,17 @@ Not part of the commit-time gate; run it after touching `TonalScene`,
 `useSceneTonePublisher`, `src/lib/tonal-state.ts`, `src/lib/tone.ts`, the scene-tone context
 (`tone-context`/`ToneProvider`, ADR-0011), or any section's tone/surface props.
 
+## CI gate
+
+GitHub Actions is not the gate. The single source of truth is `.woodpecker/ci.yml`
+(steps: `npm run ci`, `npm run ci:domain`, then `npm run e2e` + `npm run e2e:preview`).
+
+- **Local, no server:** `ci-local` from the repo root (Docker running). Exit 0 = green.
+  Never run `woodpecker-cli exec` directly on the checkout: it bind-mounts the repo and
+  `npm ci` would replace the host `node_modules`.
+- **Server:** push the branch; check `ci/woodpecker/push/ci` with `gh pr checks <n> --watch`.
+- Done / merge-ready means this gate is green on the final tree. See `~/.agents/CI.md`.
+
 ## Current state
 
 **Phase 6 complete (code). Launch-ready on `*.vercel.app`; the domain follows.**
